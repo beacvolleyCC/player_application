@@ -11,30 +11,31 @@
 </head>
 <body>
   <header class="hero">
-    <div class="topbar">
-      <div class="brand-left">
-        <div class="eyebrow">CLUB CONTROL</div>
-        <div class="season-label">2026/27</div>
-      </div>
-      <h1>BEAC Női I.</h1>
-      <div class="header-actions">
-        <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
-        <button class="profile-btn" data-view-jump="profileView">
-          <span class="profile-dot">JT</span>
-          <span class="profile-meta"><b>Játékos Teszt</b><small>Négyes • #12</small></span>
-        </button>
-      </div>
+  <div class="topbar compact-topbar">
+    <div class="brand-left brand-inline">
+      <div class="eyebrow">CLUB CONTROL <span class="season-inline">2026/27</span></div>
     </div>
-  </header>
+    <h1>BEAC Női I.</h1>
+    <div class="header-actions">
+      <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
+      <button class="round-btn" id="helpBtn" aria-label="Súgó">?</button>
+      <button class="profile-btn" data-view-jump="profileView">
+        <span class="profile-dot">JT</span>
+        <span class="profile-meta"><b>Játékos Teszt</b><small>Négyes • #12</small></span>
+      </button>
+    </div>
+  </div>
+</header>
 
   <main class="page">
 
     <section id="homeView" class="view active">
-      <div class="section-head">
+      <div class="home-panel-head">
         <div>
           <h3>Következő alkalmak</h3>
           <p>A következő 14 nap edzései és meccsei.</p>
         </div>
+        <button class="ghost-btn compact-reload" id="homeRefreshBtn" aria-label="Adatok frissítése">↻</button>
       </div>
       <div id="eventList" class="stack"></div>
     </section>
@@ -42,39 +43,34 @@
     <section id="plannerView" class="view">
       <div class="section-head">
         <div>
-          <h3>Tervező</h3>
-          <p>A teljes szezon egyben, szűrhető nézetben.</p>
+          <h3>Menetrend</h3>
+          <p>Teljes szezon, kártya- vagy rácsnézetben.</p>
         </div>
       </div>
-      <div class="filter-bar">
-        <select id="monthFilter" aria-label="Hónap">
-          <option value="all">Teljes szezon</option>
-          <option value="Aug">Augusztus</option>
-          <option value="Szept">Szeptember</option>
-          <option value="Okt">Október</option>
-          <option value="Nov">November</option>
-          <option value="Dec">December</option>
-        </select>
-        <select id="typeFilter" aria-label="Típus">
-          <option value="all">Minden alkalom</option>
-          <option value="Edzés">Csak edzések</option>
-          <option value="Meccs">Csak meccsek</option>
-        </select>
-        <select id="statusFilter" aria-label="Saját státusz">
-          <option value="all">Minden státusz</option>
-          <option value="yes">Jövök</option>
-          <option value="no">Nem jövök</option>
-          <option value="none">Még nem jeleztem</option>
-        </select>
-        <button class="ghost-btn" id="missingOnlyBtn">Csak ahol még nem jeleztem</button>
+      <div class="planner-toolbar">
+        <div class="view-toggle" role="group" aria-label="Nézet">
+          <button class="view-mode-btn active" data-mode="cards">Kártyák</button>
+          <button class="view-mode-btn" data-mode="grid">Rács</button>
+        </div>
+        <div class="filter-bar compact-filters">
+          <select id="monthFilter" aria-label="Hónap">
+            <option value="all">Teljes szezon</option>
+            <option value="Aug">Augusztus</option>
+            <option value="Szept">Szeptember</option>
+            <option value="Okt">Október</option>
+            <option value="Nov">November</option>
+            <option value="Dec">December</option>
+          </select>
+          <select id="typeFilter" aria-label="Típus">
+            <option value="all">Minden alkalom</option>
+            <option value="Edzés">Csak edzések</option>
+            <option value="Meccs">Csak meccsek</option>
+          </select>
+          <button class="ghost-btn" id="missingOnlyBtn">Csak ahol még nem jeleztem</button>
+        </div>
       </div>
       <div class="planner-card">
-        <div class="archive-note">A lezárt alkalmak bent maradnak a szezonlistában, de játékosként már nem módosíthatók.</div>
-        <div class="planner-legend">
-          <span><i class="dot yes"></i> Jövök</span>
-          <span><i class="dot no"></i> Nem jövök</span>
-          <span><i class="dot maybe"></i> Nincs jelzés</span>
-        </div>
+        <div class="archive-note">A lezárt alkalmak bent maradnak, de játékosként már nem módosíthatók.</div>
         <div id="plannerList"></div>
       </div>
     </section>
@@ -205,10 +201,21 @@
 
   <nav class="bottom-nav">
     <button data-view="homeView" class="nav-btn active"><span>⌂</span><small>Kezdőlap</small></button>
-    <button data-view="plannerView" class="nav-btn"><span>▦</span><small>Tervező</small></button>
+    <button data-view="plannerView" class="nav-btn"><span>▦</span><small>Menetrend</small></button>
     <button data-view="statsView" class="nav-btn"><span>◔</span><small>Statisztika</small></button>
     <button data-view="profileView" class="nav-btn"><span>●</span><small>Én</small></button>
   </nav>
+
+
+  <dialog id="helpDialog">
+    <div class="dialog-card">
+      <h3>Jelölések</h3>
+      <p><b>Zöld:</b> jössz. <b>Piros:</b> nem jössz. <b>Semleges:</b> még nem jeleztél.</p>
+      <p><b>🏐</b> edzés · <b>⌂</b> hazai meccs · <b>⌖</b> idegenbeli meccs.</p>
+      <p>Ha „Jövök”-ről visszaállítod semlegesre, a rendszer megerősítést kér. „Nem jövök” esetén indok szükséges.</p>
+      <div class="dialog-actions"><button class="ghost-btn" id="closeHelpBtn">Bezárás</button></div>
+    </div>
+  </dialog>
 
   <dialog id="cancelDialog">
     <form method="dialog" class="dialog-card">

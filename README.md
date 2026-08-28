@@ -84,3 +84,21 @@ Players, Events, Availability, Attendance, AvailabilityLog, Payments, TeamFees, 
 - játékosként a lezárt alkalmak csak olvashatók, a státuszgombok le vannak tiltva;
 - a lezárt sorok szürkítve és „Lezárt” címkével jelennek meg;
 - a demo fix dátuma 2026-09-05, ezért az aug. 30., szept. 1. és szept. 4. alkalmak archívként látszanak.
+
+
+## V8 változások
+- kb. fele magasabb helyett kompakt, 70 px-es fejléc;
+- CLUB CONTROL és 2026/27 egy sorban, azonos tipográfiával;
+- Következő alkalmak külön panel, jobb oldali másodlagos frissítés gombbal;
+- Tervező neve Menetrend;
+- Kártya / Rács nézetváltó;
+- mobilon a szűrők teljes szélességben, egymás alatt;
+- státusz-szűrő kikerült, maradt a hónap, típus és „még nem jeleztem”;
+- 3 állású jelenléti slider: Nem jövök / Nincs jelzés / Jövök;
+- Jövök -> semleges visszaállításnál megerősítés;
+- Nem jövök -> kötelező indok;
+- edzés / hazai meccs / idegenbeli meccs külön ikon és címke;
+- idegenbeli meccsnél kattintható Google Maps link;
+- meccsnél találkozási idő/hely megjelenítés;
+- súgó gomb a fejlécben;
+- játékos kártya és Menetrend rács ugyanazokat az ikonokat használja.

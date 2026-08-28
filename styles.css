@@ -358,3 +358,118 @@ body.dark{--black:#f4f0e6;--muted:#aaa49a;--line:#37332c;--soft:#1b1a18;--card:#
   background:#2a2824;
   color:#aaa49a;
 }
+
+
+/* V8 compact header */
+.compact-topbar{min-height:70px!important;height:70px;padding:0}
+.brand-inline .eyebrow{display:flex;align-items:center;gap:8px}
+.season-inline{font:inherit;letter-spacing:inherit;opacity:1}
+.compact-topbar>h1{font-size:26px}
+.home-panel-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:11px 13px;margin:4px 0 12px;box-shadow:var(--shadow)
+}
+.home-panel-head h3{margin:0;font-size:18px}
+.home-panel-head p{margin:3px 0 0;color:var(--muted);font-size:11px}
+
+/* event icons / match metadata */
+.centered-card{grid-template-columns:46px 1fr auto}
+.centered-card .event-main{padding-left:0!important}
+.event-icon{
+  width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  font-size:22px;background:rgba(255,255,255,.7);border:1px solid var(--line)
+}
+.event-place{font-size:12px;font-weight:800;margin-top:5px}
+.map-link{display:inline-block;margin-top:5px;font-size:11px;font-weight:800;color:inherit;text-decoration:underline;text-underline-offset:2px}
+.meeting-note{
+  display:inline-flex;margin-top:8px;padding:5px 7px;border-radius:7px;
+  background:#fff3bf;border:1px solid #ead681;font-size:11px
+}
+.dark .meeting-note{background:#332b15;border-color:#5f5129}
+
+/* 3-state slider */
+.slider-wrap{padding:10px 14px;border-top:1px solid var(--line);background:var(--card)}
+.attendance-slider{
+  position:relative;display:grid;grid-template-columns:1fr 1fr 1fr;
+  height:38px;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--soft)
+}
+.slider-zone{position:relative;z-index:2;border:0;background:transparent;font-size:11px;font-weight:900;cursor:pointer}
+.slider-thumb{
+  position:absolute;z-index:1;top:3px;width:calc(33.333% - 4px);height:30px;border-radius:999px;
+  left:33.333%;transition:.2s ease;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.13)
+}
+.attendance-slider.yes .slider-thumb{left:66.666%;background:#dcefe1}
+.attendance-slider.no .slider-thumb{left:2px;background:#f4dedd}
+.attendance-slider.none .slider-thumb{left:33.333%}
+.dark .slider-thumb{background:#24211e}
+.dark .attendance-slider.yes .slider-thumb{background:#23422b}
+.dark .attendance-slider.no .slider-thumb{background:#4a2522}
+
+/* only collapsed upper card keeps state tint; details neutral */
+.event-card.status-yes .event-top{background:#edf7ef}
+.event-card.status-no .event-top{background:#fbefee}
+.event-card.status-none .event-top{background:var(--card)}
+.dark .event-card.status-yes .event-top{background:#142218}
+.dark .event-card.status-no .event-top{background:#2a1716}
+.event-card.status-yes,
+.event-card.status-no{background:var(--card)!important}
+.roster,.roster-toggle,.slider-wrap{background:var(--card)!important}
+
+/* Menetrend toolbar */
+.planner-toolbar{display:grid;gap:8px;margin-bottom:10px}
+.view-toggle{display:flex;gap:6px}
+.view-mode-btn{
+  border:1px solid var(--line);background:var(--card);border-radius:9px;padding:7px 10px;
+  font-size:11px;font-weight:900;cursor:pointer
+}
+.view-mode-btn.active{background:var(--black);color:var(--bg);border-color:var(--black)}
+.compact-filters{
+  display:grid;grid-template-columns:minmax(150px,220px) minmax(150px,220px) auto;
+  gap:6px;margin:0
+}
+.compact-filters select,.compact-filters .ghost-btn{min-height:34px!important;height:34px;padding:0 9px;font-size:11px}
+
+/* planner cards */
+.planner-row{
+  grid-template-columns:38px 90px 1fr 220px;
+  gap:10px;padding:10px 12px
+}
+.planner-icon{font-size:20px;align-self:center;text-align:center}
+.planner-main small{display:block;margin-top:3px}
+.planner-row .attendance-slider{height:34px}
+.planner-row .slider-thumb{height:26px}
+
+/* grid view */
+.grid-scroll{overflow:auto}
+.schedule-grid{width:100%;border-collapse:collapse;min-width:900px;font-size:12px}
+.schedule-grid th,.schedule-grid td{border:1px solid var(--line);padding:8px;vertical-align:middle;text-align:left}
+.schedule-grid th{background:var(--soft);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.schedule-grid td small{display:block;color:var(--muted);margin-top:3px}
+.schedule-grid .attendance-slider{min-width:190px;height:34px}
+.schedule-grid .slider-thumb{height:26px}
+.grid-type{font-weight:900;white-space:nowrap}
+.archived-grid-row{opacity:.58;background:var(--soft)}
+
+/* help button */
+#helpBtn{font-weight:900}
+
+/* mobile */
+@media(max-width:760px){
+  .compact-topbar{height:auto!important;min-height:66px!important;padding:8px 0}
+  .compact-topbar>h1{font-size:20px}
+  .profile-meta{display:none}
+  .header-actions{gap:6px}
+  .round-btn{width:36px;height:36px}
+  .profile-dot{width:32px;height:32px}
+  .compact-filters{grid-template-columns:1fr!important}
+  .compact-filters select,.compact-filters .ghost-btn{width:100%;height:38px!important}
+  .planner-row{grid-template-columns:34px 1fr;align-items:start}
+  .planner-date{grid-column:2}
+  .planner-main{grid-column:2}
+  .planner-row .attendance-slider{grid-column:1/-1;width:100%}
+  .centered-card{grid-template-columns:40px 1fr}
+  .count-badge{grid-column:2;justify-self:start;margin-top:8px}
+  .event-main{grid-column:2}
+  .event-icon{grid-column:1;grid-row:1 / span 2}
+}
