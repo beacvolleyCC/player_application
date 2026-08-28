@@ -413,11 +413,17 @@ document.querySelectorAll('.view-mode-btn').forEach(btn=>{
 });
 
 
-document.getElementById('homeRefreshBtn').addEventListener('click',e=>{
+document.getElementById('homeRefreshBtn').addEventListener('click',async e=>{
   const old=e.currentTarget.textContent;
-  e.currentTarget.textContent='✓';
-  renderEvents();
-  renderPlanner();
+  e.currentTarget.textContent='…';
+  try{
+    if(API_URL && currentUserEmail) await loadBootstrap(currentUserEmail);
+    else { renderEvents(); renderPlanner(); }
+    e.currentTarget.textContent='✓';
+  }catch(err){
+    console.error(err);
+    e.currentTarget.textContent='!';
+  }
   setTimeout(()=>e.currentTarget.textContent=old,900);
 });
 
@@ -473,11 +479,18 @@ document.getElementById('settingsDefaultView')?.addEventListener('change',e=>{
   if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
   renderPlanner();
 });
-document.getElementById('settingsRefreshBtn')?.addEventListener('click',e=>{
+document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=>{
   const old=e.currentTarget.textContent;
-  e.currentTarget.textContent='✓ Frissítve';
-  renderEvents(); renderPlanner();
-  setTimeout(()=>e.currentTarget.textContent=old,900);
+  e.currentTarget.textContent='… Frissítés';
+  try{
+    if(API_URL && currentUserEmail) await loadBootstrap(currentUserEmail);
+    else { renderEvents(); renderPlanner(); }
+    e.currentTarget.textContent='✓ Frissítve';
+  }catch(err){
+    console.error(err);
+    e.currentTarget.textContent='! Hiba';
+  }
+  setTimeout(()=>e.currentTarget.textContent=old,1100);
 });
 
 
@@ -513,7 +526,7 @@ function normalizeApiEvent(x){
     date:x.dateLabel || x.date,
     day:x.day || '',
     time:x.timeLabel || `${x.startTime||''}${x.endTime?'–'+x.endTime:''}`,
-    type:x.type==='match'?'Meccs':'Edzés',
+    type:(x.type==='match'||x.type==='Meccs')?'Meccs':'Edzés',
     matchKind:x.homeAway||'',
     title:x.title||'Csapatedzés',
     place:x.venue||'',
@@ -545,6 +558,7 @@ async function apiPost(payload){
 }
 
 function applyBootstrap(j){
+  if(!j || !Array.isArray(j.events)) throw new Error('Hibás eseményadat érkezett a szervertől.');
   if(j.team){ document.getElementById('teamTitle').textContent=j.team.teamName; }
   if(j.player){
     document.getElementById('profileName').textContent=j.player.name;
@@ -553,8 +567,9 @@ function applyBootstrap(j){
     document.getElementById('profileMeta').textContent=meta;
     document.getElementById('profileInitials').textContent=(j.player.name||'JT').split(/\\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
   }
-  events=(j.events||[]).map(normalizeApiEvent);
-  renderEvents(); renderPlanner();
+  events=j.events.map(normalizeApiEvent).filter(e=>e.id && e.date);
+  renderEvents();
+  renderPlanner();
 }
 
 async function loadBootstrap(email){
@@ -564,7 +579,7 @@ async function loadBootstrap(email){
     currentUserEmail=email; localStorage.setItem('cc-user-email',email);
     applyBootstrap(j); document.getElementById('loginOverlay').classList.add('hidden');
     return true;
-  }catch(err){ if(msg) msg.textContent=err.message; return false; }
+  }catch(err){ console.error('Club Control bootstrap hiba:',err); if(msg) msg.textContent=err.message; return false; }
 }
 
 if(API_URL){
