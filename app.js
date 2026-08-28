@@ -78,9 +78,30 @@ function typeIconClass(e){
 }
 function typeIcon(e){
   const cls=typeIconClass(e);
-  if(cls==='training') return `<svg class="event-symbol training" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2"></circle><path d="M8.2 5.1c2.8 2.1 4.7 4.4 5.4 7.1M16.9 6.5c-2.8.7-5.1 2.2-6.9 4.4M5 13.5c3.2-.2 6 .6 8.3 2.4M10.1 19.7c.5-3.1 1.9-5.7 4.4-7.7"></path></svg>`;
-  if(cls==='home') return `<svg class="event-symbol home" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4l8 7.2"></path><path d="M6.5 10v9h11v-9M10 19v-5h4v5"></path><circle cx="18.2" cy="6.2" r="2.1"></circle></svg>`;
-  return `<svg class="event-symbol away" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17c2.7-4.7 5.4-7 8.2-7 2.1 0 3.8 1.1 5.8 3.5"></path><path d="m16.2 12.3 3 1.2-1 3"></path><path d="M7.2 5.2a3 3 0 1 0 0 6c1.9 0 3-1.7 3-3 0-1.7-1.3-3-3-3Z"></path><circle cx="7.2" cy="8.2" r=".7"></circle></svg>`;
+
+  // Recognisable volleyball: outer ball + panel seams.
+  if(cls==='training') return `<svg class="event-symbol training" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="8.4"></circle>
+    <path d="M12 3.6c1.3 2.5 1.8 5 1.4 7.3"></path>
+    <path d="M18.9 7.2c-2.8.1-5.2 1-7 2.8"></path>
+    <path d="M20.2 13.6c-2.5-1.2-5-1.5-7.4-.8"></path>
+    <path d="M14.6 19.9c-.4-2.8-1.6-5.1-3.6-6.8"></path>
+    <path d="M5.3 17.1c2.8-.3 5.1-1.3 6.8-3.1"></path>
+    <path d="M3.7 10.2c2.4 1.4 4.9 1.9 7.4 1.3"></path>
+  </svg>`;
+
+  if(cls==='home') return `<svg class="event-symbol home" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 11.2 12 4l8 7.2"></path>
+    <path d="M6.5 10v9h11v-9M10 19v-5h4v5"></path>
+    <circle cx="18.2" cy="6.2" r="2.1"></circle>
+  </svg>`;
+
+  // Away match: unmistakable map pin with a tiny volleyball inside.
+  return `<svg class="event-symbol away" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 21s6-5.3 6-11a6 6 0 1 0-12 0c0 5.7 6 11 6 11Z"></path>
+    <circle cx="12" cy="10" r="3.1"></circle>
+    <path d="M12 6.9c.6 1 .8 2 .6 3M14.6 8.5c-1 .1-1.9.5-2.6 1.2M9.2 11c1-.2 2 0 2.8.6"></path>
+  </svg>`;
 }
 function typeLabel(e){
   if(e.type==='Edzés') return 'EDZÉS';
@@ -103,7 +124,7 @@ function eventCard(e){
 
   return `<article class="event-card ${cardClass(e)} ${archived?'archived-card':''}">
     <div class="event-collapsed">
-      <div class="event-top centered-card">
+      <div class="event-top centered-card event-open-zone" data-open-event="${e.id}" role="button" tabindex="0" aria-label="${typeLabel(e)} részleteinek megnyitása">
         <div class="event-icon bare-icon">${typeIcon(e)}</div>
         <div class="event-main">
           <div class="event-type">${typeLabel(e)}</div>
@@ -313,6 +334,8 @@ function renderCardSchedule(rows){
 
 function renderPlanner(){
   const rows=filteredPlannerEvents();
+  const jumpBtn=document.getElementById('jumpToCurrentBtn');
+  if(jumpBtn) jumpBtn.hidden = plannerMode!=='grid';
   const settingsToggle=document.getElementById('settingsDetailToggle');
   if(settingsToggle) settingsToggle.checked=detailedMode;
   const defaultView=document.getElementById('settingsDefaultView');
@@ -363,12 +386,31 @@ eventList.addEventListener('click',e=>{
     else neutralizeEvent(ev);
     return;
   }
+
+  // A Maps link remains a normal link instead of opening the event dialog.
+  if(e.target.closest('a')) return;
+
+  const open=e.target.closest('[data-open-event]');
+  if(open){
+    openEventDialog(open.dataset.openEvent);
+    return;
+  }
+
   const rt=e.target.closest('[data-roster]');
   if(rt){
     const box=document.getElementById('roster-'+rt.dataset.roster);
     box.classList.toggle('open');
     rt.textContent=box.classList.contains('open')?'Részletek bezárása ▴':'Részletek megnyitása ▾';
   }
+});
+
+
+eventList.addEventListener('keydown',e=>{
+  if(e.key!=='Enter' && e.key!==' ') return;
+  const open=e.target.closest('[data-open-event]');
+  if(!open) return;
+  e.preventDefault();
+  openEventDialog(open.dataset.openEvent);
 });
 
 plannerList.addEventListener('click',e=>{
@@ -438,13 +480,7 @@ themeBtn.addEventListener('click',()=>{
 
 
 document.getElementById('jumpToCurrentBtn')?.addEventListener('click',()=>{
-  if(plannerMode!=='grid'){
-    plannerMode='grid';
-    localStorage.setItem('cc-planner-mode',plannerMode);
-    renderPlanner();
-    requestAnimationFrame(()=>scrollGridToCurrent('smooth'));
-    return;
-  }
+  if(plannerMode!=='grid') return;
   scrollGridToCurrent('smooth');
 });
 
@@ -470,17 +506,25 @@ document.querySelectorAll('.view-mode-btn').forEach(btn=>{
 
 
 document.getElementById('homeRefreshBtn').addEventListener('click',async e=>{
-  const old=e.currentTarget.textContent;
-  e.currentTarget.textContent='…';
+  const btn=e.currentTarget;
+  if(btn.disabled) return;
+  btn.disabled=true;
+  btn.classList.remove('refresh-error');
+  btn.classList.add('is-refreshing');
+  btn.setAttribute('aria-label','Adatok frissítése folyamatban');
   try{
     if(API_URL && currentUserEmail) await loadBootstrap(currentUserEmail);
     else { renderEvents(); renderPlanner(); }
-    e.currentTarget.textContent='✓';
+    btn.setAttribute('aria-label','Adatok frissítve');
   }catch(err){
     console.error(err);
-    e.currentTarget.textContent='!';
+    btn.classList.add('refresh-error');
+    btn.setAttribute('aria-label','Nem sikerült frissíteni');
+  }finally{
+    btn.classList.remove('is-refreshing');
+    btn.disabled=false;
+    setTimeout(()=>btn.classList.remove('refresh-error'),1300);
   }
-  setTimeout(()=>e.currentTarget.textContent=old,900);
 });
 
 
@@ -570,6 +614,24 @@ document.getElementById('eventDialogContent')?.addEventListener('click',e=>{
   else if(b.dataset.sliderAction==='no'){ eventDialog.close(); askCancel(ev); return; }
   else neutralizeEvent(ev);
   setTimeout(()=>openEventDialog(ev.id),0);
+});
+
+
+function enableBackdropDismiss(dialog, onClose){
+  if(!dialog) return;
+  dialog.addEventListener('click',e=>{
+    if(e.target!==dialog) return;
+    dialog.close();
+    if(typeof onClose==='function') onClose();
+  });
+}
+
+enableBackdropDismiss(document.getElementById('settingsDialog'));
+enableBackdropDismiss(document.getElementById('eventDialog'));
+enableBackdropDismiss(document.getElementById('cancelDialog'),()=>{
+  pendingCancel=null;
+  const note=document.getElementById('cancelNote');
+  if(note) note.value='';
 });
 
 /* V10 remote Google Sheet / Apps Script data source */

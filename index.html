@@ -7,7 +7,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=11.2">
+  <link rel="stylesheet" href="./styles.css?v=11.3">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -45,7 +45,7 @@
           <h3>Következő alkalmak</h3>
           <p>A következő 14 nap edzései és meccsei.</p>
         </div>
-        <button class="ghost-btn compact-reload" id="homeRefreshBtn" aria-label="Adatok frissítése">↻</button>
+        <button class="ghost-btn compact-reload refresh-button" id="homeRefreshBtn" aria-label="Adatok frissítése"><span class="refresh-icon" aria-hidden="true">↻</span></button>
       </div>
       <div id="eventList" class="stack"></div>
     </section>
@@ -57,7 +57,7 @@
           <p>Teljes szezon, szűrhető nézetben.</p>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
-          <button class="view-mode-btn icon-only" id="jumpToCurrentBtn"
+          <button class="jump-current-btn icon-only" id="jumpToCurrentBtn"
                   title="Ugrás a mai / következő alkalomhoz"
                   aria-label="Ugrás a mai / következő alkalomhoz">↧</button>
           <button class="view-mode-btn active icon-only" data-mode="cards" title="Kártyanézet" aria-label="Kártyanézet">▤</button>
@@ -270,7 +270,7 @@
     </form>
   </dialog>
 
-  <script src="./config.js?v=11.2"></script>
-  <script src="./app.js?v=11.2"></script>
+  <script src="./config.js?v=11.3"></script>
+  <script src="./app.js?v=11.3"></script>
 </body>
 </html>

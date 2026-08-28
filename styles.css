@@ -940,3 +940,108 @@ input[type="email"]{
   .transposed-matrix thead th{min-width:78px}
   .matrix-scroll{max-height:61vh}
 }
+
+
+/* V11 FIX3 — jump-to-current is grid-only and deliberately unstyled */
+.jump-current-btn{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+}
+.jump-current-btn:hover{color:var(--black)}
+.jump-current-btn[hidden]{display:none!important}
+.dark .jump-current-btn{color:#aaa49a}
+.dark .jump-current-btn:hover{color:#f3eee4}
+
+/* No gold border/box around the "current" grid row.
+   It is positioned at the top by scrolling, not highlighted. */
+.matrix-current-anchor th,
+.matrix-current-anchor td{
+  border-top:1px solid var(--line)!important;
+}
+.matrix-current-anchor .matrix-event-side{
+  box-shadow:none!important;
+}
+
+/* Card header itself can open the event modal. */
+.event-open-zone{cursor:pointer}
+.event-open-zone:focus{outline:none}
+.event-open-zone:focus-visible{
+  outline:2px solid var(--yellow);
+  outline-offset:-3px;
+  border-radius:10px;
+}
+
+/* Maps link: no browser-blue tap/focus rectangle, but keep keyboard accessibility. */
+.map-link{
+  -webkit-tap-highlight-color:transparent;
+  border-radius:4px;
+}
+.map-link:focus{outline:none}
+.map-link:focus-visible{
+  outline:2px solid var(--yellow);
+  outline-offset:2px;
+}
+
+/* All modal windows correctly follow dark mode. */
+.dark dialog{
+  background:#151412;
+  color:#f3eee4;
+  border:1px solid #37332c;
+}
+.dark dialog .dialog-card{
+  background:#151412;
+  color:#f3eee4;
+}
+.dark dialog .event-dialog-details,
+.dark dialog .settings-section,
+.dark dialog .dialog-roster{
+  color:#f3eee4;
+}
+.dark dialog .event-dialog-details{
+  background:#1b1a18;
+}
+.dark dialog textarea,
+.dark dialog input,
+.dark dialog select{
+  background:#1b1a18;
+  color:#f3eee4;
+  border-color:#4a453d;
+}
+.dark dialog textarea::placeholder,
+.dark dialog input::placeholder{
+  color:#8f887d;
+}
+.dark dialog .chip{
+  background:#1b1a18;
+  color:#f3eee4;
+}
+.dark dialog .chip.no{
+  background:#2a1716;
+  color:#f3eee4;
+}
+
+/* Refresh keeps the same icon and only spins while real data are loading. */
+.refresh-button{
+  display:grid;
+  place-items:center;
+  min-width:36px;
+}
+.refresh-button:disabled{cursor:wait;opacity:.7}
+.refresh-icon{display:inline-block}
+.refresh-button.is-refreshing .refresh-icon{
+  animation:cc-refresh-spin .7s linear infinite;
+}
+.refresh-button.refresh-error .refresh-icon{color:var(--red)}
+@keyframes cc-refresh-spin{
+  to{transform:rotate(360deg)}
+}
+
+/* The revised icons remain colored in both themes. */
+.event-symbol.training{color:#d69f00}
+.event-symbol.home{color:#287d3f}
+.event-symbol.away{color:#3478b8}
+.dark .event-symbol.training{color:#f7bd24!important}
+.dark .event-symbol.home{color:#6fc184!important}
+.dark .event-symbol.away{color:#72aee6!important}
