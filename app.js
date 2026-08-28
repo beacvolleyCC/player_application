@@ -28,11 +28,20 @@ const cancelDialog = document.getElementById('cancelDialog');
 let pendingCancel = null;
 let missingOnly = false;
 let detailedMode = localStorage.getItem('cc-detailed-mode') === 'true';
+let currentPlayerName = 'Te';
 
 
 function persist(event, status, note='') {
   event.status = status;
   event.note = note;
+  const aliases=new Set(['Te',currentPlayerName].filter(Boolean));
+  event.yes=(event.yes||[]).filter(n=>!aliases.has(n));
+  event.no=(event.no||[]).filter(n=>!aliases.has(n));
+  event.unknown=(event.unknown||[]).filter(n=>!aliases.has(n));
+  const label=currentPlayerName && currentPlayerName!=='Te' ? currentPlayerName : 'Te';
+  if(status==='yes') event.yes.push(label);
+  else if(status==='no') event.no.push(label);
+  else event.unknown.push(label);
   saved[event.id] = {status, note, at:new Date().toISOString()};
   localStorage.setItem('cc-demo-state-v2', JSON.stringify(saved));
 }
@@ -46,7 +55,9 @@ function eventStart(e){
   return new Date(y,m-1,d,hh,mm,0);
 }
 function isPast(e){
-  return e.archived===true || eventStart(e) < DEMO_NOW;
+  const liveApi = !!(window.CLUB_CONTROL_CONFIG && window.CLUB_CONTROL_CONFIG.API_URL);
+  const now = liveApi ? new Date() : DEMO_NOW;
+  return e.archived===true || eventStart(e) < now;
 }
 
 function cardClass(e){
@@ -60,10 +71,16 @@ function attendanceCountClass(n){
   if(n >= 6) return 'count-warn';
   return 'count-low';
 }
+function typeIconClass(e){
+  if(e.type==='Edzés') return 'training';
+  if(e.matchKind==='home') return 'home';
+  return 'away';
+}
 function typeIcon(e){
-  if(e.type==='Edzés') return '🏐';
-  if(e.matchKind==='home') return '⌂';
-  return '⌖';
+  const cls=typeIconClass(e);
+  if(cls==='training') return `<svg class="event-symbol training" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2"></circle><path d="M8.2 5.1c2.8 2.1 4.7 4.4 5.4 7.1M16.9 6.5c-2.8.7-5.1 2.2-6.9 4.4M5 13.5c3.2-.2 6 .6 8.3 2.4M10.1 19.7c.5-3.1 1.9-5.7 4.4-7.7"></path></svg>`;
+  if(cls==='home') return `<svg class="event-symbol home" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4l8 7.2"></path><path d="M6.5 10v9h11v-9M10 19v-5h4v5"></path><circle cx="18.2" cy="6.2" r="2.1"></circle></svg>`;
+  return `<svg class="event-symbol away" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17c2.7-4.7 5.4-7 8.2-7 2.1 0 3.8 1.1 5.8 3.5"></path><path d="m16.2 12.3 3 1.2-1 3"></path><path d="M7.2 5.2a3 3 0 1 0 0 6c1.9 0 3-1.7 3-3 0-1.7-1.3-3-3-3Z"></path><circle cx="7.2" cy="8.2" r=".7"></circle></svg>`;
 }
 function typeLabel(e){
   if(e.type==='Edzés') return 'EDZÉS';
@@ -87,7 +104,7 @@ function eventCard(e){
   return `<article class="event-card ${cardClass(e)} ${archived?'archived-card':''}">
     <div class="event-collapsed">
       <div class="event-top centered-card">
-        <div class="event-icon">${typeIcon(e)}</div>
+        <div class="event-icon bare-icon">${typeIcon(e)}</div>
         <div class="event-main">
           <div class="event-type">${typeLabel(e)}</div>
           <div class="event-title">${e.date} • ${e.time}</div>
@@ -127,7 +144,8 @@ function renderEvents(){
   bindSliderDrag();
 }
 
-let plannerMode='cards';
+let plannerMode=localStorage.getItem('cc-planner-mode') || 'cards';
+let calendarCursor=null;
 function plannerStatusControls(e, archived){
   return `<div class="attendance-slider planner-slider ${e.status||'none'}" data-slider="${e.id}">
     <button class="slider-zone left" data-slider-action="yes" data-id="${e.id}" ${archived?'disabled':''}>✓</button>
@@ -136,64 +154,134 @@ function plannerStatusControls(e, archived){
     <span class="slider-thumb"></span>
   </div>`;
 }
-function renderPlanner(){
+function filteredPlannerEvents(){
   const mf = document.getElementById('monthFilter').value;
   const tf = document.getElementById('typeFilter').value;
-  let rows = events.filter(e => {
+  return events.filter(e => {
     if(mf!=='all' && e.month!==mf) return false;
     if(tf!=='all' && e.type!==tf) return false;
     if(missingOnly && e.status!==null) return false;
     return true;
   });
+}
 
-  document.getElementById('detailModeBtn')?.classList.toggle('active', detailedMode);
+function personStatusForEvent(e,name){
+  if(name==='__ME__') return e.status || null;
+  if((e.yes||[]).includes(name)) return 'yes';
+  if((e.no||[]).includes(name)) return 'no';
+  return null;
+}
+
+function teamPeople(rows){
+  const set=new Set();
+  rows.forEach(e=>[...(e.yes||[]),...(e.no||[]),...(e.unknown||[])].forEach(n=>{
+    if(n && n!=='Te' && n!==currentPlayerName) set.add(n);
+  }));
+  return ['__ME__', ...Array.from(set).sort((a,b)=>a.localeCompare(b,'hu'))];
+}
+
+function matrixOwnControl(e, archived){
+  return `<div class="matrix-control ${e.status||'none'}" data-matrix="${e.id}">
+    <button data-slider-action="yes" data-id="${e.id}" ${archived?'disabled':''}>✓</button>
+    <button data-slider-action="none" data-id="${e.id}" ${archived?'disabled':''}>–</button>
+    <button data-slider-action="no" data-id="${e.id}" ${archived?'disabled':''}>✕</button>
+  </div>`;
+}
+
+function renderGridMatrix(rows){
+  const people=teamPeople(rows);
+  return `<div class="matrix-scroll"><table class="season-matrix">
+    <thead><tr><th class="matrix-name sticky-matrix-col">Játékos</th>${rows.map(e=>`<th class="matrix-event-head" title="${typeLabel(e)} · ${e.title} · ${e.date}"><button class="matrix-event-open" data-open-event="${e.id}">${typeIcon(e)}<b>${e.date.slice(5,10)}</b><small>${e.time.split('–')[0]}</small></button></th>`).join('')}</tr></thead>
+    <tbody>${people.map(name=>{
+      const mine=name==='__ME__';
+      const label=mine?'Én':name;
+      return `<tr class="${mine?'my-matrix-row':''}"><th class="matrix-name sticky-matrix-col">${label}</th>${rows.map(e=>{
+        const st=personStatusForEvent(e,name);
+        const archived=isPast(e);
+        if(mine) return `<td class="matrix-cell ${st?'matrix-'+st:'matrix-none'}">${matrixOwnControl(e,archived)}</td>`;
+        return `<td class="matrix-cell ${st?'matrix-'+st:'matrix-none'}"><span class="matrix-status">${st==='yes'?'✓':st==='no'?'✕':'·'}</span></td>`;
+      }).join('')}</tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function eventDateObj(e){
+  const p=e.date.replace(/\.$/,'').split('.').filter(Boolean).map(Number);
+  return new Date(p[0],p[1]-1,p[2]);
+}
+function monthKeyFromDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function calendarMonthLabel(d){
+  return d.toLocaleDateString('hu-HU',{year:'numeric',month:'long'});
+}
+function initialCalendarCursor(rows){
+  const mf=document.getElementById('monthFilter').value;
+  if(mf!=='all'){
+    const match=rows.find(e=>e.month===mf) || events.find(e=>e.month===mf);
+    if(match) return eventDateObj(match);
+  }
+  const upcoming=rows.find(e=>!isPast(e)) || rows[0] || events[0];
+  return upcoming ? eventDateObj(upcoming) : new Date();
+}
+
+function calendarEventChip(e){
+  return `<button class="calendar-event ${cardClass(e)}" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">${typeIcon(e)}<span>${e.time.split('–')[0]}</span><b>${e.type==='Edzés'?'Edzés':(e.matchKind==='home'?'Hazai':'Idegen')}</b></button>`;
+}
+function renderCalendar(rows){
+  if(!calendarCursor) calendarCursor=initialCalendarCursor(rows);
+  const y=calendarCursor.getFullYear(), m=calendarCursor.getMonth();
+  const first=new Date(y,m,1), last=new Date(y,m+1,0);
+  const startOffset=(first.getDay()+6)%7; // Monday first
+  const cells=[];
+  for(let i=0;i<startOffset;i++) cells.push(null);
+  for(let d=1;d<=last.getDate();d++) cells.push(new Date(y,m,d));
+  while(cells.length%7) cells.push(null);
+  const visible=rows.filter(e=>{const d=eventDateObj(e); return d.getFullYear()===y && d.getMonth()===m;});
+  return `<div class="calendar-shell">
+    <div class="calendar-head"><button class="calendar-nav" data-cal-nav="prev" aria-label="Előző hónap">‹</button><h4>${calendarMonthLabel(calendarCursor)}</h4><button class="calendar-nav" data-cal-nav="next" aria-label="Következő hónap">›</button></div>
+    <div class="calendar-weekdays">${['H','K','Sze','Cs','P','Szo','V'].map(x=>`<span>${x}</span>`).join('')}</div>
+    <div class="calendar-grid">${cells.map(d=>{
+      if(!d) return '<div class="calendar-day empty"></div>';
+      const key=monthKeyFromDate(d)+'-'+String(d.getDate()).padStart(2,'0');
+      const dayEvents=visible.filter(e=>{
+        const ed=eventDateObj(e); return ed.getDate()===d.getDate();
+      });
+      return `<div class="calendar-day ${dayEvents.length?'has-events':''}" data-calendar-date="${key}"><div class="calendar-day-no">${d.getDate()}</div><div class="calendar-events">${dayEvents.map(calendarEventChip).join('')}</div></div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+function renderCardSchedule(rows){
+  return rows.map(e=>{
+    const archived=isPast(e);
+    const detail = detailedMode ? `
+      <small>${e.day} • ${e.time} • ${e.place}</small>
+      ${e.meeting?`<small><b>Találkozó:</b> ${e.meeting}</small>`:''}
+      ${e.matchKind==='away' && e.address ? `<small>${e.address}</small>${mapLink(e)}` : ''}
+      ${archived?'<span class="archive-badge">Lezárt</span>':''}
+    ` : '';
+    return `<div class="planner-row ${cardClass(e)} ${archived?'archived-row':''}">
+      <div class="planner-icon bare-icon">${typeIcon(e)}</div>
+      <div class="planner-main"><b>${e.date} · ${e.title}</b>${detail}</div>
+      <div class="planner-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
+      ${plannerStatusControls(e,archived)}
+    </div>`;
+  }).join('') || `<div class="empty-state">Nincs találat a szűrésre.</div>`;
+}
+
+function renderPlanner(){
+  const rows=filteredPlannerEvents();
   const settingsToggle=document.getElementById('settingsDetailToggle');
   if(settingsToggle) settingsToggle.checked=detailedMode;
+  const defaultView=document.getElementById('settingsDefaultView');
+  if(defaultView) defaultView.value=localStorage.getItem('cc-planner-mode') || 'cards';
 
-  if(plannerMode==='grid'){
-    plannerList.innerHTML = `<div class="grid-list">${rows.map(e=>{
-      const archived=isPast(e);
-      const detail = detailedMode ? `
-        <div class="grid-detail">
-          <span>${typeLabel(e)}</span>
-          <span>${e.day} • ${e.time}</span>
-          <span>${e.place}</span>
-          ${e.meeting?`<span><b>Találkozó:</b> ${e.meeting}</span>`:''}
-          ${e.matchKind==='away' && e.address ? `<span>${e.address} ${mapLink(e)}</span>` : ''}
-          ${archived?'<span class="archive-badge">Lezárt</span>':''}
-        </div>` : '';
-      return `<div class="grid-event-card ${cardClass(e)} ${archived?'archived-grid-row':''}">
-        <div class="grid-event-id">
-          <span class="grid-event-icon">${typeIcon(e)}</span>
-          <div>
-            <b>${e.date} · ${e.title}</b>
-            ${detail}
-          </div>
-        </div>
-        <div class="grid-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
-        ${plannerStatusControls(e,archived)}
-      </div>`;
-    }).join('')}</div>`;
-  } else {
-    plannerList.innerHTML = rows.map(e=>{
-      const archived=isPast(e);
-      const detail = detailedMode ? `
-        <small>${e.day} • ${e.time} • ${e.place}</small>
-        ${e.meeting?`<small><b>Találkozó:</b> ${e.meeting}</small>`:''}
-        ${e.matchKind==='away' && e.address ? `<small>${e.address}</small>${mapLink(e)}` : ''}
-        ${archived?'<span class="archive-badge">Lezárt</span>':''}
-      ` : '';
-      return `<div class="planner-row ${cardClass(e)} ${archived?'archived-row':''}">
-        <div class="planner-icon">${typeIcon(e)}</div>
-        <div class="planner-main">
-          <b>${e.date} · ${e.title}</b>
-          ${detail}
-        </div>
-        <div class="planner-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
-        ${plannerStatusControls(e,archived)}
-      </div>`;
-    }).join('') || `<div class="empty-state">Nincs találat a szűrésre.</div>`;
-  }
+  document.querySelectorAll('.view-mode-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.mode===plannerMode));
+
+  if(plannerMode==='grid') plannerList.innerHTML=renderGridMatrix(rows);
+  else if(plannerMode==='calendar') plannerList.innerHTML=renderCalendar(rows);
+  else plannerList.innerHTML=renderCardSchedule(rows);
 
   bindSliderDrag();
 }
@@ -240,10 +328,18 @@ eventList.addEventListener('click',e=>{
 });
 
 plannerList.addEventListener('click',e=>{
+  const open=e.target.closest('[data-open-event]');
+  if(open){ openEventDialog(open.dataset.openEvent); return; }
+  const nav=e.target.closest('[data-cal-nav]');
+  if(nav){
+    if(!calendarCursor) calendarCursor=initialCalendarCursor(filteredPlannerEvents());
+    calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+(nav.dataset.calNav==='next'?1:-1),1);
+    renderPlanner(); return;
+  }
   const b=e.target.closest('[data-slider-action]');
   if(!b) return;
   const ev=events.find(x=>x.id===b.dataset.id);
-  if(isPast(ev)) return;
+  if(!ev || isPast(ev)) return;
   if(b.dataset.sliderAction==='yes') setYes(ev);
   else if(b.dataset.sliderAction==='no') askCancel(ev);
   else neutralizeEvent(ev);
@@ -268,6 +364,7 @@ document.getElementById('confirmCancel').addEventListener('click',ev=>{
   document.getElementById(id).addEventListener('change',()=>{
     missingOnly=false;
     document.getElementById('missingOnlyBtn').classList.remove('active-filter');
+    if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
     renderPlanner();
   });
 });
@@ -309,7 +406,8 @@ if('serviceWorker' in navigator){
 document.querySelectorAll('.view-mode-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     plannerMode=btn.dataset.mode;
-    document.querySelectorAll('.view-mode-btn').forEach(x=>x.classList.toggle('active',x===btn));
+    localStorage.setItem('cc-planner-mode',plannerMode);
+    if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
     renderPlanner();
   });
 });
@@ -369,19 +467,41 @@ document.getElementById('settingsDetailToggle')?.addEventListener('change',e=>{
   renderEvents();
   renderPlanner();
 });
+document.getElementById('settingsDefaultView')?.addEventListener('change',e=>{
+  plannerMode=e.target.value;
+  localStorage.setItem('cc-planner-mode',plannerMode);
+  if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
+  renderPlanner();
+});
 document.getElementById('settingsRefreshBtn')?.addEventListener('click',e=>{
   const old=e.currentTarget.textContent;
   e.currentTarget.textContent='✓ Frissítve';
   renderEvents(); renderPlanner();
   setTimeout(()=>e.currentTarget.textContent=old,900);
 });
-document.getElementById('detailModeBtn')?.addEventListener('click',()=>{
-  detailedMode=!detailedMode;
-  localStorage.setItem('cc-detailed-mode', detailedMode ? 'true' : 'false');
-  renderEvents();
-  renderPlanner();
-});
 
+
+
+const eventDialog=document.getElementById('eventDialog');
+function eventDialogRoster(e){
+  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>`<span class="chip">${n}</span>`).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>`<span class="chip no">${n}</span>`).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>`<span class="chip">${n}</span>`).join('')}</div></div></div>`;
+}
+function openEventDialog(eventId){
+  const e=events.find(x=>x.id===eventId); if(!e) return;
+  const archived=isPast(e);
+  document.getElementById('eventDialogContent').innerHTML=`<div class="event-dialog-title"><div class="bare-icon large-symbol">${typeIcon(e)}</div><div><div class="event-type">${typeLabel(e)}</div><h3>${e.title}</h3><p>${e.date} • ${e.day} • ${e.time}</p></div><strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong></div>${detailedMode?`<div class="event-dialog-details"><p><b>Helyszín:</b> ${e.place||'–'}</p>${e.address?`<p>${e.address} ${mapLink(e)}</p>`:''}${e.meeting?`<p><b>Találkozó:</b> ${e.meeting}</p>`:''}</div>`:''}<div class="event-dialog-slider">${plannerStatusControls(e,archived)}</div>${eventDialogRoster(e)}`;
+  if(!eventDialog.open) eventDialog.showModal();
+  bindSliderDrag();
+}
+document.getElementById('closeEventDialogBtn')?.addEventListener('click',()=>eventDialog.close());
+document.getElementById('eventDialogContent')?.addEventListener('click',e=>{
+  const b=e.target.closest('[data-slider-action]'); if(!b) return;
+  const ev=events.find(x=>x.id===b.dataset.id); if(!ev || isPast(ev)) return;
+  if(b.dataset.sliderAction==='yes') setYes(ev);
+  else if(b.dataset.sliderAction==='no'){ eventDialog.close(); askCancel(ev); return; }
+  else neutralizeEvent(ev);
+  setTimeout(()=>openEventDialog(ev.id),0);
+});
 
 /* V10 remote Google Sheet / Apps Script data source */
 const API_URL = (window.CLUB_CONTROL_CONFIG && window.CLUB_CONTROL_CONFIG.API_URL || '').trim();
@@ -428,6 +548,7 @@ function applyBootstrap(j){
   if(j.team){ document.getElementById('teamTitle').textContent=j.team.teamName; }
   if(j.player){
     document.getElementById('profileName').textContent=j.player.name;
+    currentPlayerName=j.player.name||'Te';
     const meta=[j.player.position, j.player.jerseyNo ? '#'+j.player.jerseyNo : ''].filter(Boolean).join(' • ');
     document.getElementById('profileMeta').textContent=meta;
     document.getElementById('profileInitials').textContent=(j.player.name||'JT').split(/\\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();

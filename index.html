@@ -59,7 +59,7 @@
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
           <button class="view-mode-btn active icon-only" data-mode="cards" title="Kártyanézet" aria-label="Kártyanézet">▤</button>
           <button class="view-mode-btn icon-only" data-mode="grid" title="Rácsnézet" aria-label="Rácsnézet">▦</button>
-          <button class="detail-mode-btn icon-only" id="detailModeBtn" title="Részletes nézet" aria-label="Részletes nézet">≣</button>
+          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet" aria-label="Naptárnézet">▣</button>
         </div>
       </div>
       <div class="planner-toolbar">
@@ -223,11 +223,19 @@
           <span><b>Részletes nézet</b><small>Helyszín, találkozó, Maps-link és további eseményadatok.</small></span>
           <input type="checkbox" id="settingsDetailToggle">
         </label>
+        <label class="settings-select-row">
+          <span><b>Alapértelmezett Menetrend nézet</b><small>Ezt nyitja meg legközelebb a Menetrend.</small></span>
+          <select id="settingsDefaultView">
+            <option value="cards">Kártya</option>
+            <option value="grid">Rács</option>
+            <option value="calendar">Naptár</option>
+          </select>
+        </label>
       </div>
       <div class="settings-section">
         <h4>Jelölések</h4>
         <p><b>Zöld:</b> jössz. <b>Piros:</b> nem jössz. <b>Semleges:</b> még nem jeleztél.</p>
-        <p><b>🏐</b> edzés · <b>⌂</b> hazai meccs · <b>⌖</b> idegenbeli meccs.</p>
+        <p><b>Labda:</b> edzés · <b>Ház:</b> hazai meccs · <b>Útvonal:</b> idegenbeli meccs.</p>
       </div>
       <div class="settings-section">
         <h4>Adatok</h4>
@@ -235,6 +243,14 @@
         <button class="ghost-btn" id="logoutBtn">Kijelentkezés</button>
       </div>
       <div class="dialog-actions"><button class="ghost-btn" id="closeSettingsBtn">Bezárás</button></div>
+    </div>
+  </dialog>
+
+
+  <dialog id="eventDialog" class="event-dialog">
+    <div class="dialog-card event-dialog-card">
+      <div id="eventDialogContent"></div>
+      <div class="dialog-actions"><button class="ghost-btn" id="closeEventDialogBtn">Bezárás</button></div>
     </div>
   </dialog>
 
