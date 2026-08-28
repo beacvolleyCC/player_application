@@ -102,3 +102,26 @@ Players, Events, Availability, Attendance, AvailabilityLog, Payments, TeamFees, 
 - meccsnél találkozási idő/hely megjelenítés;
 - súgó gomb a fejlécben;
 - játékos kártya és Menetrend rács ugyanazokat az ikonokat használja.
+
+
+## V9 változások
+- Jövök balra, Nincs jelzés középen, Nem jövök jobbra;
+- a háromállású vezérlő kattintható és húzható;
+- a teljes összecsukott kártya, a sliderrel együtt, zöld/piros; a Részletek mindig semleges;
+- a slider előtti elválasztóvonal kikerült, csak a Részletek előtt marad vonal;
+- létszám a jobb felső sarokban, háttérbadge nélkül; 10+ zöld, 6–9 sárga, 6 alatt piros;
+- az idegenbeli meccs extra adatai kompaktak és csak Részletes módban jelennek meg;
+- Menetrend: kártya/rács nézet ikonokkal, felirat nélkül, a címmel egy sorban;
+- külön Részletes nézet kapcsoló, mindkét menetrend-nézetre;
+- a rácsnézet kompakt kártyarács lett, nem külön Dátum/Típus/Alkalom oszlopos tábla;
+- a rácsnézetben is ugyanaz a 3 állású jelenléti vezérlő és állapotszínezés működik;
+- a kérdőjel kikerült a fejlécből;
+- Profil > Beállítások panelből nyílik a súgó, részletes nézet és kézi adatfrissítés.
+
+
+## V10
+- Google Sheet / Apps Script backend csatlakozás;
+- emailhez kötött teszt-belépés;
+- valódi Events / Availability adatlekérés és státuszmentés;
+- a három csapat szeptemberi tesztadatbázisához előkészítve;
+- `config.js`-ben állítható Apps Script Web App URL.

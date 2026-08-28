@@ -10,18 +10,28 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <div class="login-overlay hidden" id="loginOverlay">
+    <div class="login-card">
+      <div class="eyebrow">CLUB CONTROL</div>
+      <h2>Belépés</h2>
+      <p>Írd be azt az email címet, amellyel a csapatban szerepelsz.</p>
+      <input type="email" id="loginEmail" placeholder="email@pelda.hu" autocomplete="email">
+      <button class="login-btn" id="loginBtn">Belépés</button>
+      <div class="login-msg" id="loginMsg"></div>
+      <small class="login-note">Tesztverzió: egyelőre email-azonosítás, kódos hitelesítést a következő körben kötünk rá.</small>
+    </div>
+  </div>
   <header class="hero">
   <div class="topbar compact-topbar">
     <div class="brand-left brand-inline">
       <div class="eyebrow">CLUB CONTROL <span class="season-inline">2026/27</span></div>
     </div>
-    <h1>BEAC Női I.</h1>
+    <h1 id="teamTitle">BEAC Női I.</h1>
     <div class="header-actions">
       <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
-      <button class="round-btn" id="helpBtn" aria-label="Súgó">?</button>
       <button class="profile-btn" data-view-jump="profileView">
-        <span class="profile-dot">JT</span>
-        <span class="profile-meta"><b>Játékos Teszt</b><small>Négyes • #12</small></span>
+        <span class="profile-dot" id="profileInitials">JT</span>
+        <span class="profile-meta"><b id="profileName">Játékos Teszt</b><small id="profileMeta">Négyes • #12</small></span>
       </button>
     </div>
   </div>
@@ -41,17 +51,18 @@
     </section>
 
     <section id="plannerView" class="view">
-      <div class="section-head">
+      <div class="section-head planner-title-row">
         <div>
           <h3>Menetrend</h3>
-          <p>Teljes szezon, kártya- vagy rácsnézetben.</p>
+          <p>Teljes szezon, szűrhető nézetben.</p>
+        </div>
+        <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
+          <button class="view-mode-btn active icon-only" data-mode="cards" title="Kártyanézet" aria-label="Kártyanézet">▤</button>
+          <button class="view-mode-btn icon-only" data-mode="grid" title="Rácsnézet" aria-label="Rácsnézet">▦</button>
+          <button class="detail-mode-btn icon-only" id="detailModeBtn" title="Részletes nézet" aria-label="Részletes nézet">≣</button>
         </div>
       </div>
       <div class="planner-toolbar">
-        <div class="view-toggle" role="group" aria-label="Nézet">
-          <button class="view-mode-btn active" data-mode="cards">Kártyák</button>
-          <button class="view-mode-btn" data-mode="grid">Rács</button>
-        </div>
         <div class="filter-bar compact-filters">
           <select id="monthFilter" aria-label="Hónap">
             <option value="all">Teljes szezon</option>
@@ -70,7 +81,6 @@
         </div>
       </div>
       <div class="planner-card">
-        <div class="archive-note">A lezárt alkalmak bent maradnak, de játékosként már nem módosíthatók.</div>
         <div id="plannerList"></div>
       </div>
     </section>
@@ -181,19 +191,17 @@
       </div>
 
       <div class="card">
-        <h4>Alkalmazás</h4>
-        <div class="detail-row">
-          <span>Adatok frissítése</span>
-          <button class="ghost-btn compact-reload" id="manualReloadBtn">↻ Újratöltés</button>
-        </div>
-        <p class="subtle-help">Csak akkor használd, ha valami nem frissül megfelelően.</p>
+        <h4>Beállítások</h4>
+        <button class="settings-row" id="openSettingsBtn">
+          <span><b>Megjelenés és segítség</b><small>Jelölések, részletes nézet és adatfrissítés</small></span>
+          <span class="settings-arrow">›</span>
+        </button>
       </div>
 
       <div class="card info-card">
         <h4>Hasznos infók</h4>
         <p><b>Bérletvásárlás:</b> BEAC webshop</p>
         <p><b>Edzői díj:</b> 8 000 Ft / hó, határidő minden hónap 10.</p>
-        <p><b>Mez:</b> 12 000 Ft</p>
         <p><b>Edzéshelyszín:</b> Bogdánfy Sportcsarnok</p>
       </div>
     </section>
@@ -206,14 +214,27 @@
     <button data-view="profileView" class="nav-btn"><span>●</span><small>Én</small></button>
   </nav>
 
-
-  <dialog id="helpDialog">
-    <div class="dialog-card">
-      <h3>Jelölések</h3>
-      <p><b>Zöld:</b> jössz. <b>Piros:</b> nem jössz. <b>Semleges:</b> még nem jeleztél.</p>
-      <p><b>🏐</b> edzés · <b>⌂</b> hazai meccs · <b>⌖</b> idegenbeli meccs.</p>
-      <p>Ha „Jövök”-ről visszaállítod semlegesre, a rendszer megerősítést kér. „Nem jövök” esetén indok szükséges.</p>
-      <div class="dialog-actions"><button class="ghost-btn" id="closeHelpBtn">Bezárás</button></div>
+  <dialog id="settingsDialog">
+    <div class="dialog-card settings-dialog-card">
+      <h3>Beállítások</h3>
+      <div class="settings-section">
+        <h4>Menetrend</h4>
+        <label class="switch-row">
+          <span><b>Részletes nézet</b><small>Helyszín, találkozó, Maps-link és további eseményadatok.</small></span>
+          <input type="checkbox" id="settingsDetailToggle">
+        </label>
+      </div>
+      <div class="settings-section">
+        <h4>Jelölések</h4>
+        <p><b>Zöld:</b> jössz. <b>Piros:</b> nem jössz. <b>Semleges:</b> még nem jeleztél.</p>
+        <p><b>🏐</b> edzés · <b>⌂</b> hazai meccs · <b>⌖</b> idegenbeli meccs.</p>
+      </div>
+      <div class="settings-section">
+        <h4>Adatok</h4>
+        <button class="ghost-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
+        <button class="ghost-btn" id="logoutBtn">Kijelentkezés</button>
+      </div>
+      <div class="dialog-actions"><button class="ghost-btn" id="closeSettingsBtn">Bezárás</button></div>
     </div>
   </dialog>
 
@@ -230,6 +251,7 @@
     </form>
   </dialog>
 
+  <script src="./config.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
