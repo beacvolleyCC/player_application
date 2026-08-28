@@ -1,21 +1,31 @@
 {
-  "name": "Club Control – Versenycsapat",
+  "name": "Club Control Manager",
   "short_name": "Club Control",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f4f1",
-  "theme_color": "#f7b700",
+  "theme_color": "#ffc400",
+  "description": "Club Control Manager – BEAC Röplabda admin PWA",
   "icons": [
     {
       "src": "./icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "./icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
