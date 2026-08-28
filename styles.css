@@ -1045,3 +1045,310 @@ input[type="email"]{
 .dark .event-symbol.training{color:#f7bd24!important}
 .dark .event-symbol.home{color:#6fc184!important}
 .dark .event-symbol.away{color:#72aee6!important}
+
+
+/* V11 FIX4 — full collapsed event card carries the player's status colour */
+.event-card.status-yes .event-collapsed{
+  background:#edf7ef !important;
+}
+.event-card.status-no .event-collapsed{
+  background:#fbefee !important;
+}
+.event-card.status-none .event-collapsed{
+  background:var(--card) !important;
+}
+.event-card.status-yes .event-top,
+.event-card.status-yes .slider-wrap,
+.event-card.status-no .event-top,
+.event-card.status-no .slider-wrap,
+.event-card.status-none .event-top,
+.event-card.status-none .slider-wrap{
+  background:transparent !important;
+}
+.dark .event-card.status-yes .event-collapsed{
+  background:#142218 !important;
+}
+.dark .event-card.status-no .event-collapsed{
+  background:#2a1716 !important;
+}
+.dark .event-card.status-none .event-collapsed{
+  background:#151412 !important;
+}
+
+/* The expanded Details section stays neutral in every status. */
+.event-card .roster-toggle,
+.event-card .roster{
+  background:var(--card) !important;
+}
+.dark .event-card .roster-toggle,
+.dark .event-card .roster{
+  background:#151412 !important;
+}
+
+/* V11 FIX4 — no gold frame/column emphasis in grid view.
+   The signed-in player is already the first player column. */
+.current-player-head{
+  background:var(--soft) !important;
+  color:inherit !important;
+}
+.current-player-cell{
+  box-shadow:none !important;
+}
+.dark .current-player-head{
+  background:#23211e !important;
+  color:#f3eee4 !important;
+}
+.matrix-current-anchor th,
+.matrix-current-anchor td{
+  border-top:1px solid var(--line) !important;
+}
+.matrix-current-anchor .matrix-event-side{
+  box-shadow:none !important;
+}
+
+
+/* V11 FIX5 — past events stay visible, but clearly recede */
+.archived-row,
+.matrix-past-row,
+.archived-card{
+  opacity:.46 !important;
+  filter:saturate(.45);
+}
+.archived-row:hover,
+.matrix-past-row:hover,
+.archived-card:hover{
+  opacity:.58 !important;
+}
+
+/* No jump-arrow button anymore. */
+.jump-current-btn{
+  display:none !important;
+}
+
+/* Subtle marker for today's date in calendar view. */
+.calendar-today{
+  background:rgba(247,183,0,.055) !important;
+  box-shadow:inset 0 0 0 1px rgba(247,183,0,.12);
+}
+.dark .calendar-today{
+  background:rgba(247,183,0,.07) !important;
+  box-shadow:inset 0 0 0 1px rgba(247,183,0,.16);
+}
+.calendar-today .calendar-date-number,
+.calendar-today .day-number{
+  font-weight:900;
+}
+
+/* If the calendar uses data-calendar-date cells, keep the same restrained styling. */
+[data-calendar-date].calendar-today{
+  background:rgba(247,183,0,.055) !important;
+}
+.dark [data-calendar-date].calendar-today{
+  background:rgba(247,183,0,.07) !important;
+}
+
+
+/* V11 FIX6 — one-time payments are not forced into the monthly grid */
+.one-time-payments{
+  margin-top:7px;
+}
+.one-time-payment-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:42px;
+  padding:9px 11px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--card);
+  font-size:12px;
+}
+.one-time-payment-row>span{
+  font-weight:900;
+}
+.one-time-paid{
+  color:var(--green);
+  font-size:11px;
+  white-space:nowrap;
+}
+.dark .one-time-payment-row{
+  background:#151412;
+}
+
+/* V11 FIX6 — custom settings toggle: no browser-blue selection/focus frame */
+.switch-row input[type="checkbox"]{
+  -webkit-appearance:none;
+  appearance:none;
+  flex:0 0 auto;
+  width:36px;
+  height:20px;
+  margin:0;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:#d8d8d4;
+  position:relative;
+  cursor:pointer;
+  outline:none;
+  box-shadow:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .18s ease,border-color .18s ease;
+}
+.switch-row input[type="checkbox"]::after{
+  content:"";
+  position:absolute;
+  width:14px;
+  height:14px;
+  left:2px;
+  top:2px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.22);
+  transition:transform .18s ease;
+}
+.switch-row input[type="checkbox"]:checked{
+  background:var(--yellow);
+  border-color:var(--yellow-dark);
+}
+.switch-row input[type="checkbox"]:checked::after{
+  transform:translateX(16px);
+}
+.switch-row input[type="checkbox"]:focus{
+  outline:none;
+  box-shadow:none;
+}
+.switch-row input[type="checkbox"]:focus-visible{
+  outline:2px solid rgba(247,183,0,.45);
+  outline-offset:3px;
+}
+.dark .switch-row input[type="checkbox"]{
+  background:#45413a;
+  border-color:#5b554b;
+}
+.dark .switch-row input[type="checkbox"]:checked{
+  background:#c89b2c;
+  border-color:#d8aa35;
+}
+
+
+/* V11 FIX7 — same vertical rhythm below the yellow header as between content panels */
+.page{
+  padding-top:12px !important;
+}
+@media(max-width:760px){
+  .page{
+    padding-top:10px !important;
+  }
+}
+
+
+/* V11 FIX8 — clicking/tapping an event card must not leave a yellow selection frame */
+.event-open-zone,
+.event-open-zone:focus,
+.event-open-zone:active{
+  outline:none !important;
+  box-shadow:none !important;
+}
+.event-open-zone:focus-visible{
+  outline:none !important;
+  box-shadow:none !important;
+}
+.event-card:focus,
+.event-card:focus-visible,
+.event-card:active{
+  outline:none !important;
+  box-shadow:var(--shadow) !important;
+}
+
+
+/* V11 FIX9 — compact, aligned grid */
+.matrix-scroll{
+  padding-left:0 !important;
+}
+.matrix-table{
+  margin-left:0 !important;
+  width:max-content;
+  min-width:100%;
+}
+.matrix-event-side{
+  left:0 !important;
+  min-width:136px !important;
+  max-width:136px !important;
+  padding:7px 8px !important;
+  box-sizing:border-box;
+  vertical-align:middle;
+}
+.matrix-event-side .grid-headcount{
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  font-weight:900;
+  color:var(--text);
+  opacity:.72;
+}
+.matrix-table th:not(.matrix-event-side),
+.matrix-table td:not(.matrix-event-side){
+  min-width:58px !important;
+  width:58px !important;
+  max-width:58px !important;
+  padding:5px 4px !important;
+}
+.matrix-player-name{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  line-height:1.05;
+  font-size:10px !important;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.grid-jersey-no{
+  display:block;
+  font-size:9px;
+  opacity:.62;
+  font-weight:800;
+}
+.matrix-table .status-cell{
+  padding:4px !important;
+}
+.matrix-table .status-cell button,
+.matrix-table .matrix-status-btn{
+  min-width:42px !important;
+  width:42px !important;
+  height:30px !important;
+  padding:0 !important;
+}
+
+/* No selection/focus frame on grid cells. */
+.matrix-table button:focus,
+.matrix-table button:active,
+.matrix-table button:focus-visible,
+.matrix-table td:focus,
+.matrix-table td:focus-visible{
+  outline:none !important;
+  box-shadow:none !important;
+}
+
+/* Keep the first event column visually inside the card on narrow screens. */
+@media(max-width:760px){
+  .matrix-event-side{
+    min-width:126px !important;
+    max-width:126px !important;
+  }
+  .matrix-table th:not(.matrix-event-side),
+  .matrix-table td:not(.matrix-event-side){
+    min-width:54px !important;
+    width:54px !important;
+    max-width:54px !important;
+  }
+}
+
+/* Profile jersey metadata is shown only when actual admin data exists. */
+[data-profile-field="jerseyNumber"][hidden],
+[data-profile-field="jerseySize"][hidden]{
+  display:none !important;
+}

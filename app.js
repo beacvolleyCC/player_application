@@ -124,7 +124,7 @@ function eventCard(e){
 
   return `<article class="event-card ${cardClass(e)} ${archived?'archived-card':''}">
     <div class="event-collapsed">
-      <div class="event-top centered-card event-open-zone" data-open-event="${e.id}" role="button" tabindex="0" aria-label="${typeLabel(e)} részleteinek megnyitása">
+      <div class="event-top centered-card event-open-zone" data-open-event="${e.id}" aria-label="${typeLabel(e)} részleteinek megnyitása">
         <div class="event-icon bare-icon">${typeIcon(e)}</div>
         <div class="event-main">
           <div class="event-type">${typeLabel(e)}</div>
@@ -148,7 +148,7 @@ function eventCard(e){
       </div>
     </div>
 
-    <button class="roster-toggle" data-roster="${e.id}">Részletek megnyitása ▾</button>
+    <button class="roster-toggle" data-roster="${e.id}">Névsor</button>
     <div class="roster" id="roster-${e.id}">
       <div class="roster-group"><b>Jönnek (${e.yes.length})</b><div class="chips">${e.yes.map(n=>`<span class="chip">${n}</span>`).join('')}</div></div>
       <div class="roster-group"><b>Nem jönnek (${e.no.length})</b><div class="chips">${e.no.map(n=>`<span class="chip no">${n}</span>`).join('')||'<span class="muted">–</span>'}</div></div>
@@ -214,8 +214,46 @@ function currentGridAnchorIndex(rows){
   return firstOpen >= 0 ? firstOpen : Math.max(rows.length-1,0);
 }
 
+
+function firstNameOf(person){
+  const raw=(person?.name || person?.fullName || person?.displayName || '').trim();
+  if(!raw) return 'Játékos';
+  return raw.split(/\s+/)[0];
+}
+
+function jerseyNumberOf(person){
+  const raw=person?.jerseyNumber ?? person?.jerseyNo ?? person?.shirtNumber ?? person?.number ?? '';
+  if(raw===null || raw===undefined || String(raw).trim()==='') return null;
+  const n=Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+function sortGridPeople(people){
+  const mine=people.find(p=>p.id==='__ME__');
+  const rest=people.filter(p=>p.id!=='__ME__').slice().sort((a,b)=>{
+    const an=jerseyNumberOf(a), bn=jerseyNumberOf(b);
+    if(an!==null && bn!==null && an!==bn) return an-bn;
+    if(an!==null && bn===null) return -1;
+    if(an===null && bn!==null) return 1;
+    return firstNameOf(a).localeCompare(firstNameOf(b),'hu');
+  });
+  return mine ? [mine, ...rest] : rest;
+}
+
+function confirmedCount(eventObj){
+  const roster = eventObj?.roster || eventObj?.people || eventObj?.players || [];
+  if(Array.isArray(roster) && roster.length){
+    return roster.filter(p=>{
+      const s=String(p.status || p.availability || '').toLowerCase();
+      return ['yes','jövök','jovok','coming','in'].includes(s);
+    }).length;
+  }
+  const direct = Number(eventObj?.yesCount ?? eventObj?.comingCount ?? eventObj?.attendingCount ?? eventObj?.countYes);
+  return Number.isFinite(direct) ? direct : 0;
+}
+
 function renderGridMatrix(rows){
-  const people=teamPeople(rows); // __ME__ is deliberately first.
+  const people=sortGridPeople(teamPeople(rows)); // __ME__ is deliberately first.
   const anchorIndex=currentGridAnchorIndex(rows);
 
   return `<div class="matrix-scroll" id="matrixScroll"><table class="season-matrix transposed-matrix">
@@ -290,6 +328,14 @@ function initialCalendarCursor(rows){
 function calendarEventChip(e){
   return `<button class="calendar-event ${cardClass(e)}" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">${typeIcon(e)}<span>${e.time.split('–')[0]}</span><b>${e.type==='Edzés'?'Edzés':(e.matchKind==='home'?'Hazai':'Idegen')}</b></button>`;
 }
+
+function isTodayDate(dateObj){
+  const now=new Date();
+  return dateObj.getFullYear()===now.getFullYear()
+    && dateObj.getMonth()===now.getMonth()
+    && dateObj.getDate()===now.getDate();
+}
+
 function renderCalendar(rows){
   if(!calendarCursor) calendarCursor=initialCalendarCursor(rows);
   const y=calendarCursor.getFullYear(), m=calendarCursor.getMonth();
@@ -304,7 +350,7 @@ function renderCalendar(rows){
     <div class="calendar-head"><button class="calendar-nav" data-cal-nav="prev" aria-label="Előző hónap">‹</button><h4>${calendarMonthLabel(calendarCursor)}</h4><button class="calendar-nav" data-cal-nav="next" aria-label="Következő hónap">›</button></div>
     <div class="calendar-weekdays">${['H','K','Sze','Cs','P','Szo','V'].map(x=>`<span>${x}</span>`).join('')}</div>
     <div class="calendar-grid">${cells.map(d=>{
-      if(!d) return '<div class="calendar-day empty"></div>';
+      if(!d) return '<div class="calendar-day empty ${isTodayDate(dayDate)?\'calendar-today\':\'\'}"></div>';
       const key=monthKeyFromDate(d)+'-'+String(d.getDate()).padStart(2,'0');
       const dayEvents=visible.filter(e=>{
         const ed=eventDateObj(e); return ed.getDate()===d.getDate();
@@ -332,10 +378,37 @@ function renderCardSchedule(rows){
   }).join('') || `<div class="empty-state">Nincs találat a szűrésre.</div>`;
 }
 
+
+function nearestUpcomingEvent(rows){
+  if(!rows || !rows.length) return null;
+  return rows.find(e=>!isPast(e)) || rows[rows.length-1] || null;
+}
+
+function scrollPlannerToNearest(rows, behavior='auto'){
+  const next=nearestUpcomingEvent(rows);
+  if(!next) return;
+
+  if(plannerMode==='grid'){
+    const scroller=document.getElementById('matrixScroll');
+    const row=scroller?.querySelector(`[data-grid-event="${next.id}"]`);
+    if(!scroller || !row) return;
+    const head=scroller.querySelector('thead');
+    const top=row.offsetTop - (head?.offsetHeight || 0) - 2;
+    scroller.scrollTo({top:Math.max(0,top), behavior});
+    return;
+  }
+
+  if(plannerMode==='cards'){
+    const el=document.querySelector(`#plannerList [data-event-id="${next.id}"]`);
+    if(!el) return;
+    // Keep the Menetrend header visible while positioning the next event at the top.
+    const y=el.getBoundingClientRect().top + window.scrollY - 118;
+    window.scrollTo({top:Math.max(0,y), behavior});
+  }
+}
+
 function renderPlanner(){
   const rows=filteredPlannerEvents();
-  const jumpBtn=document.getElementById('jumpToCurrentBtn');
-  if(jumpBtn) jumpBtn.hidden = plannerMode!=='grid';
   const settingsToggle=document.getElementById('settingsDetailToggle');
   if(settingsToggle) settingsToggle.checked=detailedMode;
   const defaultView=document.getElementById('settingsDefaultView');
@@ -351,6 +424,10 @@ function renderPlanner(){
   else plannerList.innerHTML=renderCardSchedule(rows);
 
   bindSliderDrag();
+  requestAnimationFrame(()=>{
+    scrollPlannerToNearest(rows,'auto');
+    if(plannerMode==='calendar') markCalendarToday();
+  });
 }
 
 function askCancel(event){
@@ -387,11 +464,14 @@ eventList.addEventListener('click',e=>{
     return;
   }
 
-  // A Maps link remains a normal link instead of opening the event dialog.
+  // Do not hijack real links (e.g. Google Maps).
   if(e.target.closest('a')) return;
 
-  const open=e.target.closest('[data-open-event]');
+  // Card view: clicking anywhere in the upper event area opens the shared detail dialog.
+  const open=e.target.closest('.event-open-zone[data-open-event]');
   if(open){
+    e.preventDefault();
+    e.stopPropagation();
     openEventDialog(open.dataset.openEvent);
     return;
   }
@@ -400,18 +480,11 @@ eventList.addEventListener('click',e=>{
   if(rt){
     const box=document.getElementById('roster-'+rt.dataset.roster);
     box.classList.toggle('open');
-    rt.textContent=box.classList.contains('open')?'Részletek bezárása ▴':'Részletek megnyitása ▾';
+    rt.textContent=box.classList.contains('open')?'Névsor':'Névsor';
   }
 });
 
 
-eventList.addEventListener('keydown',e=>{
-  if(e.key!=='Enter' && e.key!==' ') return;
-  const open=e.target.closest('[data-open-event]');
-  if(!open) return;
-  e.preventDefault();
-  openEventDialog(open.dataset.openEvent);
-});
 
 plannerList.addEventListener('click',e=>{
   const open=e.target.closest('[data-open-event]');
@@ -475,13 +548,6 @@ if(localStorage.getItem('cc-theme')==='dark') document.body.classList.add('dark'
 themeBtn.addEventListener('click',()=>{
   document.body.classList.toggle('dark');
   localStorage.setItem('cc-theme',document.body.classList.contains('dark')?'dark':'light');
-});
-
-
-
-document.getElementById('jumpToCurrentBtn')?.addEventListener('click',()=>{
-  if(plannerMode!=='grid') return;
-  scrollGridToCurrent('smooth');
 });
 
 renderEvents();
@@ -725,3 +791,22 @@ persist = function(event,status,note=''){
       .catch(err=>console.error(err));
   }
 };
+
+
+function markCalendarToday(){
+  const now=new Date();
+  const key=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  document.querySelectorAll('[data-calendar-date]').forEach(el=>{
+    el.classList.toggle('calendar-today', el.dataset.calendarDate===key);
+  });
+}
+
+
+function hideUnsetProfileFields(){
+  document.querySelectorAll('[data-profile-field="jerseyNumber"], [data-profile-field="jerseySize"]').forEach(el=>{
+    const value=(el.querySelector('[data-value]')?.textContent || el.textContent || '').trim();
+    const unset = !value || /^(—|-|nincs|n\/a)$/i.test(value.replace(/mez(szám|méret)?/i,'').trim());
+    el.hidden = unset;
+  });
+}
+
