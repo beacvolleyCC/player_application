@@ -1352,3 +1352,133 @@ input[type="email"]{
 [data-profile-field="jerseySize"][hidden]{
   display:none !important;
 }
+
+
+/* V11 FIX10 — app-like touch behaviour */
+html,body{
+  touch-action:pan-x pan-y;
+  -webkit-text-size-adjust:100%;
+}
+
+.planner-event-open{
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.planner-event-open:focus,
+.planner-event-open:focus-visible,
+.planner-event-open:active{
+  outline:none !important;
+}
+
+/* Grid layout: Alkalom | Fő | saját | többiek */
+#plannerList:has(.transposed-matrix){
+  padding-inline:2px;
+}
+.transposed-matrix .matrix-event-side{
+  min-width:118px !important;
+  width:118px !important;
+  max-width:118px !important;
+  padding:6px 10px !important;
+}
+.transposed-matrix .matrix-event-side-btn{gap:6px}
+.transposed-matrix .matrix-event-side-btn b{font-size:10px}
+.transposed-matrix .matrix-event-side-btn small{
+  max-width:78px;
+  font-size:8px;
+}
+
+.transposed-matrix .matrix-count-head,
+.transposed-matrix .matrix-count-cell{
+  min-width:36px !important;
+  width:36px !important;
+  max-width:36px !important;
+  padding:0 3px !important;
+  text-align:center;
+}
+.transposed-matrix .matrix-count-head{
+  position:sticky;
+  top:0;
+  z-index:6;
+  background:var(--soft);
+  font-size:9px;
+  font-weight:950;
+}
+.transposed-matrix .matrix-count-cell strong{
+  font-size:11px;
+  font-weight:950;
+}
+
+.transposed-matrix thead .matrix-player-head:not(.current-player-head),
+.transposed-matrix tbody .matrix-cell:not(.current-player-cell){
+  min-width:42px !important;
+  width:42px !important;
+  max-width:42px !important;
+  padding:0 2px !important;
+}
+
+.transposed-matrix thead .current-player-head,
+.transposed-matrix tbody .current-player-cell{
+  min-width:88px !important;
+  width:88px !important;
+  max-width:88px !important;
+  padding:0 4px !important;
+}
+.transposed-matrix .current-player-cell .matrix-control{
+  width:74px !important;
+  min-width:74px !important;
+}
+
+.transposed-matrix .matrix-player-head{
+  font-size:9px !important;
+  line-height:1.05;
+  padding:4px 2px !important;
+  overflow:hidden;
+}
+.transposed-matrix .grid-player-label{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.transposed-matrix .matrix-current-anchor th,
+.transposed-matrix .matrix-current-anchor td{
+  border-top:1px solid var(--line) !important;
+}
+.transposed-matrix .matrix-current-anchor .matrix-event-side{
+  box-shadow:1px 0 0 var(--line) !important;
+}
+
+#profileJerseyNoRow[hidden],
+#profileJerseySizeRow[hidden]{
+  display:none !important;
+}
+
+@media(max-width:760px){
+  .transposed-matrix .matrix-event-side{
+    min-width:112px !important;
+    width:112px !important;
+    max-width:112px !important;
+    padding-left:9px !important;
+    padding-right:7px !important;
+  }
+  .transposed-matrix thead .matrix-player-head:not(.current-player-head),
+  .transposed-matrix tbody .matrix-cell:not(.current-player-cell){
+    min-width:38px !important;
+    width:38px !important;
+    max-width:38px !important;
+  }
+  .transposed-matrix thead .current-player-head,
+  .transposed-matrix tbody .current-player-cell{
+    min-width:86px !important;
+    width:86px !important;
+    max-width:86px !important;
+  }
+  .transposed-matrix .matrix-count-head,
+  .transposed-matrix .matrix-count-cell{
+    min-width:34px !important;
+    width:34px !important;
+    max-width:34px !important;
+  }
+}

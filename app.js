@@ -29,6 +29,8 @@ let pendingCancel = null;
 let missingOnly = false;
 let detailedMode = localStorage.getItem('cc-detailed-mode') === 'true';
 let currentPlayerName = 'Te';
+let currentPlayerData = null;
+let teamPlayerDirectory = [];
 
 
 function persist(event, status, note='') {
@@ -186,19 +188,62 @@ function filteredPlannerEvents(){
   });
 }
 
-function personStatusForEvent(e,name){
-  if(name==='__ME__') return e.status || null;
+
+function personStatusForEvent(e,person){
+  if(person && person.id==='__ME__') return e.status || null;
+  const name=typeof person==='string' ? person : person?.name;
   if((e.yes||[]).includes(name)) return 'yes';
   if((e.no||[]).includes(name)) return 'no';
   return null;
 }
 
-function teamPeople(rows){
-  const set=new Set();
-  rows.forEach(e=>[...(e.yes||[]),...(e.no||[]),...(e.unknown||[])].forEach(n=>{
-    if(n && n!=='Te' && n!==currentPlayerName) set.add(n);
-  }));
-  return ['__ME__', ...Array.from(set).sort((a,b)=>a.localeCompare(b,'hu'))];
+function gridGivenName(person){
+  const explicit=(person?.firstName || '').trim();
+  if(explicit) return explicit;
+  const raw=(typeof person==='string' ? person : (person?.name || '')).trim();
+  if(!raw) return 'Játékos';
+  const demo=raw.match(/^Teszt\s+Játékos\s+(.+)$/i);
+  if(demo) return demo[1];
+  const parts=raw.split(/\s+/);
+  return parts.length>1 ? parts[parts.length-1] : parts[0];
+}
+
+function jerseyNumberOf(person){
+  const raw=person?.jerseyNo ?? person?.jerseyNumber ?? person?.shirtNumber ?? person?.number ?? '';
+  if(raw===null || raw===undefined || String(raw).trim()==='') return null;
+  const n=Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+function gridPeople(rows){
+  const seenNames=new Set();
+  rows.forEach(e=>{
+    [...(e.yes||[]), ...(e.no||[]), ...(e.unknown||[])].forEach(name=>{
+      if(name && name!=='Te' && name!==currentPlayerName) seenNames.add(name);
+    });
+  });
+
+  const metaByName=new Map((teamPlayerDirectory||[]).map(p=>[String(p.name||'').trim(),p]));
+  const mine={
+    id:'__ME__',
+    name:currentPlayerName || 'Én',
+    firstName:currentPlayerData?.firstName || '',
+    jerseyNo:currentPlayerData?.jerseyNo ?? null
+  };
+
+  const rest=Array.from(seenNames).map(name=>{
+    const meta=metaByName.get(String(name).trim()) || {};
+    return {id:meta.playerId || name, name, firstName:meta.firstName || '', jerseyNo:meta.jerseyNo ?? null};
+  });
+
+  rest.sort((a,b)=>{
+    const an=jerseyNumberOf(a), bn=jerseyNumberOf(b);
+    if(an!==null && bn!==null && an!==bn) return an-bn;
+    if(an!==null && bn===null) return -1;
+    if(an===null && bn!==null) return 1;
+    return gridGivenName(a).localeCompare(gridGivenName(b),'hu');
+  });
+  return [mine, ...rest];
 }
 
 function matrixOwnControl(e, archived){
@@ -214,82 +259,41 @@ function currentGridAnchorIndex(rows){
   return firstOpen >= 0 ? firstOpen : Math.max(rows.length-1,0);
 }
 
-
-function firstNameOf(person){
-  const raw=(person?.name || person?.fullName || person?.displayName || '').trim();
-  if(!raw) return 'Játékos';
-  return raw.split(/\s+/)[0];
-}
-
-function jerseyNumberOf(person){
-  const raw=person?.jerseyNumber ?? person?.jerseyNo ?? person?.shirtNumber ?? person?.number ?? '';
-  if(raw===null || raw===undefined || String(raw).trim()==='') return null;
-  const n=Number(raw);
-  return Number.isFinite(n) ? n : null;
-}
-
-function sortGridPeople(people){
-  const mine=people.find(p=>p.id==='__ME__');
-  const rest=people.filter(p=>p.id!=='__ME__').slice().sort((a,b)=>{
-    const an=jerseyNumberOf(a), bn=jerseyNumberOf(b);
-    if(an!==null && bn!==null && an!==bn) return an-bn;
-    if(an!==null && bn===null) return -1;
-    if(an===null && bn!==null) return 1;
-    return firstNameOf(a).localeCompare(firstNameOf(b),'hu');
-  });
-  return mine ? [mine, ...rest] : rest;
-}
-
-function confirmedCount(eventObj){
-  const roster = eventObj?.roster || eventObj?.people || eventObj?.players || [];
-  if(Array.isArray(roster) && roster.length){
-    return roster.filter(p=>{
-      const s=String(p.status || p.availability || '').toLowerCase();
-      return ['yes','jövök','jovok','coming','in'].includes(s);
-    }).length;
-  }
-  const direct = Number(eventObj?.yesCount ?? eventObj?.comingCount ?? eventObj?.attendingCount ?? eventObj?.countYes);
-  return Number.isFinite(direct) ? direct : 0;
-}
-
 function renderGridMatrix(rows){
-  const people=sortGridPeople(teamPeople(rows)); // __ME__ is deliberately first.
+  const people=gridPeople(rows);
   const anchorIndex=currentGridAnchorIndex(rows);
 
   return `<div class="matrix-scroll" id="matrixScroll"><table class="season-matrix transposed-matrix">
     <thead>
       <tr>
         <th class="matrix-event-side sticky-matrix-col">Alkalom</th>
-        ${people.map((name,i)=>{
-          const mine=name==='__ME__';
-          const label=mine ? (currentPlayerName || 'Én') : name;
-          return `<th class="matrix-player-head ${mine?'current-player-head':''}">${label}</th>`;
+        <th class="matrix-count-head">Fő</th>
+        ${people.map(person=>{
+          const mine=person.id==='__ME__';
+          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${person.name}">
+            <span class="grid-player-label">${gridGivenName(person)}</span>
+          </th>`;
         }).join('')}
       </tr>
     </thead>
     <tbody>
       ${rows.map((e,rowIndex)=>{
         const archived=isPast(e);
+        const count=(e.yes||[]).length;
         return `<tr class="${archived?'matrix-past-row':''} ${rowIndex===anchorIndex?'matrix-current-anchor':''}" data-grid-event="${e.id}">
           <th class="matrix-event-side sticky-matrix-col">
             <button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
               <span class="matrix-side-icon">${typeIcon(e)}</span>
-              <span>
-                <b>${e.date}</b>
-                <small>${detailedMode ? `${e.time} · ${e.title}` : e.title}</small>
-              </span>
+              <span><b>${e.date}</b><small>${detailedMode ? `${e.time} · ${e.title}` : e.title}</small></span>
             </button>
           </th>
-          ${people.map(name=>{
-            const mine=name==='__ME__';
-            const st=personStatusForEvent(e,name);
+          <td class="matrix-count-cell"><strong class="${attendanceCountClass(count)}">${count}</strong></td>
+          ${people.map(person=>{
+            const mine=person.id==='__ME__';
+            const st=personStatusForEvent(e,person);
             const cls=st ? 'matrix-'+st : 'matrix-none';
-            if(mine){
-              return `<td class="matrix-cell ${cls} current-player-cell">${matrixOwnControl(e,archived)}</td>`;
-            }
-            return `<td class="matrix-cell ${cls}">
-              <span class="matrix-status">${st==='yes'?'✓':st==='no'?'✕':'·'}</span>
-            </td>`;
+            if(mine) return `<td class="matrix-cell ${cls} current-player-cell">${matrixOwnControl(e,archived)}</td>`;
+            return `<td class="matrix-cell ${cls}"><span class="matrix-status">${st==='yes'?'✓':st==='no'?'✕':'·'}</span></td>`;
           }).join('')}
         </tr>`;
       }).join('')}
@@ -369,7 +373,7 @@ function renderCardSchedule(rows){
       ${e.matchKind==='away' && e.address ? `<small>${e.address}</small>${mapLink(e)}` : ''}
       ${archived?'<span class="archive-badge">Lezárt</span>':''}
     ` : '';
-    return `<div class="planner-row ${cardClass(e)} ${archived?'archived-row':''}">
+    return `<div class="planner-row planner-event-open ${cardClass(e)} ${archived?'archived-row':''}" data-open-event="${e.id}" data-event-id="${e.id}">
       <div class="planner-icon bare-icon">${typeIcon(e)}</div>
       <div class="planner-main"><b>${e.date} · ${e.title}</b>${detail}</div>
       <div class="planner-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
@@ -439,7 +443,14 @@ function askCancel(event){
 
 function setYes(event){
   persist(event,'yes','');
-  renderEvents();
+  
+/* V11 FIX10 — no accidental double-tap or pinch zoom */
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+
+renderEvents();
   renderPlanner();
 }
 
@@ -487,21 +498,31 @@ eventList.addEventListener('click',e=>{
 
 
 plannerList.addEventListener('click',e=>{
-  const open=e.target.closest('[data-open-event]');
-  if(open){ openEventDialog(open.dataset.openEvent); return; }
   const nav=e.target.closest('[data-cal-nav]');
   if(nav){
     if(!calendarCursor) calendarCursor=initialCalendarCursor(filteredPlannerEvents());
     calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+(nav.dataset.calNav==='next'?1:-1),1);
-    renderPlanner(); return;
+    renderPlanner();
+    return;
   }
+
   const b=e.target.closest('[data-slider-action]');
-  if(!b) return;
-  const ev=events.find(x=>x.id===b.dataset.id);
-  if(!ev || isPast(ev)) return;
-  if(b.dataset.sliderAction==='yes') setYes(ev);
-  else if(b.dataset.sliderAction==='no') askCancel(ev);
-  else neutralizeEvent(ev);
+  if(b){
+    const ev=events.find(x=>x.id===b.dataset.id);
+    if(!ev || isPast(ev)) return;
+    if(b.dataset.sliderAction==='yes') setYes(ev);
+    else if(b.dataset.sliderAction==='no') askCancel(ev);
+    else neutralizeEvent(ev);
+    return;
+  }
+
+  if(e.target.closest('a')) return;
+
+  const open=e.target.closest('[data-open-event]');
+  if(open){
+    openEventDialog(open.dataset.openEvent);
+    return;
+  }
 });
 
 document.getElementById('confirmCancel').addEventListener('click',ev=>{
@@ -745,12 +766,29 @@ function applyBootstrap(j){
   if(!j || !Array.isArray(j.events)) throw new Error('Hibás eseményadat érkezett a szervertől.');
   if(j.team){ document.getElementById('teamTitle').textContent=j.team.teamName; }
   if(j.player){
-    document.getElementById('profileName').textContent=j.player.name;
+    currentPlayerData=j.player;
     currentPlayerName=j.player.name||'Te';
+
+    document.getElementById('profileName').textContent=currentPlayerName;
     const meta=[j.player.position, j.player.jerseyNo ? '#'+j.player.jerseyNo : ''].filter(Boolean).join(' • ');
     document.getElementById('profileMeta').textContent=meta;
-    document.getElementById('profileInitials').textContent=(j.player.name||'JT').split(/\\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+    document.getElementById('profileInitials').textContent=(j.player.name||'JT').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+
+    const setRow=(rowId,valueId,value,hideIfEmpty=false)=>{
+      const row=document.getElementById(rowId);
+      const el=document.getElementById(valueId);
+      const hasValue=value!==null && value!==undefined && String(value).trim()!=='';
+      if(el && hasValue) el.textContent=String(value);
+      if(row && hideIfEmpty) row.hidden=!hasValue;
+    };
+    setRow('profilePositionRow','profilePosition',j.player.position,false);
+    setRow('profileJerseyNoRow','profileJerseyNo',j.player.jerseyNo,true);
+    setRow('profileJerseySizeRow','profileJerseySize',j.player.jerseySize,true);
+    setRow('profileLicenseRow','profileLicense',j.player.licenseNo,false);
+    setRow('profileMedicalRow','profileMedical',j.player.medicalValidUntil,false);
   }
+
+  teamPlayerDirectory=Array.isArray(j.teamPlayers) ? j.teamPlayers : [];
   events=j.events.map(normalizeApiEvent).filter(e=>e.id && e.date);
   renderEvents();
   renderPlanner();
@@ -802,11 +840,4 @@ function markCalendarToday(){
 }
 
 
-function hideUnsetProfileFields(){
-  document.querySelectorAll('[data-profile-field="jerseyNumber"], [data-profile-field="jerseySize"]').forEach(el=>{
-    const value=(el.querySelector('[data-value]')?.textContent || el.textContent || '').trim();
-    const unset = !value || /^(—|-|nincs|n\/a)$/i.test(value.replace(/mez(szám|méret)?/i,'').trim());
-    el.hidden = unset;
-  });
-}
 

@@ -2,12 +2,12 @@
 <html lang="hu">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f7b700">
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=11.9">
+  <link rel="stylesheet" href="./styles.css?v=11.10">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -118,11 +118,11 @@
 
       <div class="card">
         <h4>Saját adataim</h4>
-        <div class="detail-row"><span>Poszt</span><b>Négyes</b></div>
-        <div class="detail-row"><span>Mezszám</span><b>12</b></div>
-        <div class="detail-row"><span>Mezméret</span><b>M</b></div>
-        <div class="detail-row"><span>Igazolási szám</span><b>251234</b></div>
-        <div class="detail-row"><span>Sportorvosi</span><b class="ok">2026.12.27.</b></div>
+        <div class="detail-row" id="profilePositionRow"><span>Poszt</span><b id="profilePosition">Négyes</b></div>
+        <div class="detail-row" id="profileJerseyNoRow"><span>Mezszám</span><b id="profileJerseyNo">12</b></div>
+        <div class="detail-row" id="profileJerseySizeRow"><span>Mezméret</span><b id="profileJerseySize">M</b></div>
+        <div class="detail-row" id="profileLicenseRow"><span>Igazolási szám</span><b id="profileLicense">251234</b></div>
+        <div class="detail-row" id="profileMedicalRow"><span>Sportorvosi</span><b class="ok" id="profileMedical">2026.12.27.</b></div>
       </div>
 
       <div class="card">
@@ -263,7 +263,7 @@
     </form>
   </dialog>
 
-  <script src="./config.js?v=11.9"></script>
-  <script src="./app.js?v=11.9"></script>
+  <script src="./config.js?v=11.10"></script>
+  <script src="./app.js?v=11.10"></script>
 </body>
 </html>
