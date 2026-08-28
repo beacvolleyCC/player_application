@@ -7,7 +7,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=11.1">
+  <link rel="stylesheet" href="./styles.css?v=11.2">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -57,6 +57,9 @@
           <p>Teljes szezon, szűrhető nézetben.</p>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
+          <button class="view-mode-btn icon-only" id="jumpToCurrentBtn"
+                  title="Ugrás a mai / következő alkalomhoz"
+                  aria-label="Ugrás a mai / következő alkalomhoz">↧</button>
           <button class="view-mode-btn active icon-only" data-mode="cards" title="Kártyanézet" aria-label="Kártyanézet">▤</button>
           <button class="view-mode-btn icon-only" data-mode="grid" title="Rácsnézet" aria-label="Rácsnézet">▦</button>
           <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet" aria-label="Naptárnézet">▣</button>
@@ -267,7 +270,7 @@
     </form>
   </dialog>
 
-  <script src="./config.js?v=11.1"></script>
-  <script src="./app.js?v=11.1"></script>
+  <script src="./config.js?v=11.2"></script>
+  <script src="./app.js?v=11.2"></script>
 </body>
 </html>

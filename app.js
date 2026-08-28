@@ -188,21 +188,62 @@ function matrixOwnControl(e, archived){
   </div>`;
 }
 
+function currentGridAnchorIndex(rows){
+  const firstOpen=rows.findIndex(e=>!isPast(e));
+  return firstOpen >= 0 ? firstOpen : Math.max(rows.length-1,0);
+}
+
 function renderGridMatrix(rows){
-  const people=teamPeople(rows);
-  return `<div class="matrix-scroll"><table class="season-matrix">
-    <thead><tr><th class="matrix-name sticky-matrix-col">Játékos</th>${rows.map(e=>`<th class="matrix-event-head" title="${typeLabel(e)} · ${e.title} · ${e.date}"><button class="matrix-event-open" data-open-event="${e.id}">${typeIcon(e)}<b>${e.date.slice(5,10)}</b><small>${e.time.split('–')[0]}</small></button></th>`).join('')}</tr></thead>
-    <tbody>${people.map(name=>{
-      const mine=name==='__ME__';
-      const label=mine?'Én':name;
-      return `<tr class="${mine?'my-matrix-row':''}"><th class="matrix-name sticky-matrix-col">${label}</th>${rows.map(e=>{
-        const st=personStatusForEvent(e,name);
+  const people=teamPeople(rows); // __ME__ is deliberately first.
+  const anchorIndex=currentGridAnchorIndex(rows);
+
+  return `<div class="matrix-scroll" id="matrixScroll"><table class="season-matrix transposed-matrix">
+    <thead>
+      <tr>
+        <th class="matrix-event-side sticky-matrix-col">Alkalom</th>
+        ${people.map((name,i)=>{
+          const mine=name==='__ME__';
+          const label=mine ? (currentPlayerName || 'Én') : name;
+          return `<th class="matrix-player-head ${mine?'current-player-head':''}">${label}</th>`;
+        }).join('')}
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((e,rowIndex)=>{
         const archived=isPast(e);
-        if(mine) return `<td class="matrix-cell ${st?'matrix-'+st:'matrix-none'}">${matrixOwnControl(e,archived)}</td>`;
-        return `<td class="matrix-cell ${st?'matrix-'+st:'matrix-none'}"><span class="matrix-status">${st==='yes'?'✓':st==='no'?'✕':'·'}</span></td>`;
-      }).join('')}</tr>`;
-    }).join('')}</tbody>
+        return `<tr class="${archived?'matrix-past-row':''} ${rowIndex===anchorIndex?'matrix-current-anchor':''}" data-grid-event="${e.id}">
+          <th class="matrix-event-side sticky-matrix-col">
+            <button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
+              <span class="matrix-side-icon">${typeIcon(e)}</span>
+              <span>
+                <b>${e.date}</b>
+                <small>${detailedMode ? `${e.time} · ${e.title}` : e.title}</small>
+              </span>
+            </button>
+          </th>
+          ${people.map(name=>{
+            const mine=name==='__ME__';
+            const st=personStatusForEvent(e,name);
+            const cls=st ? 'matrix-'+st : 'matrix-none';
+            if(mine){
+              return `<td class="matrix-cell ${cls} current-player-cell">${matrixOwnControl(e,archived)}</td>`;
+            }
+            return `<td class="matrix-cell ${cls}">
+              <span class="matrix-status">${st==='yes'?'✓':st==='no'?'✕':'·'}</span>
+            </td>`;
+          }).join('')}
+        </tr>`;
+      }).join('')}
+    </tbody>
   </table></div>`;
+}
+
+function scrollGridToCurrent(behavior='auto'){
+  const scroller=document.getElementById('matrixScroll');
+  const target=scroller?.querySelector('.matrix-current-anchor');
+  if(!scroller || !target) return;
+  const top=target.offsetTop - scroller.querySelector('thead').offsetHeight - 2;
+  scroller.scrollTo({top:Math.max(0,top),behavior});
 }
 
 function eventDateObj(e){
@@ -279,7 +320,10 @@ function renderPlanner(){
 
   document.querySelectorAll('.view-mode-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.mode===plannerMode));
 
-  if(plannerMode==='grid') plannerList.innerHTML=renderGridMatrix(rows);
+  if(plannerMode==='grid'){
+    plannerList.innerHTML=renderGridMatrix(rows);
+    requestAnimationFrame(()=>scrollGridToCurrent('auto'));
+  }
   else if(plannerMode==='calendar') plannerList.innerHTML=renderCalendar(rows);
   else plannerList.innerHTML=renderCardSchedule(rows);
 
@@ -391,6 +435,18 @@ themeBtn.addEventListener('click',()=>{
   localStorage.setItem('cc-theme',document.body.classList.contains('dark')?'dark':'light');
 });
 
+
+
+document.getElementById('jumpToCurrentBtn')?.addEventListener('click',()=>{
+  if(plannerMode!=='grid'){
+    plannerMode='grid';
+    localStorage.setItem('cc-planner-mode',plannerMode);
+    renderPlanner();
+    requestAnimationFrame(()=>scrollGridToCurrent('smooth'));
+    return;
+  }
+  scrollGridToCurrent('smooth');
+});
 
 renderEvents();
 renderPlanner();

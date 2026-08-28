@@ -813,3 +813,130 @@ body.dark{--black:#f4f0e6;--muted:#aaa49a;--line:#37332c;--soft:#1b1a18;--card:#
   .calendar-day{min-height:72px;padding:3px}.calendar-day-no{font-size:9px;margin-bottom:2px}.calendar-event{grid-template-columns:14px 1fr;padding:3px}.calendar-event .event-symbol{width:12px;height:12px}.calendar-event span{display:none}.calendar-event b{font-size:7px}.calendar-weekdays span{font-size:9px;padding:5px 1px}
   .settings-select-row{align-items:flex-start;flex-direction:column}.settings-select-row select{width:100%}
 }
+
+
+/* V11 FIX2 — iPhone Safari: prevent focus zoom in login fields */
+.login-screen input,
+.login-card input,
+.login-card input[type="email"],
+input[type="email"]{
+  font-size:16px !important;
+}
+
+/* V11 FIX2 — transposed grid: dates vertically, players horizontally */
+.transposed-matrix{
+  min-width:max-content;
+}
+.transposed-matrix thead th{
+  position:sticky;
+  top:0;
+  z-index:6;
+  min-width:88px;
+  background:var(--soft);
+}
+.transposed-matrix .matrix-event-side{
+  position:sticky;
+  left:0;
+  z-index:5;
+  min-width:156px;
+  max-width:190px;
+  text-align:left;
+  background:var(--card);
+}
+.transposed-matrix thead .matrix-event-side{
+  z-index:8;
+  background:var(--soft);
+}
+.matrix-player-head{
+  font-size:10px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.current-player-head{
+  background:#fff1ae !important;
+  color:#171717 !important;
+}
+.current-player-cell{
+  box-shadow:inset 2px 0 0 #e7b000, inset -2px 0 0 #e7b000;
+}
+.matrix-event-side-btn{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:inherit;
+  padding:0;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  text-align:left;
+  cursor:pointer;
+}
+.matrix-side-icon{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.matrix-event-side-btn b{
+  display:block;
+  font-size:10px;
+}
+.matrix-event-side-btn small{
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:700;
+  max-width:132px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.matrix-past-row{
+  opacity:.58;
+}
+.matrix-current-anchor th,
+.matrix-current-anchor td{
+  border-top:2px solid #f7b700 !important;
+}
+.matrix-current-anchor .matrix-event-side{
+  box-shadow:inset 4px 0 0 #f7b700;
+}
+
+/* the grid opens around the current date, but all previous dates remain above */
+.matrix-scroll{
+  max-height:64vh;
+  overflow:auto;
+  scroll-behavior:smooth;
+}
+
+/* compact own three-way selector inside a grid cell */
+.transposed-matrix .matrix-control{
+  min-width:72px;
+}
+.transposed-matrix .matrix-cell{
+  min-width:82px;
+}
+
+.dark .current-player-head{
+  background:#4b3c0f !important;
+  color:#f7e9a8 !important;
+}
+.dark .transposed-matrix .matrix-event-side{
+  background:#151412;
+}
+.dark .transposed-matrix thead th,
+.dark .transposed-matrix thead .matrix-event-side{
+  background:#23211e;
+}
+
+@media(max-width:760px){
+  .transposed-matrix .matrix-event-side{
+    min-width:132px;
+    max-width:150px;
+  }
+  .matrix-event-side-btn small{max-width:106px}
+  .transposed-matrix .matrix-cell{min-width:78px}
+  .transposed-matrix thead th{min-width:78px}
+  .matrix-scroll{max-height:61vh}
+}
