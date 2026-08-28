@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7b700">
+  <title>Club Control – Versenycsapat</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="topbar">
+      <div class="brand-left">
+        <div class="eyebrow">CLUB CONTROL</div>
+        <div class="season-label">2026/27</div>
+      </div>
+      <h1>BEAC Női I.</h1>
+      <div class="header-actions">
+        <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
+        <button class="profile-btn" data-view-jump="profileView">
+          <span class="profile-dot">JT</span>
+          <span class="profile-meta"><b>Játékos Teszt</b><small>Négyes • #12</small></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <section id="homeView" class="view active">
+      <div class="section-head">
+        <div>
+          <h3>Következő alkalmak</h3>
+          <p>A következő 14 nap edzései és meccsei.</p>
+        </div>
+      </div>
+      <div id="eventList" class="stack"></div>
+    </section>
+
+    <section id="plannerView" class="view">
+      <div class="section-head">
+        <div>
+          <h3>Tervező</h3>
+          <p>A teljes szezon egyben, szűrhető nézetben.</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="monthFilter" aria-label="Hónap">
+          <option value="all">Teljes szezon</option>
+          <option value="Aug">Augusztus</option>
+          <option value="Szept">Szeptember</option>
+          <option value="Okt">Október</option>
+          <option value="Nov">November</option>
+          <option value="Dec">December</option>
+        </select>
+        <select id="typeFilter" aria-label="Típus">
+          <option value="all">Minden alkalom</option>
+          <option value="Edzés">Csak edzések</option>
+          <option value="Meccs">Csak meccsek</option>
+        </select>
+        <select id="statusFilter" aria-label="Saját státusz">
+          <option value="all">Minden státusz</option>
+          <option value="yes">Jövök</option>
+          <option value="no">Nem jövök</option>
+          <option value="none">Még nem jeleztem</option>
+        </select>
+        <button class="ghost-btn" id="missingOnlyBtn">Csak ahol még nem jeleztem</button>
+      </div>
+      <div class="planner-card">
+        <div class="archive-note">A lezárt alkalmak bent maradnak a szezonlistában, de játékosként már nem módosíthatók.</div>
+        <div class="planner-legend">
+          <span><i class="dot yes"></i> Jövök</span>
+          <span><i class="dot no"></i> Nem jövök</span>
+          <span><i class="dot maybe"></i> Nincs jelzés</span>
+        </div>
+        <div id="plannerList"></div>
+      </div>
+    </section>
+
+    <section id="statsView" class="view">
+      <div class="section-head">
+        <div>
+          <h3>Saját statisztikám</h3>
+          <p>Csak te és az edzők látjátok.</p>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><strong>86%</strong><span>részvétel</span></div>
+        <div class="stat-card"><strong>31</strong><span>jelenlét</span></div>
+        <div class="stat-card warn"><strong>1</strong><span>késői lemondás</span></div>
+        <div class="stat-card danger"><strong>1</strong><span>no-show</span></div>
+      </div>
+      <div class="card">
+        <h4>2026/27 szezon</h4>
+        <div class="detail-row"><span>Edzések</span><b>31 / 36</b></div>
+        <div class="detail-row"><span>Rendes lemondás</span><b>3</b></div>
+        <div class="detail-row"><span>Késői lemondás</span><b>1</b></div>
+        <div class="detail-row"><span>No-show</span><b>1</b></div>
+        <div class="detail-row"><span>Meccsek</span><b>10 / 11</b></div>
+      </div>
+    </section>
+
+    <section id="profileView" class="view">
+      <div class="section-head">
+        <div>
+          <h3>Én</h3>
+          <p>Csapatadatok, dokumentumok és befizetések.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>Saját adataim</h4>
+        <div class="detail-row"><span>Poszt</span><b>Négyes</b></div>
+        <div class="detail-row"><span>Mezszám</span><b>12</b></div>
+        <div class="detail-row"><span>Mezméret</span><b>M</b></div>
+        <div class="detail-row"><span>Igazolási szám</span><b>251234</b></div>
+        <div class="detail-row"><span>Sportorvosi</span><b class="ok">2026.12.27.</b></div>
+      </div>
+
+      <div class="card">
+        <h4>Befizetéseim</h4>
+        <div class="season-payments-wrap">
+          <table class="season-payments-table">
+            <thead>
+              <tr>
+                <th class="sticky-col">Tétel</th>
+                <th>Szept</th>
+                <th>Okt</th>
+                <th>Nov</th>
+                <th>Dec</th>
+                <th>Jan</th>
+                <th>Feb</th>
+                <th>Márc</th>
+                <th>Ápr</th>
+                <th>Máj</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th class="sticky-col">BEAC bérlet</th>
+                <td class="cell-paid">✓</td>
+                <td class="cell-paid">✓</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+              </tr>
+              <tr>
+                <th class="sticky-col">Edzői díj</th>
+                <td class="cell-paid">✓</td>
+                <td class="cell-due">!</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+                <td class="cell-empty">—</td>
+              </tr>
+              <tr>
+                <th class="sticky-col">Nevezési díj</th>
+                <td class="cell-paid">✓</td>
+                <td class="cell-na">·</td>
+                <td class="cell-na">·</td>
+                <td class="cell-na">·</td>
+                <td class="cell-na">·</td>
+                <td class="cell-na">·</td>
+                <td class="cell-na">·</td>
+                <td class="cell-na">·</td>
+                <td class="cell-na">·</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="payment-legend">
+          <span><i class="legend-box paid"></i> Fizetve</span>
+          <span><i class="legend-box due"></i> Fizetendő</span>
+          <span><i class="legend-box empty"></i> Nincs adat</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>Alkalmazás</h4>
+        <div class="detail-row">
+          <span>Adatok frissítése</span>
+          <button class="ghost-btn compact-reload" id="manualReloadBtn">↻ Újratöltés</button>
+        </div>
+        <p class="subtle-help">Csak akkor használd, ha valami nem frissül megfelelően.</p>
+      </div>
+
+      <div class="card info-card">
+        <h4>Hasznos infók</h4>
+        <p><b>Bérletvásárlás:</b> BEAC webshop</p>
+        <p><b>Edzői díj:</b> 8 000 Ft / hó, határidő minden hónap 10.</p>
+        <p><b>Mez:</b> 12 000 Ft</p>
+        <p><b>Edzéshelyszín:</b> Bogdánfy Sportcsarnok</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button data-view="homeView" class="nav-btn active"><span>⌂</span><small>Kezdőlap</small></button>
+    <button data-view="plannerView" class="nav-btn"><span>▦</span><small>Tervező</small></button>
+    <button data-view="statsView" class="nav-btn"><span>◔</span><small>Statisztika</small></button>
+    <button data-view="profileView" class="nav-btn"><span>●</span><small>Én</small></button>
+  </nav>
+
+  <dialog id="cancelDialog">
+    <form method="dialog" class="dialog-card">
+      <h3>Lemondás</h3>
+      <p id="cancelEventTitle"></p>
+      <label>Miért nem tudsz jönni?</label>
+      <textarea id="cancelNote" placeholder="Írd ide röviden az okát…"></textarea>
+      <div class="dialog-actions">
+        <button value="cancel" class="ghost-btn">Mégse</button>
+        <button value="default" id="confirmCancel" class="danger-btn">Lemondom</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./app.js"></script>
+</body>
+</html>
