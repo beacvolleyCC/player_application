@@ -1482,3 +1482,65 @@ html,body{
     max-width:34px !important;
   }
 }
+
+
+/* V11 FIX11 — in grid view only player columns scroll horizontally.
+   Alkalom and Fő stay fixed on the left. */
+.transposed-matrix .matrix-event-side{
+  position:sticky !important;
+  left:0 !important;
+  z-index:5;
+  background:var(--card);
+}
+.transposed-matrix thead .matrix-event-side{
+  z-index:8;
+  background:var(--soft);
+}
+.transposed-matrix .matrix-count-head,
+.transposed-matrix .matrix-count-cell{
+  position:sticky !important;
+  left:118px !important;
+  z-index:4;
+  background:var(--card);
+  box-shadow:1px 0 0 var(--line);
+}
+.transposed-matrix thead .matrix-count-head{
+  z-index:7;
+  background:var(--soft);
+}
+.transposed-matrix .matrix-past-row .matrix-event-side,
+.transposed-matrix .matrix-past-row .matrix-count-cell{
+  background:var(--card);
+}
+.dark .transposed-matrix .matrix-event-side,
+.dark .transposed-matrix .matrix-count-cell{
+  background:#151412;
+}
+.dark .transposed-matrix thead .matrix-event-side,
+.dark .transposed-matrix thead .matrix-count-head{
+  background:#23211e;
+}
+
+@media(max-width:760px){
+  .transposed-matrix .matrix-count-head,
+  .transposed-matrix .matrix-count-cell{
+    left:112px !important;
+  }
+}
+
+/* Settings — keep logout aligned with the other settings content. */
+#logoutBtn,
+.logout-btn,
+.settings-logout{
+  width:100%;
+  box-sizing:border-box;
+  margin-left:0 !important;
+  margin-right:0 !important;
+  align-self:stretch;
+}
+.settings-actions,
+.settings-footer,
+.logout-wrap{
+  width:100%;
+  box-sizing:border-box;
+}
