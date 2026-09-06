@@ -4,21 +4,48 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f7b700">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=11.11">
+  <link rel="stylesheet" href="./styles.css?v=12.0">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
-    <div class="login-card">
+    <div class="login-card" role="dialog" aria-labelledby="loginTitle" aria-modal="true">
       <div class="eyebrow">CLUB CONTROL</div>
-      <h2>Belépés</h2>
-      <p>Írd be azt az email címet, amellyel a csapatban szerepelsz.</p>
-      <input type="email" id="loginEmail" placeholder="email@pelda.hu" autocomplete="email">
-      <button class="login-btn" id="loginBtn">Belépés</button>
-      <div class="login-msg" id="loginMsg"></div>
-      <small class="login-note">Tesztverzió: egyelőre email-azonosítás, kódos hitelesítést a következő körben kötünk rá.</small>
+
+      <div id="loginLoadingStep" class="login-step">
+        <h2 id="loginTitle">Fiók ellenőrzése</h2>
+        <p>A biztonságos munkamenet betöltése…</p>
+        <div class="login-loader" aria-hidden="true"></div>
+      </div>
+
+      <div id="loginEmailStep" class="login-step hidden">
+        <h2>Belépés</h2>
+        <p>Írd be a Club Control-fiókodhoz rendelt email címet. Küldünk rá egy egyszer használatos belépési kódot.</p>
+        <label class="login-field-label" for="loginEmail">Email cím</label>
+        <input type="email" id="loginEmail" placeholder="email@pelda.hu" autocomplete="email" inputmode="email">
+        <button class="login-btn" id="requestCodeBtn">Kód kérése</button>
+        <div class="login-msg" id="loginMsg" aria-live="polite"></div>
+        <small class="login-note">Nincs nyílt regisztráció: csak a manager által játékoshoz rendelt email címmel lehet belépni.</small>
+      </div>
+
+      <div id="loginCodeStep" class="login-step hidden">
+        <h2>Belépési kód</h2>
+        <p>A 6 számjegyű kódot erre a címre küldtük:</p>
+        <div class="login-email-preview" id="loginEmailPreview"></div>
+        <label class="login-field-label" for="loginCode">Kód</label>
+        <input type="text" id="loginCode" class="login-code-input" placeholder="000000" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}">
+        <button class="login-btn" id="verifyCodeBtn">Belépés</button>
+        <div class="login-msg" id="loginCodeMsg" aria-live="polite"></div>
+        <div class="login-secondary-actions">
+          <button class="text-btn" type="button" id="resendCodeBtn">Új kód kérése</button>
+          <button class="text-btn" type="button" id="changeEmailBtn">Másik email</button>
+        </div>
+        <small class="login-note">A kód 10 percig érvényes és egyszer használható.</small>
+      </div>
     </div>
   </div>
   <header class="hero">
@@ -263,7 +290,7 @@
     </form>
   </dialog>
 
-  <script src="./config.js?v=11.11"></script>
-  <script src="./app.js?v=11.11"></script>
+  <script src="./config.js?v=12.0"></script>
+  <script src="./app.js?v=12.0"></script>
 </body>
 </html>

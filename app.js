@@ -600,7 +600,7 @@ document.getElementById('homeRefreshBtn').addEventListener('click',async e=>{
   btn.classList.add('is-refreshing');
   btn.setAttribute('aria-label','Adatok frissítése folyamatban');
   try{
-    if(API_URL && currentUserEmail) await loadBootstrap(currentUserEmail);
+    if(API_URL && currentSessionToken) await loadBootstrap();
     else { renderEvents(); renderPlanner(); }
     btn.setAttribute('aria-label','Adatok frissítve');
   }catch(err){
@@ -670,7 +670,7 @@ document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=
   const old=e.currentTarget.textContent;
   e.currentTarget.textContent='… Frissítés';
   try{
-    if(API_URL && currentUserEmail) await loadBootstrap(currentUserEmail);
+    if(API_URL && currentSessionToken) await loadBootstrap();
     else { renderEvents(); renderPlanner(); }
     e.currentTarget.textContent='✓ Frissítve';
   }catch(err){
@@ -721,9 +721,52 @@ enableBackdropDismiss(document.getElementById('cancelDialog'),()=>{
   if(note) note.value='';
 });
 
-/* V10 remote Google Sheet / Apps Script data source */
+/* V12 ACCOUNT SYSTEM V1 — OTP + persistent server-side session */
 const API_URL = (window.CLUB_CONTROL_CONFIG && window.CLUB_CONTROL_CONFIG.API_URL || '').trim();
-let currentUserEmail = localStorage.getItem('cc-user-email') || '';
+const SESSION_KEY = 'cc-session-token-v1';
+let currentSessionToken = localStorage.getItem(SESSION_KEY) || '';
+let pendingLoginEmail = '';
+
+function showLoginStep(step){
+  const overlay=document.getElementById('loginOverlay');
+  if(!overlay) return;
+  overlay.classList.remove('hidden');
+  ['loginLoadingStep','loginEmailStep','loginCodeStep'].forEach(id=>{
+    document.getElementById(id)?.classList.toggle('hidden', id!==step);
+  });
+  if(step==='loginEmailStep') setTimeout(()=>document.getElementById('loginEmail')?.focus(),40);
+  if(step==='loginCodeStep') setTimeout(()=>document.getElementById('loginCode')?.focus(),40);
+}
+function hideLogin(){ document.getElementById('loginOverlay')?.classList.add('hidden'); }
+function clearSession(){
+  currentSessionToken='';
+  localStorage.removeItem(SESSION_KEY);
+}
+function setLoginMessage(id,text,isError=false){
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=text||'';
+  el.classList.toggle('error',!!isError);
+}
+function normalizeLoginEmail(v){ return String(v||'').trim().toLowerCase(); }
+function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function normalizeOtp(v){ return String(v||'').replace(/\D/g,'').slice(0,6); }
+
+async function apiPost(payload){
+  if(!API_URL) throw new Error('Nincs beállítva az API URL.');
+  const r=await fetch(API_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload)
+  });
+  if(!r.ok) throw new Error('API '+r.status);
+  const j=await r.json();
+  if(!j.ok){
+    const err=new Error(j.error||'Ismeretlen API hiba');
+    err.code=j.errorCode||'';
+    throw err;
+  }
+  return j;
+}
 
 function normalizeApiEvent(x){
   return {
@@ -745,30 +788,12 @@ function normalizeApiEvent(x){
   };
 }
 
-async function apiGet(action, params={}){
-  const u=new URL(API_URL); u.searchParams.set('action',action);
-  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
-  const r=await fetch(u.toString());
-  if(!r.ok) throw new Error('API '+r.status);
-  const j=await r.json();
-  if(!j.ok) throw new Error(j.error||'Ismeretlen API hiba');
-  return j;
-}
-
-async function apiPost(payload){
-  const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
-  const j=await r.json();
-  if(!j.ok) throw new Error(j.error||'Mentési hiba');
-  return j;
-}
-
 function applyBootstrap(j){
   if(!j || !Array.isArray(j.events)) throw new Error('Hibás eseményadat érkezett a szervertől.');
   if(j.team){ document.getElementById('teamTitle').textContent=j.team.teamName; }
   if(j.player){
     currentPlayerData=j.player;
     currentPlayerName=j.player.name||'Te';
-
     document.getElementById('profileName').textContent=currentPlayerName;
     const meta=[j.player.position, j.player.jerseyNo ? '#'+j.player.jerseyNo : ''].filter(Boolean).join(' • ');
     document.getElementById('profileMeta').textContent=meta;
@@ -794,39 +819,114 @@ function applyBootstrap(j){
   renderPlanner();
 }
 
-async function loadBootstrap(email){
-  const msg=document.getElementById('loginMsg');
+async function loadBootstrap(){
+  if(!currentSessionToken) throw Object.assign(new Error('Nincs aktív munkamenet.'),{code:'AUTH_REQUIRED'});
+  const j=await apiPost({action:'bootstrap',sessionToken:currentSessionToken});
+  applyBootstrap(j);
+  hideLogin();
+  return true;
+}
+
+async function startLogin(){
+  const email=normalizeLoginEmail(document.getElementById('loginEmail')?.value);
+  if(!validEmail(email)){
+    setLoginMessage('loginMsg','Adj meg egy érvényes email címet.',true);
+    return;
+  }
+  pendingLoginEmail=email;
+  setLoginMessage('loginMsg','Kód küldése…');
+  const btn=document.getElementById('requestCodeBtn'); if(btn) btn.disabled=true;
   try{
-    const j=await apiGet('bootstrap',{email});
-    currentUserEmail=email; localStorage.setItem('cc-user-email',email);
-    applyBootstrap(j); document.getElementById('loginOverlay').classList.add('hidden');
-    return true;
-  }catch(err){ console.error('Club Control bootstrap hiba:',err); if(msg) msg.textContent=err.message; return false; }
+    await apiPost({action:'requestLoginCode',email});
+    document.getElementById('loginEmailPreview').textContent=email;
+    document.getElementById('loginCode').value='';
+    setLoginMessage('loginCodeMsg','');
+    showLoginStep('loginCodeStep');
+  }catch(err){
+    console.error(err);
+    setLoginMessage('loginMsg',err.message||'A kód küldése nem sikerült.',true);
+  }finally{ if(btn) btn.disabled=false; }
+}
+
+async function verifyLogin(){
+  const code=normalizeOtp(document.getElementById('loginCode')?.value);
+  if(code.length!==6){
+    setLoginMessage('loginCodeMsg','A kód 6 számjegyből áll.',true);
+    return;
+  }
+  const btn=document.getElementById('verifyCodeBtn'); if(btn) btn.disabled=true;
+  setLoginMessage('loginCodeMsg','Ellenőrzés…');
+  try{
+    const j=await apiPost({action:'verifyLoginCode',email:pendingLoginEmail,code});
+    if(!j.sessionToken) throw new Error('Nem érkezett munkamenet-token.');
+    currentSessionToken=j.sessionToken;
+    localStorage.setItem(SESSION_KEY,currentSessionToken);
+    setLoginMessage('loginCodeMsg','Sikeres belépés.');
+    await loadBootstrap();
+  }catch(err){
+    console.error(err);
+    setLoginMessage('loginCodeMsg',err.message||'A belépés nem sikerült.',true);
+  }finally{ if(btn) btn.disabled=false; }
+}
+
+async function initAccountSession(){
+  if(!API_URL) return;
+  showLoginStep('loginLoadingStep');
+  if(!currentSessionToken){ showLoginStep('loginEmailStep'); return; }
+  try{
+    await loadBootstrap();
+  }catch(err){
+    console.error('Club Control session hiba:',err);
+    clearSession();
+    setLoginMessage('loginMsg',err.code==='SESSION_EXPIRED'?'A munkamenet lejárt. Kérj új belépési kódot.':'Jelentkezz be a folytatáshoz.',false);
+    showLoginStep('loginEmailStep');
+  }
 }
 
 if(API_URL){
-  const overlay=document.getElementById('loginOverlay');
-  if(currentUserEmail){ overlay.classList.remove('hidden'); loadBootstrap(currentUserEmail); }
-  else overlay.classList.remove('hidden');
-  document.getElementById('loginBtn')?.addEventListener('click',async()=>{
-    const email=document.getElementById('loginEmail').value.trim().toLowerCase();
-    if(!email){document.getElementById('loginMsg').textContent='Adj meg egy email címet.';return;}
-    document.getElementById('loginMsg').textContent='Betöltés…';
-    await loadBootstrap(email);
+  document.getElementById('requestCodeBtn')?.addEventListener('click',startLogin);
+  document.getElementById('loginEmail')?.addEventListener('keydown',e=>{if(e.key==='Enter') startLogin();});
+  document.getElementById('verifyCodeBtn')?.addEventListener('click',verifyLogin);
+  document.getElementById('loginCode')?.addEventListener('input',e=>{e.target.value=normalizeOtp(e.target.value);});
+  document.getElementById('loginCode')?.addEventListener('keydown',e=>{if(e.key==='Enter') verifyLogin();});
+  document.getElementById('changeEmailBtn')?.addEventListener('click',()=>{
+    pendingLoginEmail='';
+    setLoginMessage('loginMsg','');
+    showLoginStep('loginEmailStep');
   });
-  document.getElementById('loginEmail')?.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
+  document.getElementById('resendCodeBtn')?.addEventListener('click',async()=>{
+    if(!pendingLoginEmail) return showLoginStep('loginEmailStep');
+    setLoginMessage('loginCodeMsg','Új kód küldése…');
+    try{
+      await apiPost({action:'requestLoginCode',email:pendingLoginEmail});
+      document.getElementById('loginCode').value='';
+      setLoginMessage('loginCodeMsg','Új kódot küldtünk.');
+    }catch(err){ setLoginMessage('loginCodeMsg',err.message||'Nem sikerült új kódot küldeni.',true); }
+  });
+  initAccountSession();
 }
 
-document.getElementById('logoutBtn')?.addEventListener('click',()=>{localStorage.removeItem('cc-user-email'); location.reload();});
+document.getElementById('logoutBtn')?.addEventListener('click',async()=>{
+  const token=currentSessionToken;
+  clearSession();
+  try{ if(API_URL && token) await apiPost({action:'logout',sessionToken:token}); }catch(err){ console.warn(err); }
+  location.reload();
+});
 
 // Remote save wraps the existing local state functions.
 const _persistLocal = persist;
 persist = function(event,status,note=''){
   _persistLocal(event,status,note);
-  if(API_URL && currentUserEmail){
-    apiPost({action:'setAvailability',email:currentUserEmail,eventId:event.id,status:status||'',note:note||''})
-      .then(()=>loadBootstrap(currentUserEmail))
-      .catch(err=>console.error(err));
+  if(API_URL && currentSessionToken){
+    apiPost({action:'setAvailability',sessionToken:currentSessionToken,eventId:event.id,status:status||'',note:note||''})
+      .then(()=>loadBootstrap())
+      .catch(err=>{
+        console.error(err);
+        if(['AUTH_REQUIRED','SESSION_EXPIRED','SESSION_INVALID'].includes(err.code)){
+          clearSession();
+          showLoginStep('loginEmailStep');
+        }
+      });
   }
 };
 

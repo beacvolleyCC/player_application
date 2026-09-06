@@ -1544,3 +1544,38 @@ html,body{
   width:100%;
   box-sizing:border-box;
 }
+
+
+/* V12 ACCOUNT SYSTEM V1 */
+.login-step.hidden{display:none!important}
+.login-field-label{display:block;margin:12px 0 5px;font-size:11px;font-weight:900;color:var(--muted)}
+.login-card input[type="text"],
+.login-card input[type="email"]{font-size:16px!important}
+.login-code-input{
+  text-align:center;
+  letter-spacing:.38em;
+  font-size:25px!important;
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+}
+.login-email-preview{
+  margin:8px 0 4px;
+  padding:9px 11px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--soft);
+  font-size:12px;
+  font-weight:900;
+  overflow-wrap:anywhere;
+}
+.login-secondary-actions{display:flex;justify-content:space-between;gap:10px;margin-top:10px}
+.text-btn{border:0;background:transparent;color:var(--muted);padding:6px 0;font-size:11px;font-weight:850;cursor:pointer}
+.text-btn:hover{text-decoration:underline}
+.login-msg.error{color:var(--red)!important}
+.login-loader{
+  width:28px;height:28px;margin:18px auto 4px;
+  border:3px solid var(--line);border-top-color:var(--yellow);
+  border-radius:50%;animation:cc-login-spin .8s linear infinite;
+}
+@keyframes cc-login-spin{to{transform:rotate(360deg)}}
+.dark .login-email-preview{background:#24211d}
