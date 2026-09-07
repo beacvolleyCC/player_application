@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v12-auth1';
+const CACHE='club-control-player-v12-auth2-fix';
 const CORE=['./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 
 self.addEventListener('install', event => {

@@ -1579,3 +1579,60 @@ html,body{
 }
 @keyframes cc-login-spin{to{transform:rotate(360deg)}}
 .dark .login-email-preview{background:#24211d}
+
+
+/* V12 AUTH2 — stabil mobil fejléc: csapatnév mindig bal felül. */
+.compact-topbar{
+  grid-template-columns:minmax(0,1fr) auto !important;
+}
+.brand-left.brand-inline{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-start !important;
+  justify-self:start !important;
+  gap:5px !important;
+  min-width:0;
+}
+.brand-left.brand-inline .eyebrow{
+  display:flex !important;
+  flex-wrap:wrap;
+}
+.brand-left.brand-inline #teamTitle{
+  display:block !important;
+  margin:0 !important;
+  font-size:24px !important;
+  line-height:1.05 !important;
+  text-align:left !important;
+  color:#171717 !important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:min(62vw,520px);
+}
+@media(max-width:760px){
+  .brand-left.brand-inline #teamTitle{
+    font-size:20px !important;
+    max-width:58vw;
+  }
+}
+
+/* Pull-to-refresh visszajelzés. */
+.cc-pull-refresh-indicator{
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top) + 8px);
+  transform:translate(-50%,-140%);
+  z-index:80;
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--card);
+  box-shadow:var(--shadow);
+  font-size:11px;
+  font-weight:900;
+  transition:transform .16s ease;
+  pointer-events:none;
+}
+.cc-pull-refresh-indicator.show{
+  transform:translate(-50%,0);
+}

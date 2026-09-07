@@ -1,0 +1,384 @@
+﻿const SHEET_NAMES = {
+  PLAYERS:'Players',
+  TEAMS:'Teams',
+  EVENTS:'Events',
+  AVAIL:'Availability',
+  LOG:'AvailabilityLog',
+  PAY:'Payments',
+  INFO:'TeamInfo',
+  ACCOUNTS:'Accounts',
+  MEMBERSHIPS:'TeamMemberships',
+  SESSIONS:'Sessions',
+  LOGIN_CODES:'LoginCodes'
+};
+
+const AUTH = {
+  CODE_TTL_MIN:10,
+  CODE_MAX_ATTEMPTS:5,
+  CODE_REQUEST_WINDOW_MIN:15,
+  CODE_MAX_REQUESTS_PER_WINDOW:3,
+  SESSION_DAYS:30
+};
+
+function doGet(){
+  return json_({ok:true,service:'Club Control API',auth:'v1'});
+}
+
+function doPost(e){
+  try{
+    const p=JSON.parse((e && e.postData && e.postData.contents)||'{}');
+    const action=String(p.action||'').trim();
+    if(action==='requestLoginCode') return json_(requestLoginCode_(p));
+    if(action==='verifyLoginCode') return json_(verifyLoginCode_(p));
+    if(action==='bootstrap') return json_(bootstrap_(p));
+    if(action==='setAvailability') return json_(setAvailability_(p));
+    if(action==='logout') return json_(logout_(p));
+    return json_({ok:false,errorCode:'UNKNOWN_ACTION',error:'Ismeretlen action.'});
+  }catch(err){
+    return json_({ok:false,errorCode:String(err.code||'SERVER_ERROR'),error:String(err.message||err)});
+  }
+}
+
+function json_(o){
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+function ss_(){return SpreadsheetApp.getActiveSpreadsheet();}
+function normEmail_(x){return String(x||'').trim().toLowerCase();}
+function str_(x){return String(x===null||x===undefined?'':x).trim();}
+function boolActive_(x){return !['false','0','inactive','disabled','no'].includes(str_(x).toLowerCase());}
+function now_(){return new Date();}
+function addMinutes_(d,n){return new Date(d.getTime()+n*60000);}
+function addDays_(d,n){return new Date(d.getTime()+n*86400000);}
+function fmtDate_(d){return Utilities.formatDate(new Date(d),Session.getScriptTimeZone()||'Europe/Budapest','yyyy.MM.dd.');}
+function fmtTime_(value){
+  if(value instanceof Date && !isNaN(value.getTime())){
+    return Utilities.formatDate(value,Session.getScriptTimeZone()||'Europe/Budapest','HH:mm');
+  }
+  const raw=str_(value);
+  let m=raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if(!m) m=raw.match(/\b(\d{1,2}):(\d{2}):\d{2}\b/);
+  return m ? String(Number(m[1])).padStart(2,'0')+':'+m[2] : raw;
+}
+function day_(d){return ['Vasárnap','Hétfő','Kedd','Szerda','Csütörtök','Péntek','Szombat'][new Date(d).getDay()];}
+function monthKey_(d){return ['Jan','Feb','Márc','Ápr','Máj','Jún','Júl','Aug','Szept','Okt','Nov','Dec'][new Date(d).getMonth()];}
+function id_(prefix){return prefix+Utilities.getUuid().replace(/-/g,'');}
+
+function fail_(code,message){
+  const e=new Error(message); e.code=code; throw e;
+}
+
+function rows_(name){
+  const sh=ss_().getSheetByName(name); if(!sh) throw new Error('Hiányzó munkalap: '+name);
+  const v=sh.getDataRange().getValues(); if(v.length<1)return[]; const h=v.shift().map(String);
+  return v.filter(r=>r.some(x=>x!=='' )).map((r,idx)=>{
+    const o=Object.fromEntries(h.map((k,i)=>[k,r[i]])); o.__row=idx+2; return o;
+  });
+}
+
+function ensureSheet_(name,headers){
+  let sh=ss_().getSheetByName(name);
+  if(!sh) sh=ss_().insertSheet(name);
+  if(sh.getLastRow()===0){ sh.getRange(1,1,1,headers.length).setValues([headers]); sh.setFrozenRows(1); }
+  else{
+    const existing=sh.getRange(1,1,1,Math.max(sh.getLastColumn(),1)).getValues()[0].map(String);
+    const missing=headers.filter(h=>!existing.includes(h));
+    if(missing.length){ sh.getRange(1,existing.length+1,1,missing.length).setValues([missing]); }
+  }
+  return sh;
+}
+
+function ensureAuthSheets_(){
+  ensureSheet_(SHEET_NAMES.ACCOUNTS,['accountId','email','playerId','role','status','createdAt','updatedAt']);
+  ensureSheet_(SHEET_NAMES.MEMBERSHIPS,['membershipId','playerId','teamId','startDate','endDate','status','createdAt','updatedAt']);
+  ensureSheet_(SHEET_NAMES.SESSIONS,['sessionId','accountId','tokenHash','createdAt','expiresAt','lastSeenAt','revokedAt']);
+  ensureSheet_(SHEET_NAMES.LOGIN_CODES,['codeId','accountId','email','codeHash','createdAt','expiresAt','attempts','usedAt']);
+  authPepper_();
+}
+
+function authPepper_(){
+  const props=PropertiesService.getScriptProperties();
+  let p=props.getProperty('CC_AUTH_PEPPER');
+  if(!p){ p=id_('pep_')+id_('pep_'); props.setProperty('CC_AUTH_PEPPER',p); }
+  return p;
+}
+function hash_(value){
+  const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(value||'')+'|'+authPepper_(),Utilities.Charset.UTF_8);
+  return bytes.map(b=>('0'+((b+256)%256).toString(16)).slice(-2)).join('');
+}
+function randomCode_(){
+  const seed=id_('')+id_('')+Date.now();
+  const d=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,seed,Utilities.Charset.UTF_8);
+  const n=((((d[0]+256)%256)<<24)>>>0)+(((d[1]+256)%256)<<16)+(((d[2]+256)%256)<<8)+((d[3]+256)%256);
+  return String(n%1000000).padStart(6,'0');
+}
+function randomToken_(){return Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');}
+
+function setCellByHeader_(sheetName,row,header,value){
+  const sh=ss_().getSheetByName(sheetName);
+  const headers=sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String);
+  const c=headers.indexOf(header); if(c<0) throw new Error('Hiányzó oszlop: '+sheetName+'.'+header);
+  sh.getRange(row,c+1).setValue(value);
+}
+
+function appendObject_(sheetName,obj){
+  const sh=ss_().getSheetByName(sheetName);
+  const headers=sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0].map(String);
+  sh.appendRow(headers.map(h=>Object.prototype.hasOwnProperty.call(obj,h)?obj[h]:''));
+}
+
+function syncAuthFromPlayers_(){
+  ensureAuthSheets_();
+  const players=rows_(SHEET_NAMES.PLAYERS);
+  let accounts=rows_(SHEET_NAMES.ACCOUNTS);
+  let memberships=rows_(SHEET_NAMES.MEMBERSHIPS);
+  let createdAccounts=0, updatedAccounts=0, createdMemberships=0;
+  const now=now_();
+
+  players.forEach(player=>{
+    const email=normEmail_(player.email);
+    if(email){
+      let acc=accounts.find(a=>String(a.playerId)===String(player.playerId));
+      if(!acc){
+        appendObject_(SHEET_NAMES.ACCOUNTS,{
+          accountId:id_('acc_'),email,playerId:player.playerId,role:player.role||'player',
+          status:boolActive_(player.active)?'active':'disabled',createdAt:now,updatedAt:now
+        });
+        createdAccounts++;
+      }else{
+        const targetStatus=boolActive_(player.active)?'active':'disabled';
+        if(normEmail_(acc.email)!==email){setCellByHeader_(SHEET_NAMES.ACCOUNTS,acc.__row,'email',email);updatedAccounts++;}
+        if(str_(acc.role)!==str_(player.role||'player')){setCellByHeader_(SHEET_NAMES.ACCOUNTS,acc.__row,'role',player.role||'player');updatedAccounts++;}
+        if(str_(acc.status).toLowerCase()!==targetStatus){setCellByHeader_(SHEET_NAMES.ACCOUNTS,acc.__row,'status',targetStatus);updatedAccounts++;}
+        setCellByHeader_(SHEET_NAMES.ACCOUNTS,acc.__row,'updatedAt',now);
+      }
+    }
+
+    const teamId=str_(player.teamId);
+    if(teamId && !memberships.some(m=>String(m.playerId)===String(player.playerId))){
+      appendObject_(SHEET_NAMES.MEMBERSHIPS,{
+        membershipId:id_('mem_'),playerId:player.playerId,teamId,startDate:'',endDate:boolActive_(player.active)?'':now,
+        status:boolActive_(player.active)?'active':'ended',createdAt:now,updatedAt:now
+      });
+      createdMemberships++;
+    }
+  });
+  return {createdAccounts,updatedAccounts,createdMemberships};
+}
+
+function setupAuthV1(){
+  const lock=LockService.getScriptLock(); lock.waitLock(30000);
+  try{
+    ensureAuthSheets_();
+    const migrated=syncAuthFromPlayers_();
+    return {ok:true,authVersion:'v1',...migrated};
+  }finally{lock.releaseLock();}
+}
+
+function accountByEmail_(email){
+  return rows_(SHEET_NAMES.ACCOUNTS).find(a=>normEmail_(a.email)===normEmail_(email));
+}
+function playerById_(playerId){return rows_(SHEET_NAMES.PLAYERS).find(p=>String(p.playerId)===String(playerId));}
+function parseDateMaybe_(x){if(!x)return null; const d=new Date(x); return isNaN(d)?null:d;}
+function dateInsideMembership_(m,date){
+  const d=new Date(date); d.setHours(12,0,0,0);
+  const s=parseDateMaybe_(m.startDate), e=parseDateMaybe_(m.endDate);
+  if(s){s.setHours(0,0,0,0); if(d<s)return false;}
+  if(e){e.setHours(23,59,59,999); if(d>e)return false;}
+  return true;
+}
+function activeMembershipForPlayer_(playerId,date){
+  const all=rows_(SHEET_NAMES.MEMBERSHIPS).filter(m=>String(m.playerId)===String(playerId));
+  const active=all.filter(m=>str_(m.status).toLowerCase()==='active' && dateInsideMembership_(m,date||now_()));
+  active.sort((a,b)=>String(b.startDate||'').localeCompare(String(a.startDate||'')));
+  return active[0]||null;
+}
+function membersForTeamAt_(teamId,date){
+  const memberships=rows_(SHEET_NAMES.MEMBERSHIPS).filter(m=>String(m.teamId)===String(teamId));
+  const ids=new Set(memberships.filter(m=>{
+    const st=str_(m.status).toLowerCase();
+    if(st==='active') return dateInsideMembership_(m,date);
+    if(st==='ended') return !!m.endDate && dateInsideMembership_(m,date);
+    return false;
+  }).map(m=>String(m.playerId)));
+  return rows_(SHEET_NAMES.PLAYERS).filter(p=>ids.has(String(p.playerId)) && String(p.role||'player')==='player');
+}
+
+function requestLoginCode_(p){
+  const email=normEmail_(p.email);
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail_('INVALID_EMAIL','Adj meg egy érvényes email címet.');
+  const lock=LockService.getScriptLock(); lock.waitLock(30000);
+  try{
+    ensureAuthSheets_(); syncAuthFromPlayers_();
+    const account=accountByEmail_(email);
+    if(!account || str_(account.status).toLowerCase()!=='active') fail_('ACCOUNT_NOT_FOUND','Ehhez az email címhez nincs aktív Club Control-fiók.');
+    const player=playerById_(account.playerId);
+    if(!player || !boolActive_(player.active)) fail_('ACCOUNT_DISABLED','A játékos fiókja nem aktív.');
+
+    const now=now_(); const cutoff=addMinutes_(now,-AUTH.CODE_REQUEST_WINDOW_MIN);
+    const codes=rows_(SHEET_NAMES.LOGIN_CODES).filter(c=>String(c.accountId)===String(account.accountId));
+    const recent=codes.filter(c=>{const d=parseDateMaybe_(c.createdAt);return d&&d>=cutoff;});
+    if(recent.length>=AUTH.CODE_MAX_REQUESTS_PER_WINDOW) fail_('RATE_LIMIT','Túl sok kódkérés. Próbáld újra néhány perc múlva.');
+
+    // Supersede previous unused codes.
+    codes.filter(c=>!c.usedAt).forEach(c=>setCellByHeader_(SHEET_NAMES.LOGIN_CODES,c.__row,'usedAt',now));
+    const code=randomCode_();
+    appendObject_(SHEET_NAMES.LOGIN_CODES,{
+      codeId:id_('code_'),accountId:account.accountId,email,codeHash:hash_(code),createdAt:now,
+      expiresAt:addMinutes_(now,AUTH.CODE_TTL_MIN),attempts:0,usedAt:''
+    });
+
+    MailApp.sendEmail({
+      to:email,
+      subject:'Club Control – belépési kód',
+      name:'Club Control',
+      htmlBody:'<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">'+
+        '<h2 style="margin-bottom:8px">Club Control belépési kód</h2>'+
+        '<p>A belépési kódod:</p>'+
+        '<div style="font-size:32px;font-weight:800;letter-spacing:8px;padding:16px 0">'+code+'</div>'+
+        '<p>A kód '+AUTH.CODE_TTL_MIN+' percig érvényes és egyszer használható.</p>'+
+        '<p style="color:#666;font-size:12px">Ha nem te kértél belépési kódot, ezt az emailt figyelmen kívül hagyhatod.</p></div>',
+      body:'Club Control belépési kód: '+code+'\nA kód '+AUTH.CODE_TTL_MIN+' percig érvényes és egyszer használható.'
+    });
+    return {ok:true};
+  }finally{lock.releaseLock();}
+}
+
+function verifyLoginCode_(p){
+  const email=normEmail_(p.email), code=str_(p.code).replace(/\D/g,'');
+  if(code.length!==6) fail_('INVALID_CODE','A kód 6 számjegyből áll.');
+  const lock=LockService.getScriptLock(); lock.waitLock(30000);
+  try{
+    ensureAuthSheets_();
+    const account=accountByEmail_(email);
+    if(!account || str_(account.status).toLowerCase()!=='active') fail_('INVALID_LOGIN','A belépés nem sikerült.');
+    const now=now_();
+    const codes=rows_(SHEET_NAMES.LOGIN_CODES)
+      .filter(c=>String(c.accountId)===String(account.accountId) && !c.usedAt)
+      .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+    const rec=codes[0];
+    if(!rec) fail_('NO_CODE','Nincs aktív belépési kód. Kérj újat.');
+    const expires=parseDateMaybe_(rec.expiresAt);
+    if(!expires || expires<now){setCellByHeader_(SHEET_NAMES.LOGIN_CODES,rec.__row,'usedAt',now);fail_('CODE_EXPIRED','A belépési kód lejárt. Kérj újat.');}
+    const attempts=Number(rec.attempts||0);
+    if(attempts>=AUTH.CODE_MAX_ATTEMPTS){setCellByHeader_(SHEET_NAMES.LOGIN_CODES,rec.__row,'usedAt',now);fail_('CODE_LOCKED','Túl sok hibás próbálkozás. Kérj új kódot.');}
+    if(hash_(code)!==str_(rec.codeHash)){
+      setCellByHeader_(SHEET_NAMES.LOGIN_CODES,rec.__row,'attempts',attempts+1);
+      if(attempts+1>=AUTH.CODE_MAX_ATTEMPTS)setCellByHeader_(SHEET_NAMES.LOGIN_CODES,rec.__row,'usedAt',now);
+      fail_('INVALID_CODE','Hibás belépési kód.');
+    }
+    setCellByHeader_(SHEET_NAMES.LOGIN_CODES,rec.__row,'usedAt',now);
+
+    const token=randomToken_();
+    appendObject_(SHEET_NAMES.SESSIONS,{
+      sessionId:id_('ses_'),accountId:account.accountId,tokenHash:hash_(token),createdAt:now,
+      expiresAt:addDays_(now,AUTH.SESSION_DAYS),lastSeenAt:now,revokedAt:''
+    });
+    return {ok:true,sessionToken:token,expiresInDays:AUTH.SESSION_DAYS};
+  }finally{lock.releaseLock();}
+}
+
+function requireSession_(token){
+  token=str_(token); if(!token) fail_('AUTH_REQUIRED','Jelentkezz be a folytatáshoz.');
+  ensureAuthSheets_();
+  const h=hash_(token), sessions=rows_(SHEET_NAMES.SESSIONS);
+  const s=sessions.find(x=>str_(x.tokenHash)===h && !x.revokedAt);
+  if(!s) fail_('SESSION_INVALID','A munkamenet nem érvényes. Jelentkezz be újra.');
+  const now=now_(), exp=parseDateMaybe_(s.expiresAt);
+  if(!exp || exp<now){setCellByHeader_(SHEET_NAMES.SESSIONS,s.__row,'revokedAt',now);fail_('SESSION_EXPIRED','A munkamenet lejárt. Jelentkezz be újra.');}
+  const account=rows_(SHEET_NAMES.ACCOUNTS).find(a=>String(a.accountId)===String(s.accountId));
+  if(!account || str_(account.status).toLowerCase()!=='active') fail_('ACCOUNT_DISABLED','A fiók nem aktív.');
+  const player=playerById_(account.playerId);
+  if(!player || !boolActive_(player.active)) fail_('ACCOUNT_DISABLED','A játékos fiókja nem aktív.');
+  setCellByHeader_(SHEET_NAMES.SESSIONS,s.__row,'lastSeenAt',now);
+  return {session:s,account,player};
+}
+
+function bootstrap_(p){
+  const auth=requireSession_(p.sessionToken);
+  const player=auth.player;
+  const membership=activeMembershipForPlayer_(player.playerId,now_());
+  if(!membership) fail_('NO_ACTIVE_TEAM','Ehhez a fiókhoz jelenleg nincs aktív csapattagság.');
+  const teams=rows_(SHEET_NAMES.TEAMS), team=teams.find(x=>String(x.teamId)===String(membership.teamId));
+  if(!team) fail_('TEAM_NOT_FOUND','A játékos csapata nem található.');
+
+  const events=rows_(SHEET_NAMES.EVENTS).filter(x=>String(x.teamId)===String(membership.teamId));
+  const av=rows_(SHEET_NAMES.AVAIL), now=now_();
+  const outEvents=events.map(ev=>{
+    const eventPlayers=membersForTeamAt_(membership.teamId,ev.date);
+    const ea=av.filter(a=>String(a.eventId)===String(ev.eventId));
+    const byPid=Object.fromEntries(ea.map(a=>[String(a.playerId),a]));
+    const yes=[],no=[],unknown=[];
+    eventPlayers.forEach(tp=>{
+      const s=String((byPid[String(tp.playerId)]||{}).status||'');
+      if(s==='yes')yes.push(tp.name); else if(s==='no')no.push(tp.name); else unknown.push(tp.name);
+    });
+    const mine=byPid[String(player.playerId)]||{};
+    const end=new Date(ev.date); const hm=String(ev.endTime||'23:59').split(':').map(Number); end.setHours(hm[0]||23,hm[1]||59,0,0);
+    return {
+      eventId:ev.eventId,date:fmtDate_(ev.date),dateLabel:fmtDate_(ev.date),day:day_(ev.date),monthKey:monthKey_(ev.date),
+      startTime:fmtTime_(ev.startTime),endTime:fmtTime_(ev.endTime),timeLabel:fmtTime_(ev.startTime)+(ev.endTime?'–'+fmtTime_(ev.endTime):''),
+      type:ev.type,title:ev.title,homeAway:ev.homeAway,opponent:ev.opponent,venue:ev.venue,address:ev.address,
+      meetingTime:ev.meetingTime,meetingPlace:ev.meetingPlace,archived:end<now,myStatus:String(mine.status||''),myNote:String(mine.note||''),
+      yesNames:yes,noNames:no,unknownNames:unknown
+    };
+  }).sort((a,b)=>a.date.localeCompare(b.date)||a.startTime.localeCompare(b.startTime));
+
+  const teamPlayers=membersForTeamAt_(membership.teamId,now);
+  return {
+    ok:true,
+    account:{accountId:auth.account.accountId,role:auth.account.role},
+    player:{playerId:player.playerId,name:player.name,role:player.role,position:player.position,jerseyNo:player.jerseyNo,jerseySize:player.jerseySize,licenseNo:player.licenseNo,medicalValidUntil:player.medicalValidUntil},
+    membership:{membershipId:membership.membershipId,teamId:membership.teamId,startDate:membership.startDate,endDate:membership.endDate,status:membership.status},
+    team:Object.assign({},team,{
+      teamName:str_(team.teamName||team.name||team.teamId),
+      name:str_(team.name||team.teamName||team.teamId)
+    }),
+    teamPlayers:teamPlayers.map(tp=>({playerId:tp.playerId,name:tp.name,jerseyNo:tp.jerseyNo})),
+    events:outEvents,
+    payments:rows_(SHEET_NAMES.PAY).filter(x=>String(x.playerId)===String(player.playerId)),
+    teamInfo:rows_(SHEET_NAMES.INFO).filter(x=>String(x.teamId)===String(membership.teamId))
+  };
+}
+
+function setAvailability_(p){
+  const auth=requireSession_(p.sessionToken), player=auth.player;
+  const eventId=str_(p.eventId), status=str_(p.status);
+  if(!['','yes','no'].includes(status)) fail_('INVALID_STATUS','Érvénytelen státusz.');
+  if(status==='no' && !str_(p.note)) fail_('NOTE_REQUIRED','Lemondáshoz indok szükséges.');
+  const membership=activeMembershipForPlayer_(player.playerId,now_());
+  if(!membership) fail_('NO_ACTIVE_TEAM','Nincs aktív csapattagság.');
+  const event=rows_(SHEET_NAMES.EVENTS).find(x=>String(x.eventId)===eventId && String(x.teamId)===String(membership.teamId));
+  if(!event) fail_('EVENT_FORBIDDEN','Az esemény nem található vagy nincs hozzá jogosultságod.');
+
+  const eventEnd=new Date(event.date); const hm=String(event.endTime||'23:59').split(':').map(Number); eventEnd.setHours(hm[0]||23,hm[1]||59,0,0);
+  if(eventEnd<now_()) fail_('EVENT_ARCHIVED','Lezárt esemény már nem módosítható.');
+
+  const sh=ss_().getSheetByName(SHEET_NAMES.AVAIL), vals=sh.getDataRange().getValues(), headers=vals[0].map(String);
+  const c=Object.fromEntries(headers.map((h,i)=>[h,i])); let rowIndex=-1, oldStatus='';
+  for(let r=1;r<vals.length;r++){
+    if(String(vals[r][c.eventId])===eventId && String(vals[r][c.playerId])===String(player.playerId)){
+      rowIndex=r+1; oldStatus=String(vals[r][c.status]||''); break;
+    }
+  }
+  const now=now_();
+  if(rowIndex<0){
+    const obj={availabilityId:id_('a_'),eventId,playerId:player.playerId,status,note:str_(p.note),updatedAt:now};
+    appendObject_(SHEET_NAMES.AVAIL,obj);
+  }else{
+    setCellByHeader_(SHEET_NAMES.AVAIL,rowIndex,'status',status);
+    setCellByHeader_(SHEET_NAMES.AVAIL,rowIndex,'note',str_(p.note));
+    setCellByHeader_(SHEET_NAMES.AVAIL,rowIndex,'updatedAt',now);
+  }
+  appendObject_(SHEET_NAMES.LOG,{
+    logId:id_('l_'),playerId:player.playerId,eventId,oldStatus,newStatus:status,note:str_(p.note),changedAt:now,changedBy:auth.account.accountId
+  });
+  return {ok:true};
+}
+
+function logout_(p){
+  const token=str_(p.sessionToken); if(!token) return {ok:true};
+  ensureAuthSheets_(); const h=hash_(token), now=now_();
+  const s=rows_(SHEET_NAMES.SESSIONS).find(x=>str_(x.tokenHash)===h && !x.revokedAt);
+  if(s)setCellByHeader_(SHEET_NAMES.SESSIONS,s.__row,'revokedAt',now);
+  return {ok:true};
+}

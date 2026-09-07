@@ -1,0 +1,29 @@
+﻿CC v0.53.5 / Player V12 AUTH2 – STATIC QA
+==========================================
+CHECKS: 24
+FAILED: 0
+
+- OK: Manager index duplicate ids
+- OK: Manager index script 1
+- OK: Manager index script 2
+- OK: Manager index script 3
+- OK: Manager index script 4
+- OK: Manager index script 5
+- OK: Manager index script 6
+- OK: Manager index script 7
+- OK: Manager index script 8
+- OK: Manager SESSION_UI duplicate ids
+- OK: Manager SESSION_UI script 1
+- OK: Manager Kód.gs syntax
+- OK: Manager Account syntax
+- OK: Player app.js syntax
+- OK: Player API Code.gs syntax
+- OK: Player sw.js syntax
+- OK: Manager picker buttons restored
+- OK: Manager medical native picker
+- OK: Manager team selector fix retained
+- OK: Manager Events plain text prep
+- OK: Player team fallback
+- OK: Player home date/day
+- OK: Player raw Date protection
+- OK: Player pull refresh

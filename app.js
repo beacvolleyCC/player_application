@@ -130,8 +130,8 @@ function eventCard(e){
         <div class="event-icon bare-icon">${typeIcon(e)}</div>
         <div class="event-main">
           <div class="event-type">${typeLabel(e)}</div>
-          <div class="event-title">${e.date} • ${e.time}</div>
-          <div class="event-meta">${e.day} • ${e.title}</div>
+          <div class="event-title">${e.date} • ${e.day}</div>
+          <div class="event-meta">${e.time ? e.time+' • ' : ''}${e.title}</div>
           <div class="event-place ${detailClass}">${e.place}</div>
           ${awayLine}
           ${meetingLine}
@@ -592,6 +592,74 @@ document.querySelectorAll('.view-mode-btn').forEach(btn=>{
 });
 
 
+
+(function installPullToRefresh_(){
+  let startY=null;
+  let distance=0;
+  let running=false;
+
+  const indicator=document.createElement('div');
+  indicator.className='cc-pull-refresh-indicator';
+  indicator.textContent='Frissítés…';
+  document.body.appendChild(indicator);
+
+  document.addEventListener('touchstart',event=>{
+    if(window.scrollY>1 || running || !event.touches || !event.touches.length){
+      startY=null;
+      return;
+    }
+    startY=event.touches[0].clientY;
+    distance=0;
+  },{passive:true});
+
+  document.addEventListener('touchmove',event=>{
+    if(startY===null || !event.touches || !event.touches.length) return;
+    distance=Math.max(0,event.touches[0].clientY-startY);
+    if(distance>55){
+      indicator.textContent=distance>90?'Engedd el a frissítéshez':'Húzd lejjebb…';
+      indicator.classList.add('show');
+    }
+  },{passive:true});
+
+  document.addEventListener('touchend',async()=>{
+    if(startY===null){
+      return;
+    }
+
+    const shouldRefresh=distance>90;
+    startY=null;
+    distance=0;
+
+    if(!shouldRefresh){
+      indicator.classList.remove('show');
+      return;
+    }
+
+    running=true;
+    indicator.textContent='Frissítés…';
+    indicator.classList.add('show');
+
+    try{
+      if(API_URL && currentSessionToken){
+        await loadBootstrap();
+      }else{
+        renderEvents();
+        renderPlanner();
+      }
+      indicator.textContent='Frissítve';
+    }catch(error){
+      console.error(error);
+      indicator.textContent='Nem sikerült frissíteni';
+    }finally{
+      window.setTimeout(()=>{
+        indicator.classList.remove('show');
+        running=false;
+      },650);
+    }
+  },{passive:true});
+})();
+
+
 document.getElementById('homeRefreshBtn').addEventListener('click',async e=>{
   const btn=e.currentTarget;
   if(btn.disabled) return;
@@ -768,12 +836,44 @@ async function apiPost(payload){
   return j;
 }
 
+
+function normalizeApiTime_(value){
+  if(value===null || value===undefined || value==='') return '';
+  const raw=String(value).trim();
+
+  const direct=raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if(direct){
+    return String(Number(direct[1])).padStart(2,'0')+':'+direct[2];
+  }
+
+  const embedded=raw.match(/\b(\d{1,2}):(\d{2}):(?:\d{2})\b/);
+  if(embedded){
+    return String(Number(embedded[1])).padStart(2,'0')+':'+embedded[2];
+  }
+
+  return raw;
+}
+
 function normalizeApiEvent(x){
+  const start=normalizeApiTime_(x.startTime);
+  const end=normalizeApiTime_(x.endTime);
+  const safeLabel=
+    start
+      ? (
+          start +
+          (
+            end
+              ? '–'+end
+              : ''
+          )
+        )
+      : normalizeApiTime_(x.timeLabel);
+
   return {
     id:x.eventId,
     date:x.dateLabel || x.date,
     day:x.day || '',
-    time:x.timeLabel || `${x.startTime||''}${x.endTime?'–'+x.endTime:''}`,
+    time:safeLabel,
     type:(x.type==='match'||x.type==='Meccs')?'Meccs':'Edzés',
     matchKind:x.homeAway||'',
     title:x.title||'Csapatedzés',
@@ -790,7 +890,14 @@ function normalizeApiEvent(x){
 
 function applyBootstrap(j){
   if(!j || !Array.isArray(j.events)) throw new Error('Hibás eseményadat érkezett a szervertől.');
-  if(j.team){ document.getElementById('teamTitle').textContent=j.team.teamName; }
+  if(j.team){
+    const teamLabel=
+      j.team.teamName ||
+      j.team.name ||
+      j.team.teamId ||
+      'Csapat';
+    document.getElementById('teamTitle').textContent=teamLabel;
+  }
   if(j.player){
     currentPlayerData=j.player;
     currentPlayerName=j.player.name||'Te';
