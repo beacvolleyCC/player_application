@@ -1009,7 +1009,7 @@ function setLoginMessage(id,text,isError=false){
 }
 function normalizeLoginEmail(v){ return String(v||'').trim().toLowerCase(); }
 function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
-function normalizeOtp(v){ return String(v||'').replace(/\D/g,'').slice(0,6); }
+function normalizeOtp(v){ return String(v||'').replace(/\D/g,'').slice(0,10); }
 
 async function apiPost(payload){
   if(!API_URL) throw new Error('Nincs beállítva az API URL.');
@@ -1176,8 +1176,17 @@ async function startLogin(){
 
 async function verifyLogin(){
   const code=normalizeOtp(document.getElementById('loginCode')?.value);
-  if(code.length!==6){
-    setLoginMessage('loginCodeMsg','A kód 6 számjegyből áll.',true);
+  const otpLengthOk = SUPABASE_ENABLED
+    ? code.length>=6 && code.length<=10
+    : code.length===6;
+  if(!otpLengthOk){
+    setLoginMessage(
+      'loginCodeMsg',
+      SUPABASE_ENABLED
+        ? 'Írd be az emailben kapott teljes kódot.'
+        : 'A kód 6 számjegyből áll.',
+      true
+    );
     return;
   }
   const btn=document.getElementById('verifyCodeBtn'); if(btn) btn.disabled=true;

@@ -1,0 +1,48 @@
+﻿CLUB CONTROL PLAYER – OTP FLEX V2.2
+===================================
+
+CÉL
+---
+A Player eddig 6 számjegyre hardcode-olta az email OTP-t.
+A Supabase email OTP hossza konfigurálható, ezért a Player most
+6–10 számjegyű Supabase OTP-t fogad el. A jelenlegi 8 jegyű kód működik.
+
+CSAK EZEK VÁLTOZTAK
+-------------------
+- index.html
+- app.js
+- sw.js
+
+NEM VÁLTOZOTT
+-------------
+- config.js
+- styles.css
+- manifest.webmanifest
+- icons/
+- Supabase schema / RLS / RPC
+- Manager
+
+TELEPÍTÉS
+---------
+1. A player_application repo gyökerében cseréld le:
+   index.html
+   app.js
+   sw.js
+
+2. config.js-hez NE nyúlj.
+
+3. GitHub Desktopban csak ezt a 3 módosított fájlt ellenőrizd.
+
+4. Commit:
+   Player OTP length fix V2.2
+
+5. Push origin.
+
+6. Várj a GitHub Pages deployra, majd Chrome-ban Ctrl+F5.
+   Telepített PWA-nál zárd be teljesen és nyisd újra.
+
+TESZT
+-----
+- Kérj új Supabase OTP-t.
+- A jelenlegi 8 jegyű kódot teljes egészében írd be.
+- Belépés után a Playernek be kell töltenie a tesztcsapatot és eseményeket.

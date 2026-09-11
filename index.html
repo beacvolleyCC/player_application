@@ -37,7 +37,7 @@
         <p>A 6 számjegyű kódot erre a címre küldtük:</p>
         <div class="login-email-preview" id="loginEmailPreview"></div>
         <label class="login-field-label" for="loginCode">Kód</label>
-        <input type="text" id="loginCode" class="login-code-input" placeholder="000000" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}">
+        <input type="text" id="loginCode" class="login-code-input" placeholder="00000000" inputmode="numeric" autocomplete="one-time-code" minlength="6" maxlength="10" pattern="[0-9]{6,10}">
         <button class="login-btn" id="verifyCodeBtn">Belépés</button>
         <div class="login-msg" id="loginCodeMsg" aria-live="polite"></div>
         <div class="login-secondary-actions">
@@ -300,6 +300,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.0-supabase-core2"></script>
+  <script src="./app.js?v=13.1-otp-flex"></script>
 </body>
 </html>

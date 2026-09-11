@@ -1,29 +1,14 @@
-﻿CC v0.53.5 / Player V12 AUTH2 – STATIC QA
-==========================================
-CHECKS: 24
-FAILED: 0
+﻿PLAYER OTP FLEX V2.2 – STATIC QA
+================================
+Checks: 9
+Failed: 0
 
-- OK: Manager index duplicate ids
-- OK: Manager index script 1
-- OK: Manager index script 2
-- OK: Manager index script 3
-- OK: Manager index script 4
-- OK: Manager index script 5
-- OK: Manager index script 6
-- OK: Manager index script 7
-- OK: Manager index script 8
-- OK: Manager SESSION_UI duplicate ids
-- OK: Manager SESSION_UI script 1
-- OK: Manager Kód.gs syntax
-- OK: Manager Account syntax
-- OK: Player app.js syntax
-- OK: Player API Code.gs syntax
-- OK: Player sw.js syntax
-- OK: Manager picker buttons restored
-- OK: Manager medical native picker
-- OK: Manager team selector fix retained
-- OK: Manager Events plain text prep
-- OK: Player team fallback
-- OK: Player home date/day
-- OK: Player raw Date protection
-- OK: Player pull refresh
+- OK: app.js syntax
+- OK: sw.js syntax
+- OK: HTML accepts 6-10 digits
+- OK: JS no longer truncates to 6
+- OK: Supabase validation 6-10
+- OK: Legacy API remains 6 digits
+- OK: verifyOtp unchanged
+- OK: service worker cache bumped
+- OK: only 3 runtime files changed

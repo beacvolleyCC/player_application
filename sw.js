@@ -1,4 +1,4 @@
-const CACHE='club-control-player-supabase-core-v2';
+const CACHE='club-control-player-supabase-core-v2-2-otp-flex';
 const CORE=['./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 
 self.addEventListener('install', event => {
