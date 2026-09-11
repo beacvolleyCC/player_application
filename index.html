@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.0-supabase-core2">
+  <link rel="stylesheet" href="./styles.css?v=13.2-mobile-polish">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -51,8 +51,7 @@
   <header class="hero">
   <div class="topbar compact-topbar">
     <div class="brand-left brand-inline">
-      <h1 class="team-heading"><span id="teamTitle">BEAC Női I.</span><span class="team-season" id="teamSeason">2026/27</span></h1>
-      <div class="eyebrow player-brand-label">PLAYER</div>
+      <h1 class="team-heading"><span id="teamTitle">BEAC Női I.</span></h1>
     </div>
     <div class="header-actions">
       <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
@@ -127,8 +126,8 @@
           <p>Rács és naptár a teljes szezonhoz.</p>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
-          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet" aria-label="Rácsnézet">▦</button>
-          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet" aria-label="Naptárnézet">▣</button>
+          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">▣</button>
+          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok">▦</button>
           <button class="view-mode-btn icon-only" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">▽</button>
         </div>
       </div>
@@ -164,14 +163,23 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card profile-personal-card">
         <h4>Személyes adatok</h4>
-        <div class="detail-row" id="profilePositionRow"><span>Poszt</span><b id="profilePosition">–</b></div>
-        <div class="detail-row" id="profileJerseyNoRow"><span>Mezszám</span><b id="profileJerseyNo">–</b></div>
-        <div class="detail-row" id="profileJerseySizeRow"><span>Mezméret</span><b id="profileJerseySize">–</b></div>
-        <div class="detail-row" id="profileShortsSizeRow"><span>Nadrágméret</span><b id="profileShortsSize">–</b></div>
         <div class="detail-row" id="profileLicenseRow"><span>Igazolási szám</span><b id="profileLicense">–</b></div>
-        <div class="detail-row" id="profileMedicalRow"><span>Sportorvosi</span><b class="ok" id="profileMedical">–</b></div>
+        <div class="detail-row" id="profileMedicalRow"><span>Sportorvosi lejár</span><b class="ok" id="profileMedical">–</b></div>
+
+        <details class="profile-more-details">
+          <summary>
+            <span>További adatok</span>
+            <span class="profile-details-chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="profile-more-content">
+            <div class="detail-row" id="profilePositionRow"><span>Poszt</span><b id="profilePosition">–</b></div>
+            <div class="detail-row" id="profileJerseyNoRow"><span>Mezszám</span><b id="profileJerseyNo">–</b></div>
+            <div class="detail-row" id="profileJerseySizeRow"><span>Mezméret</span><b id="profileJerseySize">–</b></div>
+            <div class="detail-row" id="profileShortsSizeRow"><span>Nadrágméret</span><b id="profileShortsSize">–</b></div>
+          </div>
+        </details>
       </div>
 
       <div class="card">
@@ -270,7 +278,7 @@
       <div class="settings-section">
         <h4>Alkalmazás</h4>
         <button class="ghost-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
-        <div class="detail-row compact-setting-detail"><span>Build</span><b>Player Core V2 DEV</b></div>
+        <div class="detail-row compact-setting-detail"><span>Build</span><b>Player Core V2.3 DEV</b></div>
       </div>
 
       <div class="dialog-actions"><button class="ghost-btn" id="closeSettingsBtn">Bezárás</button></div>

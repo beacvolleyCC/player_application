@@ -1,0 +1,65 @@
+﻿CLUB CONTROL PLAYER V2.3 – MOBILE POLISH / UPDATE ONLY
+=======================================================
+
+EHHEZ NYÚLTUNK
+--------------
+1. Fejléc:
+   - PLAYER felirat kikerült
+   - 2026/27 évadjelzés kikerült a normál fejlécből
+   - csak a csapatnév marad
+
+2. Edzések:
+   - frissítés ikon ugyanakkora vizuális méretet kapott, mint a Szűrő ikon
+   - a gombdoboz mérete is azonos marad
+
+3. Menetrend:
+   - ikonok jelentése felcserélve
+   - nagy négyzet (▣) = játékosokat mutató rács
+   - kis rács (▦) = dátumos naptár
+
+4. Profil / Személyes adatok:
+   - alapból: Igazolási szám + Sportorvosi lejár
+   - További adatok lenyitható:
+     Poszt, Mezszám, Mezméret, Nadrágméret
+
+5. Beállítások:
+   - javítva a mobilos switch layout / felső becsúszás
+   - az Új edzés és a többi toggle ismét egy sorban, jobb oldalon jelenik meg
+
+EHHEZ NEM NYÚLTUNK
+------------------
+- config.js
+- Supabase schema / RLS / RPC
+- Auth / OTP működés
+- Realtime
+- Jövök / Nincs jelzés / Nem jövök logika
+- manifest.webmanifest
+- icons/
+- Manager
+
+TELEPÍTÉS
+---------
+A ZIP-ből csak ezt a 3 fájlt cseréld a player_application repo gyökerében:
+- index.html
+- styles.css
+- sw.js
+
+Ezután GitHub Desktop:
+Summary: Player mobile polish V2.3
+Commit to main
+Push origin
+
+Deploy után:
+- Safari oldalt frissítsd
+- telepített PWA-t teljesen zárd be és nyisd újra
+- ha régi CSS maradna: egyszer böngészőből is nyisd meg a GitHub Pages oldalt
+
+RUNTIME CHECKLIST
+-----------------
+- fejlécben csak csapatnév
+- refresh ikon mérete = filter ikon mérete
+- Menetrend: ▣ játékos-rács, ▦ naptár
+- Profil: 2 fontos adat + lenyitható többi
+- Beállítások: kapcsolók nem csúsznak a szöveg alá / boxba
+- OTP belépés továbbra is működik
+- státuszváltás továbbra is működik

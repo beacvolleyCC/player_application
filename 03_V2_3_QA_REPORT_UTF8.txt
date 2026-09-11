@@ -1,0 +1,37 @@
+﻿CLUB CONTROL PLAYER V2.3 – DOUBLE/TRIPLE CHECK
+================================================
+Checks: 19
+Failures: 0
+
+[PROGRAMOZÓ] OK – app.js JavaScript syntax
+[PROGRAMOZÓ] OK – sw.js JavaScript syntax
+[PROGRAMOZÓ] OK – OTP V2.2 fix retained
+[PROGRAMOZÓ] OK – Supabase verifyOtp retained
+[PROGRAMOZÓ] OK – Realtime retained
+[PROGRAMOZÓ] OK – Profile data IDs retained
+[WEB/PWA] OK – No duplicate DOM IDs
+[WEB/PWA] OK – Service worker cache bumped
+[WEB/PWA] OK – CSS cache-busting bumped
+[WEB/PWA] OK – config.js untouched by build
+[UX] OK – Header contains team name only
+[UX] OK – Important personal fields visible first
+[UX] OK – Secondary personal fields collapsed
+[UX] OK – Planner icon semantics swapped
+[UX] OK – Settings switch layout specificity fixed
+[UI/DESIGN] OK – Refresh same button dimensions as filter
+[UI/DESIGN] OK – Refresh icon size matches filter
+[UI/DESIGN] OK – Disclosure chevron rotates
+[UI/DESIGN] OK – Mobile team heading remains constrained
+
+SCOPE / HONEST LIMITATION
+-------------------------
+Ez statikus/integrációs QA. A valódi iPhone Safari/PWA runtime megjelenést
+és a Supabase hálózati működést a deploy után a készüléken kell ellenőrizni.
+
+REGRESSION FREEZE
+-----------------
+- Auth / OTP logikához nem nyúltunk.
+- Supabase / RLS / Realtime logikához nem nyúltunk.
+- Edzés státuszlogikához nem nyúltunk.
+- config.js-hez nem nyúltunk.
+- Managerhez nem nyúltunk.

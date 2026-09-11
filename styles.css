@@ -1631,3 +1631,115 @@ html,body{
 .compact-profile-stats{margin-bottom:8px}
 .compact-setting-detail{padding:7px 0!important}
 .settings-note{font-size:10px!important;line-height:1.5;color:var(--muted)}
+
+
+/* ==========================================================
+   PLAYER CORE V2.3 — MOBILE POLISH
+   Scope: header, planner icons, profile disclosure,
+   settings spacing/toggles, refresh icon parity.
+   ========================================================== */
+
+/* Header: only the team name is visible. */
+.brand-left.brand-inline{
+  gap:0 !important;
+}
+.team-heading{
+  max-width:min(72vw,680px) !important;
+}
+@media(max-width:760px){
+  .team-heading{
+    max-width:68vw !important;
+    font-size:24px !important;
+  }
+}
+
+/* Home actions: refresh must have the same visual weight as filter. */
+.home-head-actions .icon-action-btn,
+.home-head-actions .refresh-button{
+  width:38px !important;
+  min-width:38px !important;
+  height:38px !important;
+  padding:0 !important;
+  display:grid !important;
+  place-items:center !important;
+}
+.home-head-actions .refresh-icon{
+  font-size:20px !important;
+  line-height:1 !important;
+  font-weight:700;
+}
+
+/*
+  Settings bug fix:
+  an older generic `.dialog-card label { display:block }` rule had
+  higher specificity than `.switch-row`, which pushed toggles below
+  the label text on mobile. Force the intended flex layout here.
+*/
+.settings-dialog-card label.switch-row{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:16px !important;
+  margin:0 !important;
+  padding:8px 0 !important;
+}
+.settings-dialog-card .settings-section > .settings-note{
+  margin:0 0 10px !important;
+}
+.settings-dialog-card .settings-section h4{
+  margin-bottom:8px !important;
+}
+.settings-dialog-card label.settings-select-row{
+  margin-bottom:0 !important;
+}
+@media(max-width:560px){
+  .settings-dialog-card label.switch-row{
+    gap:12px !important;
+  }
+  .settings-dialog-card label.switch-row > span{
+    min-width:0;
+    flex:1 1 auto;
+  }
+  .settings-dialog-card label.switch-row input[type="checkbox"]{
+    flex:0 0 36px !important;
+  }
+}
+
+/* Personal data: compact default + native accessible disclosure. */
+.profile-personal-card > h4{
+  margin-bottom:10px;
+}
+.profile-more-details{
+  margin-top:4px;
+  border-top:1px solid var(--line);
+}
+.profile-more-details summary{
+  list-style:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:44px;
+  cursor:pointer;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:850;
+  -webkit-tap-highlight-color:transparent;
+}
+.profile-more-details summary::-webkit-details-marker{
+  display:none;
+}
+.profile-details-chevron{
+  font-size:18px;
+  line-height:1;
+  transition:transform .16s ease;
+}
+.profile-more-details[open] .profile-details-chevron{
+  transform:rotate(180deg);
+}
+.profile-more-content{
+  border-top:1px solid color-mix(in srgb,var(--line) 72%,transparent);
+}
+.profile-more-content .detail-row:last-child{
+  border-bottom:0;
+}
