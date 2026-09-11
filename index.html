@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f7b700">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.supabase.co wss://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=12.0">
+  <link rel="stylesheet" href="./styles.css?v=13.0-supabase-core2">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -51,8 +51,8 @@
   <header class="hero">
   <div class="topbar compact-topbar">
     <div class="brand-left brand-inline">
-      <div class="eyebrow">CLUB CONTROL <span class="season-inline">2026/27</span></div>
-      <h1 id="teamTitle">BEAC Női I.</h1>
+      <h1 class="team-heading"><span id="teamTitle">BEAC Női I.</span><span class="team-season" id="teamSeason">2026/27</span></h1>
+      <div class="eyebrow player-brand-label">PLAYER</div>
     </div>
     <div class="header-actions">
       <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
@@ -69,27 +69,71 @@
     <section id="homeView" class="view active">
       <div class="home-panel-head">
         <div>
-          <h3>Következő alkalmak</h3>
-          <p>A következő 14 nap edzései és meccsei.</p>
+          <h3>Edzések</h3>
+          <p id="homeFilterSummary">Következő 14 nap.</p>
         </div>
-        <button class="ghost-btn compact-reload refresh-button" id="homeRefreshBtn" aria-label="Adatok frissítése"><span class="refresh-icon" aria-hidden="true">↻</span></button>
+        <div class="home-head-actions">
+          <button class="ghost-btn icon-action-btn" id="eventFilterBtn" aria-label="Edzések szűrése" aria-expanded="false" title="Szűrő">
+            <span class="filter-funnel" aria-hidden="true">▽</span><i id="eventFilterBadge" class="filter-active-dot" hidden></i>
+          </button>
+          <button class="ghost-btn compact-reload refresh-button" id="homeRefreshBtn" aria-label="Adatok frissítése"><span class="refresh-icon" aria-hidden="true">↻</span></button>
+        </div>
       </div>
-      <div id="eventList" class="stack"></div>
+
+      <div id="eventFilterPanel" class="filter-panel is-collapsed" aria-hidden="true">
+        <div class="filter-grid">
+          <label><span>Időszak</span>
+            <select id="eventPeriodFilter">
+              <option value="next14">Következő 14 nap</option>
+              <option value="next30">Következő 30 nap</option>
+              <option value="future">Minden következő</option>
+              <option value="past">Elmúlt alkalmak</option>
+              <option value="all">Teljes szezon</option>
+              <option value="custom">Egyéni időszak</option>
+            </select>
+          </label>
+          <label><span>Típus</span>
+            <select id="eventTypeFilter">
+              <option value="all">Minden alkalom</option>
+              <option value="Edzés">Edzések</option>
+              <option value="Meccs">Meccsek</option>
+            </select>
+          </label>
+          <label><span>Jelzés</span>
+            <select id="eventStatusFilter">
+              <option value="all">Minden állapot</option>
+              <option value="missing">Még nem jelöltem</option>
+              <option value="yes">Jövök</option>
+              <option value="no">Nem jövök</option>
+            </select>
+          </label>
+        </div>
+        <div id="eventCustomRange" class="custom-date-range" hidden>
+          <label><span>Ettől</span><input id="eventDateFrom" type="text" inputmode="numeric" placeholder="2026.09.10."></label>
+          <label><span>Eddig</span><input id="eventDateTo" type="text" inputmode="numeric" placeholder="2026.10.10."></label>
+        </div>
+        <div class="filter-panel-actions">
+          <button class="text-btn" type="button" id="resetEventFiltersBtn">Alapállapot</button>
+        </div>
+      </div>
+
+      <div id="eventList" class="stack event-stack"></div>
     </section>
 
     <section id="plannerView" class="view">
       <div class="section-head planner-title-row">
         <div>
           <h3>Menetrend</h3>
-          <p>Teljes szezon, szűrhető nézetben.</p>
+          <p>Rács és naptár a teljes szezonhoz.</p>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
-          <button class="view-mode-btn active icon-only" data-mode="cards" title="Kártyanézet" aria-label="Kártyanézet">▤</button>
-          <button class="view-mode-btn icon-only" data-mode="grid" title="Rácsnézet" aria-label="Rácsnézet">▦</button>
+          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet" aria-label="Rácsnézet">▦</button>
           <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet" aria-label="Naptárnézet">▣</button>
+          <button class="view-mode-btn icon-only" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">▽</button>
         </div>
       </div>
-      <div class="planner-toolbar">
+
+      <div class="planner-toolbar filter-panel is-collapsed" id="plannerFilterPanel" aria-hidden="true">
         <div class="filter-bar compact-filters">
           <select id="monthFilter" aria-label="Hónap">
             <option value="all">Teljes szezon</option>
@@ -104,128 +148,57 @@
             <option value="Edzés">Csak edzések</option>
             <option value="Meccs">Csak meccsek</option>
           </select>
-          <button class="ghost-btn" id="missingOnlyBtn">Csak ahol még nem jeleztem</button>
+          <button class="ghost-btn" id="missingOnlyBtn">Még nem jelöltem</button>
         </div>
       </div>
+
       <div class="planner-card">
         <div id="plannerList"></div>
       </div>
     </section>
-
-    <section id="statsView" class="view">
+<section id="profileView" class="view">
       <div class="section-head">
         <div>
-          <h3>Saját statisztikám</h3>
-          <p>Csak te és az edzők látjátok.</p>
-        </div>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card"><strong>86%</strong><span>részvétel</span></div>
-        <div class="stat-card"><strong>31</strong><span>jelenlét</span></div>
-        <div class="stat-card warn"><strong>1</strong><span>késői lemondás</span></div>
-        <div class="stat-card danger"><strong>1</strong><span>no-show</span></div>
-      </div>
-      <div class="card">
-        <h4>2026/27 szezon</h4>
-        <div class="detail-row"><span>Edzések</span><b>31 / 36</b></div>
-        <div class="detail-row"><span>Rendes lemondás</span><b>3</b></div>
-        <div class="detail-row"><span>Késői lemondás</span><b>1</b></div>
-        <div class="detail-row"><span>No-show</span><b>1</b></div>
-        <div class="detail-row"><span>Meccsek</span><b>10 / 11</b></div>
-      </div>
-    </section>
-
-    <section id="profileView" class="view">
-      <div class="section-head">
-        <div>
-          <h3>Én</h3>
-          <p>Csapatadatok, dokumentumok és befizetések.</p>
+          <h3>Profil</h3>
+          <p>Saját adatok, díjak, szezon és beállítások.</p>
         </div>
       </div>
 
       <div class="card">
-        <h4>Saját adataim</h4>
-        <div class="detail-row" id="profilePositionRow"><span>Poszt</span><b id="profilePosition">Négyes</b></div>
-        <div class="detail-row" id="profileJerseyNoRow"><span>Mezszám</span><b id="profileJerseyNo">12</b></div>
-        <div class="detail-row" id="profileJerseySizeRow"><span>Mezméret</span><b id="profileJerseySize">M</b></div>
-        <div class="detail-row" id="profileLicenseRow"><span>Igazolási szám</span><b id="profileLicense">251234</b></div>
-        <div class="detail-row" id="profileMedicalRow"><span>Sportorvosi</span><b class="ok" id="profileMedical">2026.12.27.</b></div>
+        <h4>Személyes adatok</h4>
+        <div class="detail-row" id="profilePositionRow"><span>Poszt</span><b id="profilePosition">–</b></div>
+        <div class="detail-row" id="profileJerseyNoRow"><span>Mezszám</span><b id="profileJerseyNo">–</b></div>
+        <div class="detail-row" id="profileJerseySizeRow"><span>Mezméret</span><b id="profileJerseySize">–</b></div>
+        <div class="detail-row" id="profileShortsSizeRow"><span>Nadrágméret</span><b id="profileShortsSize">–</b></div>
+        <div class="detail-row" id="profileLicenseRow"><span>Igazolási szám</span><b id="profileLicense">–</b></div>
+        <div class="detail-row" id="profileMedicalRow"><span>Sportorvosi</span><b class="ok" id="profileMedical">–</b></div>
       </div>
 
       <div class="card">
-        <h4>Befizetéseim</h4>
-        <div class="season-payments-wrap">
-          <table class="season-payments-table">
-            <thead>
-              <tr>
-                <th class="sticky-col">Tétel</th>
-                <th>Szept</th>
-                <th>Okt</th>
-                <th>Nov</th>
-                <th>Dec</th>
-                <th>Jan</th>
-                <th>Feb</th>
-                <th>Márc</th>
-                <th>Ápr</th>
-                <th>Máj</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th class="sticky-col">BEAC bérlet</th>
-                <td class="cell-paid">✓</td>
-                <td class="cell-paid">✓</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-              </tr>
-              <tr>
-                <th class="sticky-col">Edzői díj</th>
-                <td class="cell-paid">✓</td>
-                <td class="cell-due">!</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-                <td class="cell-empty">—</td>
-              </tr>
-            </tbody>
-          </table>
+        <h4>Díjak és befizetések</h4>
+        <div id="profilePaymentsContent" class="profile-empty-block">
+          <b>Nincs még betöltött fizetési adat.</b>
+          <small>A BEAC-bérlet és az edzői/csapatdíjak később a Managerből kerülnek ide. Tesztértéket nem mutatunk.</small>
         </div>
+      </div>
 
-        <div class="one-time-payments">
-          <div class="one-time-payment-row">
-            <span>Nevezési díj</span>
-            <b class="one-time-paid">✓ Fizetve</b>
-          </div>
+      <div class="card">
+        <h4>Saját szezon</h4>
+        <div class="stats-grid compact-profile-stats">
+          <div class="stat-card"><strong id="profileStatResponseRate">–</strong><span>jelzési arány</span></div>
+          <div class="stat-card"><strong id="profileStatGoing">0</strong><span>jövök</span></div>
+          <div class="stat-card"><strong id="profileStatNo">0</strong><span>nem jövök</span></div>
+          <div class="stat-card"><strong id="profileStatMissing">0</strong><span>nincs jelzés</span></div>
         </div>
-
-        <div class="payment-legend">
-          <span><i class="legend-box paid"></i> Fizetve</span>
-          <span><i class="legend-box due"></i> Fizetendő</span>
-          <span><i class="legend-box empty"></i> Nincs adat</span>
-        </div>
+        <div class="profile-stat-note">Csak a ténylegesen betöltött szezonadatból számoljuk; nincs demo/kamu statisztika.</div>
       </div>
 
       <div class="card">
         <h4>Beállítások</h4>
         <button class="settings-row" id="openSettingsBtn">
-          <span><b>Megjelenés és segítség</b><small>Jelölések, részletes nézet és adatfrissítés</small></span>
+          <span><b>Player beállítások</b><small>Értesítések, megjelenés, menetrend, fiók</small></span>
           <span class="settings-arrow">›</span>
         </button>
-      </div>
-
-      <div class="card info-card">
-        <h4>Hasznos infók</h4>
-        <p><b>Bérletvásárlás:</b> BEAC webshop</p>
-        <p><b>Edzői díj:</b> 8 000 Ft / hó, határidő minden hónap 10.</p>
-        <p><b>Edzéshelyszín:</b> Bogdánfy Sportcsarnok</p>
       </div>
     </section>
   </main>
@@ -233,38 +206,73 @@
   <nav class="bottom-nav">
     <button data-view="homeView" class="nav-btn active"><span>⌂</span><small>Edzések</small></button>
     <button data-view="plannerView" class="nav-btn"><span>▦</span><small>Menetrend</small></button>
-    <button data-view="statsView" class="nav-btn"><span>◔</span><small>Statisztika</small></button>
-    <button data-view="profileView" class="nav-btn"><span>●</span><small>Én</small></button>
+    <button data-view="profileView" class="nav-btn"><span>●</span><small>Profil</small></button>
   </nav>
 
   <dialog id="settingsDialog">
     <div class="dialog-card settings-dialog-card">
       <h3>Beállítások</h3>
+
       <div class="settings-section">
-        <h4>Menetrend</h4>
+        <h4>Értesítések</h4>
+        <p class="settings-note">A preferenciákat már elmentjük. A tényleges push-küldést a következő Player backend lépésben kapcsoljuk rá.</p>
+        <label class="switch-row"><span><b>Új edzés</b><small>Ha új edzés kerül a csapat menetrendjébe.</small></span><input type="checkbox" data-notify-setting="new_training" checked></label>
+        <label class="switch-row"><span><b>Edzés módosult vagy törlődött</b><small>Időpont, helyszín vagy törlés.</small></span><input type="checkbox" data-notify-setting="training_change" checked></label>
+        <label class="switch-row"><span><b>Még nem jeleztél</b><small>Emlékeztető, ha nincs Jövök/Nem jövök jelzésed.</small></span><input type="checkbox" data-notify-setting="missing_response" checked></label>
+        <label class="settings-select-row"><span><b>Edzés előtti emlékeztető</b><small>Az esemény kezdéséhez képest.</small></span>
+          <select id="trainingReminderMinutes"><option value="0">Kikapcsolva</option><option value="60">1 órával</option><option value="120" selected>2 órával</option><option value="720">12 órával</option></select>
+        </label>
+        <label class="switch-row"><span><b>Új meccs</b><small>Új bajnoki vagy felkészülési mérkőzés.</small></span><input type="checkbox" data-notify-setting="new_match" checked></label>
+        <label class="switch-row"><span><b>Meccs módosult</b><small>Időpont, helyszín vagy találkozó változása.</small></span><input type="checkbox" data-notify-setting="match_change" checked></label>
+        <label class="settings-select-row"><span><b>Meccs előtti emlékeztető</b><small>Ha lesz találkozási idő, később ahhoz igazítjuk.</small></span>
+          <select id="matchReminderMinutes"><option value="0">Kikapcsolva</option><option value="60">1 órával</option><option value="180" selected>3 órával</option><option value="720">12 órával</option></select>
+        </label>
+        <label class="switch-row"><span><b>Fizetési értesítés</b><small>Esedékes vagy változó díjak.</small></span><input type="checkbox" data-notify-setting="payment" checked></label>
+      </div>
+
+      <div class="settings-section">
+        <h4>Megjelenés</h4>
+        <label class="settings-select-row"><span><b>Téma</b><small>Alapból a telefon beállítását követi.</small></span>
+          <select id="settingsThemeMode"><option value="system">Rendszer szerint</option><option value="light">Világos</option><option value="dark">Sötét</option></select>
+        </label>
         <label class="switch-row">
-          <span><b>Részletes nézet</b><small>Helyszín, találkozó, Maps-link és további eseményadatok.</small></span>
+          <span><b>Részletes eseményadatok</b><small>Helyszín, találkozó és Maps-link megjelenítése.</small></span>
           <input type="checkbox" id="settingsDetailToggle">
         </label>
+      </div>
+
+      <div class="settings-section">
+        <h4>Menetrend</h4>
         <label class="settings-select-row">
-          <span><b>Alapértelmezett Menetrend nézet</b><small>Ezt nyitja meg legközelebb a Menetrend.</small></span>
+          <span><b>Induló nézet</b><small>Az „Utoljára használt” nem kényszerít rád fix nézetet.</small></span>
           <select id="settingsDefaultView">
-            <option value="cards">Kártya</option>
+            <option value="last">Utoljára használt</option>
             <option value="grid">Rács</option>
             <option value="calendar">Naptár</option>
           </select>
         </label>
       </div>
+
       <div class="settings-section">
-        <h4>Jelölések</h4>
-        <p><b>Zöld:</b> jössz. <b>Piros:</b> nem jössz. <b>Semleges:</b> még nem jeleztél.</p>
-        <p><b>Labda:</b> edzés · <b>Ház:</b> hazai meccs · <b>Útvonal:</b> idegenbeli meccs.</p>
+        <h4>Nyelv</h4>
+        <label class="settings-select-row"><span><b>Felület nyelve</b><small>Az angol teljes UI-fordítás külön lépés.</small></span>
+          <select id="settingsLanguage"><option value="hu">Magyar</option><option value="en" disabled>English – hamarosan</option></select>
+        </label>
       </div>
+
       <div class="settings-section">
-        <h4>Adatok</h4>
-        <button class="ghost-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
+        <h4>Fiók és adatvédelem</h4>
+        <div class="detail-row compact-setting-detail"><span>Email</span><b id="settingsAccountEmail">–</b></div>
+        <p class="settings-note">Adatkezelési kérdés: elteroplabda@gmail.com</p>
         <button class="ghost-btn" id="logoutBtn">Kijelentkezés</button>
       </div>
+
+      <div class="settings-section">
+        <h4>Alkalmazás</h4>
+        <button class="ghost-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
+        <div class="detail-row compact-setting-detail"><span>Build</span><b>Player Core V2 DEV</b></div>
+      </div>
+
       <div class="dialog-actions"><button class="ghost-btn" id="closeSettingsBtn">Bezárás</button></div>
     </div>
   </dialog>
@@ -290,7 +298,8 @@
     </form>
   </dialog>
 
-  <script src="./config.js?v=12.0"></script>
-  <script src="./app.js?v=12.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js?v=13.0-supabase-core2"></script>
+  <script src="./app.js?v=13.0-supabase-core2"></script>
 </body>
 </html>

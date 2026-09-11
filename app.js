@@ -32,6 +32,28 @@ let currentPlayerName = 'Te';
 let currentPlayerData = null;
 let teamPlayerDirectory = [];
 
+let currentTeamData = null;
+
+const HOME_FILTER_KEY='cc-home-filters-v2';
+let homeFilters={period:'next14',type:'all',status:'all',from:'',to:''};
+try{ homeFilters={...homeFilters,...JSON.parse(localStorage.getItem(HOME_FILTER_KEY)||'{}')}; }catch(_){}
+
+function ccConfig_(){
+  return window.CLUB_CONTROL_CONFIG || {};
+}
+function ccSupabaseConfigured_(){
+  const c=ccConfig_();
+  return String(c.DATA_BACKEND||'').toLowerCase()==='supabase' &&
+    !!String(c.SUPABASE_URL||'').trim() &&
+    !!String(c.SUPABASE_PUBLISHABLE_KEY||'').trim();
+}
+function ccLegacyConfigured_(){
+  return !ccSupabaseConfigured_() && !!String(ccConfig_().API_URL||'').trim();
+}
+function ccRemoteConfigured_(){
+  return ccSupabaseConfigured_() || ccLegacyConfigured_();
+}
+
 
 function persist(event, status, note='') {
   event.status = status;
@@ -57,7 +79,7 @@ function eventStart(e){
   return new Date(y,m-1,d,hh,mm,0);
 }
 function isPast(e){
-  const liveApi = !!(window.CLUB_CONTROL_CONFIG && window.CLUB_CONTROL_CONFIG.API_URL);
+  const liveApi = ccRemoteConfigured_();
   const now = liveApi ? new Date() : DEMO_NOW;
   return e.archived===true || eventStart(e) < now;
 }
@@ -159,15 +181,94 @@ function eventCard(e){
   </article>`;
 }
 
+function ccNow_(){ return ccRemoteConfigured_() ? new Date() : new Date(DEMO_NOW); }
+function dateOnly_(value){ const d=new Date(value.getFullYear(),value.getMonth(),value.getDate()); d.setHours(0,0,0,0); return d; }
+function parseHuDate_(text){
+  const m=String(text||'').trim().match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})\.?$/);
+  if(!m) return null;
+  const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+function monthDividerLabel_(e){ return eventDateObj(e).toLocaleDateString('hu-HU',{year:'numeric',month:'long'}); }
+function monthDividerHtml_(e){ return `<div class="month-divider" aria-hidden="true"><span>${monthDividerLabel_(e)}</span></div>`; }
+function renderEventCardsWithMonths_(rows){
+  let lastMonth='';
+  return rows.map(e=>{
+    const key=monthKeyFromDate(eventDateObj(e));
+    const divider=key!==lastMonth ? monthDividerHtml_(e) : '';
+    lastMonth=key;
+    return divider+eventCard(e);
+  }).join('');
+}
+function homeFilterIsDefault_(){ return homeFilters.period==='next14' && homeFilters.type==='all' && homeFilters.status==='all' && !homeFilters.from && !homeFilters.to; }
+function filteredHomeEvents(){
+  const now=dateOnly_(ccNow_());
+  const to14=new Date(now.getTime()+14*86400000);
+  const to30=new Date(now.getTime()+30*86400000);
+  const customFrom=parseHuDate_(homeFilters.from);
+  const customTo=parseHuDate_(homeFilters.to);
+
+  return [...events].sort((a,b)=>eventStart(a)-eventStart(b)).filter(e=>{
+    const d=dateOnly_(eventDateObj(e));
+    if(homeFilters.period==='next14' && (d<now || d>to14)) return false;
+    if(homeFilters.period==='next30' && (d<now || d>to30)) return false;
+    if(homeFilters.period==='future' && d<now) return false;
+    if(homeFilters.period==='past' && !isPast(e)) return false;
+    if(homeFilters.period==='custom'){
+      if(customFrom && d<customFrom) return false;
+      if(customTo && d>customTo) return false;
+    }
+    if(homeFilters.type!=='all' && e.type!==homeFilters.type) return false;
+    if(homeFilters.status==='missing' && e.status!==null) return false;
+    if(homeFilters.status==='yes' && e.status!=='yes') return false;
+    if(homeFilters.status==='no' && e.status!=='no') return false;
+    return true;
+  });
+}
+function updateHomeFilterUi_(){
+  const values={
+    eventPeriodFilter:homeFilters.period,
+    eventTypeFilter:homeFilters.type,
+    eventStatusFilter:homeFilters.status,
+    eventDateFrom:homeFilters.from||'',
+    eventDateTo:homeFilters.to||''
+  };
+  Object.entries(values).forEach(([id,value])=>{ const el=document.getElementById(id); if(el) el.value=value; });
+  const custom=document.getElementById('eventCustomRange');
+  if(custom) custom.hidden=homeFilters.period!=='custom';
+  const badge=document.getElementById('eventFilterBadge');
+  if(badge) badge.hidden=homeFilterIsDefault_();
+  const summary=document.getElementById('homeFilterSummary');
+  if(summary){
+    const labels={next14:'Következő 14 nap.',next30:'Következő 30 nap.',future:'Minden következő alkalom.',past:'Elmúlt alkalmak.',all:'Teljes szezon.',custom:'Egyéni időszak.'};
+    summary.textContent=labels[homeFilters.period]||'Szűrt események.';
+  }
+}
+function renderProfileStats_(){
+  const rows=events.filter(e=>!e.cancelled);
+  const going=rows.filter(e=>e.status==='yes').length;
+  const no=rows.filter(e=>e.status==='no').length;
+  const missing=rows.filter(e=>e.status===null).length;
+  const responded=going+no;
+  const pct=rows.length ? Math.round((responded/rows.length)*100) : 0;
+  const set=(id,value)=>{ const el=document.getElementById(id); if(el) el.textContent=value; };
+  set('profileStatResponseRate',rows.length ? pct+'%' : '–');
+  set('profileStatGoing',going);
+  set('profileStatNo',no);
+  set('profileStatMissing',missing);
+}
 function renderEvents(){
-  const upcoming = events.filter(e=>!isPast(e)).slice(0,4);
-  eventList.innerHTML = upcoming.length
-    ? upcoming.map(eventCard).join('')
-    : `<div class="empty-state">Nincs közelgő alkalom.</div>`;
+  updateHomeFilterUi_();
+  const rows=filteredHomeEvents();
+  eventList.innerHTML=rows.length ? renderEventCardsWithMonths_(rows) : `<div class="empty-state">Nincs találat a szűrésre.</div>`;
   bindSliderDrag();
+  renderProfileStats_();
 }
 
-let plannerMode=localStorage.getItem('cc-planner-mode') || 'cards';
+const plannerDefaultMode=localStorage.getItem('cc-planner-default') || 'last';
+const plannerLastMode=localStorage.getItem('cc-planner-mode') || 'grid';
+let plannerMode=(plannerDefaultMode==='last' ? plannerLastMode : plannerDefaultMode);
+if(!['grid','calendar'].includes(plannerMode)) plannerMode='grid';
 let calendarCursor=null;
 function plannerStatusControls(e, archived){
   return `<div class="attendance-slider planner-slider ${e.status||'none'}" data-slider="${e.id}">
@@ -262,6 +363,34 @@ function currentGridAnchorIndex(rows){
 function renderGridMatrix(rows){
   const people=gridPeople(rows);
   const anchorIndex=currentGridAnchorIndex(rows);
+  let lastMonth='';
+
+  const body=rows.map((e,rowIndex)=>{
+    const archived=isPast(e);
+    const count=(e.yes||[]).length;
+    const monthKey=monthKeyFromDate(eventDateObj(e));
+    const divider=monthKey!==lastMonth
+      ? `<tr class="matrix-month-divider"><td colspan="${2+people.length}">${monthDividerHtml_(e)}</td></tr>`
+      : '';
+    lastMonth=monthKey;
+
+    return divider+`<tr class="${archived?'matrix-past-row':''} ${rowIndex===anchorIndex?'matrix-current-anchor':''}" data-grid-event="${e.id}">
+      <th class="matrix-event-side sticky-matrix-col">
+        <button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
+          <span class="matrix-side-icon">${typeIcon(e)}</span>
+          <span><b>${e.date}</b><small>${e.day} · ${e.time}</small></span>
+        </button>
+      </th>
+      <td class="matrix-count-cell"><strong class="${attendanceCountClass(count)}">${count}</strong></td>
+      ${people.map(person=>{
+        const mine=person.id==='__ME__';
+        const st=personStatusForEvent(e,person);
+        const cls=st ? 'matrix-'+st : 'matrix-none';
+        if(mine) return `<td class="matrix-cell ${cls} current-player-cell">${matrixOwnControl(e,archived)}</td>`;
+        return `<td class="matrix-cell ${cls}"><span class="matrix-status">${st==='yes'?'✓':st==='no'?'✕':'·'}</span></td>`;
+      }).join('')}
+    </tr>`;
+  }).join('');
 
   return `<div class="matrix-scroll" id="matrixScroll"><table class="season-matrix transposed-matrix">
     <thead>
@@ -270,34 +399,11 @@ function renderGridMatrix(rows){
         <th class="matrix-count-head">Fő</th>
         ${people.map(person=>{
           const mine=person.id==='__ME__';
-          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${person.name}">
-            <span class="grid-player-label">${gridGivenName(person)}</span>
-          </th>`;
+          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${person.name}"><span class="grid-player-label">${gridGivenName(person)}</span></th>`;
         }).join('')}
       </tr>
     </thead>
-    <tbody>
-      ${rows.map((e,rowIndex)=>{
-        const archived=isPast(e);
-        const count=(e.yes||[]).length;
-        return `<tr class="${archived?'matrix-past-row':''} ${rowIndex===anchorIndex?'matrix-current-anchor':''}" data-grid-event="${e.id}">
-          <th class="matrix-event-side sticky-matrix-col">
-            <button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
-              <span class="matrix-side-icon">${typeIcon(e)}</span>
-              <span><b>${e.date}</b><small>${detailedMode ? `${e.time} · ${e.title}` : e.title}</small></span>
-            </button>
-          </th>
-          <td class="matrix-count-cell"><strong class="${attendanceCountClass(count)}">${count}</strong></td>
-          ${people.map(person=>{
-            const mine=person.id==='__ME__';
-            const st=personStatusForEvent(e,person);
-            const cls=st ? 'matrix-'+st : 'matrix-none';
-            if(mine) return `<td class="matrix-cell ${cls} current-player-cell">${matrixOwnControl(e,archived)}</td>`;
-            return `<td class="matrix-cell ${cls}"><span class="matrix-status">${st==='yes'?'✓':st==='no'?'✕':'·'}</span></td>`;
-          }).join('')}
-        </tr>`;
-      }).join('')}
-    </tbody>
+    <tbody>${body}</tbody>
   </table></div>`;
 }
 
@@ -329,37 +435,43 @@ function initialCalendarCursor(rows){
   return upcoming ? eventDateObj(upcoming) : new Date();
 }
 
+function safeEventColor_(e){
+  const raw=String(e?.color||'').trim();
+  if(/^#[0-9a-fA-F]{6}$/.test(raw)) return raw;
+  if(e?.type==='Edzés') return '#f7b700';
+  if(e?.matchKind==='home') return '#3f8f55';
+  return '#4687c7';
+}
 function calendarEventChip(e){
   return `<button class="calendar-event ${cardClass(e)}" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">${typeIcon(e)}<span>${e.time.split('–')[0]}</span><b>${e.type==='Edzés'?'Edzés':(e.matchKind==='home'?'Hazai':'Idegen')}</b></button>`;
 }
-
 function isTodayDate(dateObj){
   const now=new Date();
-  return dateObj.getFullYear()===now.getFullYear()
-    && dateObj.getMonth()===now.getMonth()
-    && dateObj.getDate()===now.getDate();
+  return dateObj.getFullYear()===now.getFullYear() && dateObj.getMonth()===now.getMonth() && dateObj.getDate()===now.getDate();
 }
-
 function renderCalendar(rows){
   if(!calendarCursor) calendarCursor=initialCalendarCursor(rows);
   const y=calendarCursor.getFullYear(), m=calendarCursor.getMonth();
   const first=new Date(y,m,1), last=new Date(y,m+1,0);
-  const startOffset=(first.getDay()+6)%7; // Monday first
+  const startOffset=(first.getDay()+6)%7;
   const cells=[];
   for(let i=0;i<startOffset;i++) cells.push(null);
   for(let d=1;d<=last.getDate();d++) cells.push(new Date(y,m,d));
   while(cells.length%7) cells.push(null);
   const visible=rows.filter(e=>{const d=eventDateObj(e); return d.getFullYear()===y && d.getMonth()===m;});
+
   return `<div class="calendar-shell">
     <div class="calendar-head"><button class="calendar-nav" data-cal-nav="prev" aria-label="Előző hónap">‹</button><h4>${calendarMonthLabel(calendarCursor)}</h4><button class="calendar-nav" data-cal-nav="next" aria-label="Következő hónap">›</button></div>
     <div class="calendar-weekdays">${['H','K','Sze','Cs','P','Szo','V'].map(x=>`<span>${x}</span>`).join('')}</div>
     <div class="calendar-grid">${cells.map(d=>{
-      if(!d) return '<div class="calendar-day empty ${isTodayDate(dayDate)?\'calendar-today\':\'\'}"></div>';
+      if(!d) return '<div class="calendar-day empty"></div>';
       const key=monthKeyFromDate(d)+'-'+String(d.getDate()).padStart(2,'0');
-      const dayEvents=visible.filter(e=>{
-        const ed=eventDateObj(e); return ed.getDate()===d.getDate();
-      });
-      return `<div class="calendar-day ${dayEvents.length?'has-events':''}" data-calendar-date="${key}"><div class="calendar-day-no">${d.getDate()}</div><div class="calendar-events">${dayEvents.map(calendarEventChip).join('')}</div></div>`;
+      const dayEvents=visible.filter(e=>eventDateObj(e).getDate()===d.getDate());
+      const accent=dayEvents.length ? safeEventColor_(dayEvents[0]) : '';
+      return `<div class="calendar-day ${dayEvents.length?'has-events':''} ${isTodayDate(d)?'calendar-today':''}" ${accent?`style="--calendar-day-accent:${accent}"`:''} data-calendar-date="${key}">
+        <div class="calendar-day-no">${d.getDate()}</div>
+        <div class="calendar-events">${dayEvents.map(calendarEventChip).join('')}</div>
+      </div>`;
     }).join('')}</div>
   </div>`;
 }
@@ -416,22 +528,20 @@ function renderPlanner(){
   const settingsToggle=document.getElementById('settingsDetailToggle');
   if(settingsToggle) settingsToggle.checked=detailedMode;
   const defaultView=document.getElementById('settingsDefaultView');
-  if(defaultView) defaultView.value=localStorage.getItem('cc-planner-mode') || 'cards';
+  if(defaultView) defaultView.value=localStorage.getItem('cc-planner-default') || 'last';
 
-  document.querySelectorAll('.view-mode-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.mode===plannerMode));
+  document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>btn.classList.toggle('active',btn.dataset.mode===plannerMode));
 
-  if(plannerMode==='grid'){
+  if(plannerMode==='calendar'){
+    plannerList.innerHTML=renderCalendar(rows);
+  }else{
+    plannerMode='grid';
     plannerList.innerHTML=renderGridMatrix(rows);
     requestAnimationFrame(()=>scrollGridToCurrent('auto'));
   }
-  else if(plannerMode==='calendar') plannerList.innerHTML=renderCalendar(rows);
-  else plannerList.innerHTML=renderCardSchedule(rows);
 
   bindSliderDrag();
-  requestAnimationFrame(()=>{
-    scrollPlannerToNearest(rows,'auto');
-    if(plannerMode==='calendar') markCalendarToday();
-  });
+  requestAnimationFrame(()=>{ if(plannerMode==='calendar') markCalendarToday(); });
 }
 
 function askCancel(event){
@@ -540,19 +650,56 @@ document.getElementById('confirmCancel').addEventListener('click',ev=>{
   renderPlanner();
 });
 
-['monthFilter','typeFilter'].forEach(id=>{
-  document.getElementById(id).addEventListener('change',()=>{
-    missingOnly=false;
-    document.getElementById('missingOnlyBtn').classList.remove('active-filter');
-    if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
-    renderPlanner();
+function toggleFilterPanel_(buttonId,panelId,force){
+  const btn=document.getElementById(buttonId), panel=document.getElementById(panelId);
+  if(!btn || !panel) return;
+  const open=force!==undefined ? !!force : panel.classList.contains('is-collapsed');
+  panel.classList.toggle('is-collapsed',!open);
+  panel.setAttribute('aria-hidden',open?'false':'true');
+  btn.setAttribute('aria-expanded',open?'true':'false');
+  if(buttonId==='plannerFilterBtn'){
+    const active=open || missingOnly || document.getElementById('monthFilter')?.value!=='all' || document.getElementById('typeFilter')?.value!=='all';
+    btn.classList.toggle('active-filter',active);
+  }
+}
+
+document.getElementById('eventFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('eventFilterBtn','eventFilterPanel'));
+['eventPeriodFilter','eventTypeFilter','eventStatusFilter'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change',e=>{
+    if(id==='eventPeriodFilter') homeFilters.period=e.target.value;
+    if(id==='eventTypeFilter') homeFilters.type=e.target.value;
+    if(id==='eventStatusFilter') homeFilters.status=e.target.value;
+    localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
+    renderEvents();
   });
 });
+['eventDateFrom','eventDateTo'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change',e=>{
+    if(id==='eventDateFrom') homeFilters.from=e.target.value.trim();
+    if(id==='eventDateTo') homeFilters.to=e.target.value.trim();
+    localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
+    renderEvents();
+  });
+});
+document.getElementById('resetEventFiltersBtn')?.addEventListener('click',()=>{
+  homeFilters={period:'next14',type:'all',status:'all',from:'',to:''};
+  localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
+  renderEvents();
+});
 
-document.getElementById('missingOnlyBtn').addEventListener('click',e=>{
+document.getElementById('plannerFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel'));
+['monthFilter','typeFilter'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change',()=>{
+    if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
+    renderPlanner();
+    toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);
+  });
+});
+document.getElementById('missingOnlyBtn')?.addEventListener('click',e=>{
   missingOnly=!missingOnly;
   e.currentTarget.classList.toggle('active-filter',missingOnly);
   renderPlanner();
+  toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);
 });
 
 function switchView(viewId){
@@ -565,10 +712,19 @@ document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',
 document.querySelectorAll('[data-view-jump]').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.viewJump)));
 
 const themeBtn=document.getElementById('themeBtn');
-if(localStorage.getItem('cc-theme')==='dark') document.body.classList.add('dark');
+function currentThemePreference_(){ return localStorage.getItem('cc-theme-mode') || localStorage.getItem('cc-theme') || 'system'; }
+function applyThemePreference_(pref=currentThemePreference_()){
+  const isDark=pref==='dark' || (pref==='system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+  document.body.classList.toggle('dark',!!isDark);
+  const select=document.getElementById('settingsThemeMode');
+  if(select) select.value=['system','light','dark'].includes(pref) ? pref : 'system';
+}
+applyThemePreference_();
+window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{ if(currentThemePreference_()==='system') applyThemePreference_('system'); });
 themeBtn.addEventListener('click',()=>{
-  document.body.classList.toggle('dark');
-  localStorage.setItem('cc-theme',document.body.classList.contains('dark')?'dark':'light');
+  const next=document.body.classList.contains('dark') ? 'light' : 'dark';
+  localStorage.setItem('cc-theme-mode',next);
+  applyThemePreference_(next);
 });
 
 renderEvents();
@@ -582,7 +738,7 @@ if('serviceWorker' in navigator){
 
 
 
-document.querySelectorAll('.view-mode-btn').forEach(btn=>{
+document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     plannerMode=btn.dataset.mode;
     localStorage.setItem('cc-planner-mode',plannerMode);
@@ -590,74 +746,6 @@ document.querySelectorAll('.view-mode-btn').forEach(btn=>{
     renderPlanner();
   });
 });
-
-
-
-(function installPullToRefresh_(){
-  let startY=null;
-  let distance=0;
-  let running=false;
-
-  const indicator=document.createElement('div');
-  indicator.className='cc-pull-refresh-indicator';
-  indicator.textContent='Frissítés…';
-  document.body.appendChild(indicator);
-
-  document.addEventListener('touchstart',event=>{
-    if(window.scrollY>1 || running || !event.touches || !event.touches.length){
-      startY=null;
-      return;
-    }
-    startY=event.touches[0].clientY;
-    distance=0;
-  },{passive:true});
-
-  document.addEventListener('touchmove',event=>{
-    if(startY===null || !event.touches || !event.touches.length) return;
-    distance=Math.max(0,event.touches[0].clientY-startY);
-    if(distance>55){
-      indicator.textContent=distance>90?'Engedd el a frissítéshez':'Húzd lejjebb…';
-      indicator.classList.add('show');
-    }
-  },{passive:true});
-
-  document.addEventListener('touchend',async()=>{
-    if(startY===null){
-      return;
-    }
-
-    const shouldRefresh=distance>90;
-    startY=null;
-    distance=0;
-
-    if(!shouldRefresh){
-      indicator.classList.remove('show');
-      return;
-    }
-
-    running=true;
-    indicator.textContent='Frissítés…';
-    indicator.classList.add('show');
-
-    try{
-      if(API_URL && currentSessionToken){
-        await loadBootstrap();
-      }else{
-        renderEvents();
-        renderPlanner();
-      }
-      indicator.textContent='Frissítve';
-    }catch(error){
-      console.error(error);
-      indicator.textContent='Nem sikerült frissíteni';
-    }finally{
-      window.setTimeout(()=>{
-        indicator.classList.remove('show');
-        running=false;
-      },650);
-    }
-  },{passive:true});
-})();
 
 
 document.getElementById('homeRefreshBtn').addEventListener('click',async e=>{
@@ -668,7 +756,7 @@ document.getElementById('homeRefreshBtn').addEventListener('click',async e=>{
   btn.classList.add('is-refreshing');
   btn.setAttribute('aria-label','Adatok frissítése folyamatban');
   try{
-    if(API_URL && currentSessionToken) await loadBootstrap();
+    if(ccRemoteConfigured_()) await loadBootstrap();
     else { renderEvents(); renderPlanner(); }
     btn.setAttribute('aria-label','Adatok frissítve');
   }catch(err){
@@ -720,25 +808,103 @@ function bindSliderDrag(){
 
 
 const settingsDialog=document.getElementById('settingsDialog');
-document.getElementById('openSettingsBtn')?.addEventListener('click',()=>settingsDialog.showModal());
-document.getElementById('closeSettingsBtn')?.addEventListener('click',()=>settingsDialog.close());
+let currentPlayerSettings=null;
+let ccSettingsSaveTimer=null;
+
+function defaultSettingsPayload_(){
+  return {
+    theme:localStorage.getItem('cc-theme-mode')||'system',
+    scheduleDefaultView:localStorage.getItem('cc-planner-default')||'last',
+    language:'hu',
+    detailedMode:localStorage.getItem('cc-detailed-mode')==='true',
+    notifications:{
+      new_training:true,training_change:true,missing_response:true,training_reminder_minutes:120,
+      new_match:true,match_change:true,match_reminder_minutes:180,payment:true
+    }
+  };
+}
+function collectSettingsUi_(){
+  const notifications={};
+  document.querySelectorAll('[data-notify-setting]').forEach(input=>{ notifications[input.dataset.notifySetting]=!!input.checked; });
+  notifications.training_reminder_minutes=Number(document.getElementById('trainingReminderMinutes')?.value||0);
+  notifications.match_reminder_minutes=Number(document.getElementById('matchReminderMinutes')?.value||0);
+  return {
+    theme:document.getElementById('settingsThemeMode')?.value||'system',
+    scheduleDefaultView:document.getElementById('settingsDefaultView')?.value||'last',
+    language:document.getElementById('settingsLanguage')?.value||'hu',
+    detailedMode:!!document.getElementById('settingsDetailToggle')?.checked,
+    notifications
+  };
+}
+function applySettingsUi_(value){
+  const defaults=defaultSettingsPayload_();
+  const settings={...defaults,...(value||{})};
+  settings.notifications={...defaults.notifications,...((value||{}).notifications||{})};
+  currentPlayerSettings=settings;
+  const map={settingsThemeMode:settings.theme||'system',settingsDefaultView:settings.scheduleDefaultView||'last',settingsLanguage:settings.language||'hu'};
+  Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id); if(el) el.value=val;});
+  const detail=document.getElementById('settingsDetailToggle'); if(detail) detail.checked=!!settings.detailedMode;
+  document.querySelectorAll('[data-notify-setting]').forEach(input=>{ input.checked=settings.notifications[input.dataset.notifySetting]!==false; });
+  const train=document.getElementById('trainingReminderMinutes'), match=document.getElementById('matchReminderMinutes');
+  if(train) train.value=String(settings.notifications.training_reminder_minutes ?? 120);
+  if(match) match.value=String(settings.notifications.match_reminder_minutes ?? 180);
+}
+async function savePlayerSettingsNow_(){
+  const settings=collectSettingsUi_();
+  currentPlayerSettings=settings;
+  localStorage.setItem('cc-theme-mode',settings.theme);
+  localStorage.setItem('cc-planner-default',settings.scheduleDefaultView);
+  localStorage.setItem('cc-detailed-mode',settings.detailedMode?'true':'false');
+  applyThemePreference_(settings.theme);
+  detailedMode=settings.detailedMode;
+
+  if(SUPABASE_ENABLED && ccSupabase && currentPlayerData?.playerId){
+    const {error}=await ccSupabase.from('player_settings').upsert({
+      player_id:currentPlayerData.playerId,
+      theme:settings.theme,
+      schedule_default_view:settings.scheduleDefaultView,
+      language:settings.language,
+      detailed_mode:settings.detailedMode,
+      notifications:settings.notifications
+    },{onConflict:'player_id'});
+    if(error) throw error;
+  }
+}
+function scheduleSettingsSave_(){
+  clearTimeout(ccSettingsSaveTimer);
+  ccSettingsSaveTimer=setTimeout(()=>savePlayerSettingsNow_().catch(err=>console.warn('Beállítás mentési hiba:',err)),180);
+}
+
+document.getElementById('openSettingsBtn')?.addEventListener('click',()=>{
+  applySettingsUi_(currentPlayerSettings||defaultSettingsPayload_());
+  settingsDialog.showModal();
+});
+document.getElementById('closeSettingsBtn')?.addEventListener('click',async()=>{
+  try{ await savePlayerSettingsNow_(); }catch(err){ console.warn(err); }
+  settingsDialog.close();
+});
 document.getElementById('settingsDetailToggle')?.addEventListener('change',e=>{
   detailedMode=e.target.checked;
   localStorage.setItem('cc-detailed-mode', detailedMode ? 'true' : 'false');
-  renderEvents();
-  renderPlanner();
+  scheduleSettingsSave_();
+  renderEvents(); renderPlanner();
 });
 document.getElementById('settingsDefaultView')?.addEventListener('change',e=>{
-  plannerMode=e.target.value;
-  localStorage.setItem('cc-planner-mode',plannerMode);
-  if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
-  renderPlanner();
+  localStorage.setItem('cc-planner-default',e.target.value);
+  scheduleSettingsSave_();
 });
+document.getElementById('settingsThemeMode')?.addEventListener('change',e=>{
+  localStorage.setItem('cc-theme-mode',e.target.value);
+  applyThemePreference_(e.target.value);
+  scheduleSettingsSave_();
+});
+document.getElementById('settingsLanguage')?.addEventListener('change',scheduleSettingsSave_);
+document.querySelectorAll('[data-notify-setting],#trainingReminderMinutes,#matchReminderMinutes').forEach(el=>el.addEventListener('change',scheduleSettingsSave_));
 document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=>{
   const old=e.currentTarget.textContent;
   e.currentTarget.textContent='… Frissítés';
   try{
-    if(API_URL && currentSessionToken) await loadBootstrap();
+    if(ccRemoteConfigured_()) await loadBootstrap();
     else { renderEvents(); renderPlanner(); }
     e.currentTarget.textContent='✓ Frissítve';
   }catch(err){
@@ -789,11 +955,36 @@ enableBackdropDismiss(document.getElementById('cancelDialog'),()=>{
   if(note) note.value='';
 });
 
-/* V12 ACCOUNT SYSTEM V1 — OTP + persistent server-side session */
-const API_URL = (window.CLUB_CONTROL_CONFIG && window.CLUB_CONTROL_CONFIG.API_URL || '').trim();
+/* PLAYER CORE V2 — dual backend adapter.
+   Stable UI stays unchanged. DATA_BACKEND='supabase' switches only auth/data. */
+const CC_CONFIG = ccConfig_();
+const API_URL = String(CC_CONFIG.API_URL || '').trim();
+const SUPABASE_URL = String(CC_CONFIG.SUPABASE_URL || '').trim();
+const SUPABASE_PUBLISHABLE_KEY = String(CC_CONFIG.SUPABASE_PUBLISHABLE_KEY || '').trim();
+const SUPABASE_ENABLED = ccSupabaseConfigured_();
+
 const SESSION_KEY = 'cc-session-token-v1';
 let currentSessionToken = localStorage.getItem(SESSION_KEY) || '';
 let pendingLoginEmail = '';
+let ccSupabase = null;
+let ccSupabaseSession = null;
+let ccRealtimeChannel = null;
+let ccRealtimeTeamId = '';
+let ccRealtimeRefreshTimer = null;
+
+if(SUPABASE_ENABLED){
+  if(!window.supabase || typeof window.supabase.createClient!=='function'){
+    console.error('Supabase klienskönyvtár nem töltődött be.');
+  }else{
+    ccSupabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY,
+      {
+        auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+      }
+    );
+  }
+}
 
 function showLoginStep(step){
   const overlay=document.getElementById('loginOverlay');
@@ -808,6 +999,7 @@ function showLoginStep(step){
 function hideLogin(){ document.getElementById('loginOverlay')?.classList.add('hidden'); }
 function clearSession(){
   currentSessionToken='';
+  ccSupabaseSession=null;
   localStorage.removeItem(SESSION_KEY);
 }
 function setLoginMessage(id,text,isError=false){
@@ -836,47 +1028,16 @@ async function apiPost(payload){
   return j;
 }
 
-
-function normalizeApiTime_(value){
-  if(value===null || value===undefined || value==='') return '';
-  const raw=String(value).trim();
-
-  const direct=raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-  if(direct){
-    return String(Number(direct[1])).padStart(2,'0')+':'+direct[2];
-  }
-
-  const embedded=raw.match(/\b(\d{1,2}):(\d{2}):(?:\d{2})\b/);
-  if(embedded){
-    return String(Number(embedded[1])).padStart(2,'0')+':'+embedded[2];
-  }
-
-  return raw;
-}
-
 function normalizeApiEvent(x){
-  const start=normalizeApiTime_(x.startTime);
-  const end=normalizeApiTime_(x.endTime);
-  const safeLabel=
-    start
-      ? (
-          start +
-          (
-            end
-              ? '–'+end
-              : ''
-          )
-        )
-      : normalizeApiTime_(x.timeLabel);
-
   return {
     id:x.eventId,
     date:x.dateLabel || x.date,
     day:x.day || '',
-    time:safeLabel,
+    time:x.timeLabel || `${x.startTime||''}${x.endTime?'–'+x.endTime:''}`,
     type:(x.type==='match'||x.type==='Meccs')?'Meccs':'Edzés',
     matchKind:x.homeAway||'',
     title:x.title||'Csapatedzés',
+    color:x.color||'',
     place:x.venue||'',
     address:x.address||'',
     meeting:x.meetingTime ? `${x.meetingTime}${x.meetingPlace?' • '+x.meetingPlace:''}` : '',
@@ -891,12 +1052,10 @@ function normalizeApiEvent(x){
 function applyBootstrap(j){
   if(!j || !Array.isArray(j.events)) throw new Error('Hibás eseményadat érkezett a szervertől.');
   if(j.team){
-    const teamLabel=
-      j.team.teamName ||
-      j.team.name ||
-      j.team.teamId ||
-      'Csapat';
-    document.getElementById('teamTitle').textContent=teamLabel;
+    currentTeamData=j.team;
+    document.getElementById('teamTitle').textContent=j.team.teamName || j.team.name || 'Csapat';
+    const seasonEl=document.getElementById('teamSeason');
+    if(seasonEl) seasonEl.textContent=j.team.season || '2026/27';
   }
   if(j.player){
     currentPlayerData=j.player;
@@ -916,17 +1075,68 @@ function applyBootstrap(j){
     setRow('profilePositionRow','profilePosition',j.player.position,false);
     setRow('profileJerseyNoRow','profileJerseyNo',j.player.jerseyNo,true);
     setRow('profileJerseySizeRow','profileJerseySize',j.player.jerseySize,true);
+    setRow('profileShortsSizeRow','profileShortsSize',j.player.shortsSize,true);
     setRow('profileLicenseRow','profileLicense',j.player.licenseNo,false);
     setRow('profileMedicalRow','profileMedical',j.player.medicalValidUntil,false);
   }
+
+  const accountEmail=document.getElementById('settingsAccountEmail');
+  if(accountEmail) accountEmail.textContent=j.player?.email || ccSupabaseSession?.user?.email || '–';
+
+  currentPlayerSettings=j.settings || currentPlayerSettings || defaultSettingsPayload_();
+  applySettingsUi_(currentPlayerSettings);
 
   teamPlayerDirectory=Array.isArray(j.teamPlayers) ? j.teamPlayers : [];
   events=j.events.map(normalizeApiEvent).filter(e=>e.id && e.date);
   renderEvents();
   renderPlanner();
+  renderProfileStats_();
 }
 
-async function loadBootstrap(){
+function ccScheduleRealtimeRefresh_(){
+  window.clearTimeout(ccRealtimeRefreshTimer);
+  ccRealtimeRefreshTimer=window.setTimeout(async()=>{
+    try{ await loadBootstrap({skipRealtimeSetup:true}); }
+    catch(err){ console.warn('Realtime frissítés hiba:',err); }
+  },120);
+}
+
+async function ccSetupRealtime_(team){
+  if(!SUPABASE_ENABLED || !ccSupabase || !team || !team.id) return;
+  if(ccRealtimeChannel && ccRealtimeTeamId===team.id) return;
+  if(ccRealtimeChannel){
+    try{ await ccSupabase.removeChannel(ccRealtimeChannel); }catch(_){ }
+    ccRealtimeChannel=null;
+  }
+  ccRealtimeTeamId=team.id;
+  await ccSupabase.realtime.setAuth();
+  ccRealtimeChannel=ccSupabase
+    .channel(`team:${team.id}:player`,{config:{private:true}})
+    .on('broadcast',{event:'INSERT'},ccScheduleRealtimeRefresh_)
+    .on('broadcast',{event:'UPDATE'},ccScheduleRealtimeRefresh_)
+    .on('broadcast',{event:'DELETE'},ccScheduleRealtimeRefresh_)
+    .subscribe(status=>{
+      if(status==='CHANNEL_ERROR') console.warn('Realtime csatorna hiba');
+    });
+}
+
+async function loadBootstrap(options={}){
+  if(SUPABASE_ENABLED){
+    if(!ccSupabase) throw new Error('A Supabase kliens nem indult el.');
+    const {data:{session},error:sessionError}=await ccSupabase.auth.getSession();
+    if(sessionError) throw sessionError;
+    if(!session) throw Object.assign(new Error('Nincs aktív munkamenet.'),{code:'AUTH_REQUIRED'});
+    ccSupabaseSession=session;
+
+    const {data,error}=await ccSupabase.rpc('cc_player_bootstrap');
+    if(error) throw error;
+    const payload = typeof data==='string' ? JSON.parse(data) : data;
+    applyBootstrap(payload);
+    if(!options.skipRealtimeSetup) await ccSetupRealtime_(payload.team);
+    hideLogin();
+    return true;
+  }
+
   if(!currentSessionToken) throw Object.assign(new Error('Nincs aktív munkamenet.'),{code:'AUTH_REQUIRED'});
   const j=await apiPost({action:'bootstrap',sessionToken:currentSessionToken});
   applyBootstrap(j);
@@ -944,14 +1154,23 @@ async function startLogin(){
   setLoginMessage('loginMsg','Kód küldése…');
   const btn=document.getElementById('requestCodeBtn'); if(btn) btn.disabled=true;
   try{
-    await apiPost({action:'requestLoginCode',email});
+    if(SUPABASE_ENABLED){
+      if(!ccSupabase) throw new Error('A Supabase kapcsolat nincs beállítva.');
+      const {error}=await ccSupabase.auth.signInWithOtp({
+        email,
+        options:{shouldCreateUser:false}
+      });
+      if(error) throw error;
+    }else{
+      await apiPost({action:'requestLoginCode',email});
+    }
     document.getElementById('loginEmailPreview').textContent=email;
     document.getElementById('loginCode').value='';
     setLoginMessage('loginCodeMsg','');
     showLoginStep('loginCodeStep');
   }catch(err){
     console.error(err);
-    setLoginMessage('loginMsg',err.message||'A kód küldése nem sikerült.',true);
+    setLoginMessage('loginMsg','A kód küldése nem sikerült. Ellenőrizd, hogy a játékos fiókja létre van-e hozva.',true);
   }finally{ if(btn) btn.disabled=false; }
 }
 
@@ -964,10 +1183,21 @@ async function verifyLogin(){
   const btn=document.getElementById('verifyCodeBtn'); if(btn) btn.disabled=true;
   setLoginMessage('loginCodeMsg','Ellenőrzés…');
   try{
-    const j=await apiPost({action:'verifyLoginCode',email:pendingLoginEmail,code});
-    if(!j.sessionToken) throw new Error('Nem érkezett munkamenet-token.');
-    currentSessionToken=j.sessionToken;
-    localStorage.setItem(SESSION_KEY,currentSessionToken);
+    if(SUPABASE_ENABLED){
+      const {data,error}=await ccSupabase.auth.verifyOtp({
+        email:pendingLoginEmail,
+        token:code,
+        type:'email'
+      });
+      if(error) throw error;
+      ccSupabaseSession=data.session||null;
+      if(!ccSupabaseSession) throw new Error('Nem érkezett munkamenet.');
+    }else{
+      const j=await apiPost({action:'verifyLoginCode',email:pendingLoginEmail,code});
+      if(!j.sessionToken) throw new Error('Nem érkezett munkamenet-token.');
+      currentSessionToken=j.sessionToken;
+      localStorage.setItem(SESSION_KEY,currentSessionToken);
+    }
     setLoginMessage('loginCodeMsg','Sikeres belépés.');
     await loadBootstrap();
   }catch(err){
@@ -977,12 +1207,33 @@ async function verifyLogin(){
 }
 
 async function initAccountSession(){
-  if(!API_URL) return;
+  if(!ccRemoteConfigured_()) return;
   showLoginStep('loginLoadingStep');
+
+  if(SUPABASE_ENABLED){
+    if(!ccSupabase){
+      setLoginMessage('loginMsg','A Supabase kapcsolat nincs beállítva.',true);
+      showLoginStep('loginEmailStep');
+      return;
+    }
+    const {data:{session},error}=await ccSupabase.auth.getSession();
+    if(error){ console.error(error); showLoginStep('loginEmailStep'); return; }
+    ccSupabaseSession=session||null;
+    if(!session){ showLoginStep('loginEmailStep'); return; }
+    try{ await loadBootstrap(); }
+    catch(err){
+      console.error('Club Control Supabase session hiba:',err);
+      if(String(err.message||'').includes('PLAYER_NOT_LINKED')){
+        setLoginMessage('loginMsg','Ehhez az emailhez még nincs Player profil kapcsolva.',true);
+      }
+      showLoginStep('loginEmailStep');
+    }
+    return;
+  }
+
   if(!currentSessionToken){ showLoginStep('loginEmailStep'); return; }
-  try{
-    await loadBootstrap();
-  }catch(err){
+  try{ await loadBootstrap(); }
+  catch(err){
     console.error('Club Control session hiba:',err);
     clearSession();
     setLoginMessage('loginMsg',err.code==='SESSION_EXPIRED'?'A munkamenet lejárt. Kérj új belépési kódot.':'Jelentkezz be a folytatáshoz.',false);
@@ -990,7 +1241,7 @@ async function initAccountSession(){
   }
 }
 
-if(API_URL){
+if(ccRemoteConfigured_()){
   document.getElementById('requestCodeBtn')?.addEventListener('click',startLogin);
   document.getElementById('loginEmail')?.addEventListener('keydown',e=>{if(e.key==='Enter') startLogin();});
   document.getElementById('verifyCodeBtn')?.addEventListener('click',verifyLogin);
@@ -1005,25 +1256,68 @@ if(API_URL){
     if(!pendingLoginEmail) return showLoginStep('loginEmailStep');
     setLoginMessage('loginCodeMsg','Új kód küldése…');
     try{
-      await apiPost({action:'requestLoginCode',email:pendingLoginEmail});
+      if(SUPABASE_ENABLED){
+        const {error}=await ccSupabase.auth.signInWithOtp({email:pendingLoginEmail,options:{shouldCreateUser:false}});
+        if(error) throw error;
+      }else{
+        await apiPost({action:'requestLoginCode',email:pendingLoginEmail});
+      }
       document.getElementById('loginCode').value='';
       setLoginMessage('loginCodeMsg','Új kódot küldtünk.');
     }catch(err){ setLoginMessage('loginCodeMsg',err.message||'Nem sikerült új kódot küldeni.',true); }
   });
+
+  if(SUPABASE_ENABLED && ccSupabase){
+    ccSupabase.auth.onAuthStateChange((event,session)=>{
+      ccSupabaseSession=session||null;
+      if(event==='SIGNED_OUT') showLoginStep('loginEmailStep');
+    });
+  }
+
   initAccountSession();
 }
 
 document.getElementById('logoutBtn')?.addEventListener('click',async()=>{
-  const token=currentSessionToken;
-  clearSession();
-  try{ if(API_URL && token) await apiPost({action:'logout',sessionToken:token}); }catch(err){ console.warn(err); }
+  if(SUPABASE_ENABLED && ccSupabase){
+    try{ await ccSupabase.auth.signOut(); }catch(err){ console.warn(err); }
+    if(ccRealtimeChannel){ try{ await ccSupabase.removeChannel(ccRealtimeChannel); }catch(_){ } }
+  }else{
+    const token=currentSessionToken;
+    clearSession();
+    try{ if(API_URL && token) await apiPost({action:'logout',sessionToken:token}); }catch(err){ console.warn(err); }
+  }
   location.reload();
 });
 
-// Remote save wraps the existing local state functions.
+async function ccSaveAvailabilitySupabase_(event,status,note=''){
+  if(!ccSupabaseSession || !currentPlayerData?.playerId) throw new Error('Nincs aktív Player munkamenet.');
+  const dbStatus = status==='yes' ? 'going' : status==='no' ? 'not_going' : 'unknown';
+  const {error}=await ccSupabase
+    .from('availability')
+    .upsert({
+      event_id:event.id,
+      player_id:currentPlayerData.playerId,
+      status:dbStatus,
+      note:String(note||'')
+    },{onConflict:'event_id,player_id'});
+  if(error) throw error;
+}
+
+// Optimistic UI: local state changes immediately; the DB write follows in background.
 const _persistLocal = persist;
 persist = function(event,status,note=''){
   _persistLocal(event,status,note);
+  renderProfileStats_();
+
+  if(SUPABASE_ENABLED && ccSupabase){
+    ccSaveAvailabilitySupabase_(event,status,note)
+      .catch(err=>{
+        console.error('Availability mentési hiba:',err);
+        window.setTimeout(()=>loadBootstrap().catch(()=>{}),80);
+      });
+    return;
+  }
+
   if(API_URL && currentSessionToken){
     apiPost({action:'setAvailability',sessionToken:currentSessionToken,eventId:event.id,status:status||'',note:note||''})
       .then(()=>loadBootstrap())
