@@ -1,0 +1,34 @@
+﻿CLUB CONTROL PLAYER V2.3.3 – THEME SYNC HOTFIX
+================================================
+
+KIINDULÁS
+---------
+A már feltett V2.3.2 konszolidált Player build.
+
+JAVÍTÁS
+-------
+A Beállítások > Bezárás többé nem válthatja vissza a felületet egy korábban
+elmentett sötét témára.
+
+A fejléc gyors témagombja és a Beállítások témaválasztója most ugyanazt az
+állapotot használja és ugyanazt menti.
+
+CSERÉLENDŐ FÁJLOK
+-----------------
+- index.html
+- app.js
+- sw.js
+
+NEM VÁLTOZIK
+------------
+- styles.css
+- config.js
+- manifest.webmanifest
+- icons/
+- Supabase schema / RLS
+- edzésadatok
+- Manager
+
+GitHub Desktopban ennek a 3 fájlnak kell változnia.
+Javasolt commit:
+Player V2.3.3 theme sync hotfix

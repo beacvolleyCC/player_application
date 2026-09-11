@@ -1,0 +1,58 @@
+﻿CLUB CONTROL PLAYER V2.3.3 – THEME SYNC HOTFIX / TRIPLE CHECK
+==============================================================
+
+Hiba: a Beállítások Bezárás gombja látszólag sötét témára váltott.
+Ok: a fejléc gyors témagombjának lokális állapota és a Settings/Supabase
+beállításállapota eltérhetett. Bezáráskor a régebbi Settings-érték mentődött
+és újra alkalmazódott.
+
+Ellenőrzések: 32
+Hibák: 0
+
+[PROGRAMOZÓ]
+OK – app.js JavaScript syntax
+OK – sw.js JavaScript syntax
+OK – OTP 6–10 számjegyes javítás megmaradt
+OK – Supabase verifyOtp megmaradt
+OK – Realtime setup megmaradt
+OK – Header theme toggle frissíti currentPlayerSettings.theme értékét
+OK – Header theme toggle mentést is ütemez
+OK – Settings megnyitáskor a local currentThemePreference az elsődleges
+
+[WEB/PWA]
+OK – Nincs duplikált DOM id
+OK – app.js cache-busting frissült
+OK – Service Worker cache verzió frissült
+OK – config.js érintetlen / nincs a hotfix csomagban
+OK – styles.css érintetlen / nincs a hotfix csomagban
+
+[UX]
+OK – Bezárás továbbra is ment és bezár
+OK – Theme select továbbra is azonnal alkalmazza a választást
+OK – Gyors témagomb és Settings ugyanazt a preference-t használja
+
+[REGRESSZIÓ]
+OK – Kritikus elem/hook megmaradt: loginOverlay
+OK – Kritikus elem/hook megmaradt: requestCodeBtn
+OK – Kritikus elem/hook megmaradt: verifyCodeBtn
+OK – Kritikus elem/hook megmaradt: homeRefreshBtn
+OK – Kritikus elem/hook megmaradt: plannerFilterBtn
+OK – Kritikus elem/hook megmaradt: openSettingsBtn
+OK – Kritikus elem/hook megmaradt: closeSettingsBtn
+OK – Kritikus elem/hook megmaradt: settingsRefreshBtn
+OK – Kritikus elem/hook megmaradt: logoutBtn
+OK – Kritikus elem/hook megmaradt: eventDialog
+OK – Kritikus elem/hook megmaradt: cancelDialog
+OK – Kritikus elem/hook megmaradt: confirmCancel
+OK – V2.3.2 UI header évadfelirat megmaradt
+OK – V2.3.2 profil lenyitható adatok megmaradtak
+OK – V2.3.2 menetrend ikonok megmaradtak
+OK – Build címke frissült
+
+[DEPLOY UTÁNI RUNTIME TESZT]
+1. Állíts világos témát.
+2. Nyisd meg a Beállításokat.
+3. Nyomd meg a Bezárás gombot.
+4. A téma maradjon világos.
+5. Ugyanezt próbáld sötét témával.
+6. App teljes bezárás/újranyitás után is maradjon a választott téma.

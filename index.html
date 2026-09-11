@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.2-mobile-polish">
+  <link rel="stylesheet" href="./styles.css?v=13.2.2-consolidated">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -52,6 +52,7 @@
   <div class="topbar compact-topbar">
     <div class="brand-left brand-inline">
       <h1 class="team-heading"><span id="teamTitle">BEAC Női I.</span></h1>
+      <div class="eyebrow player-season-label" id="teamSeason">2026/27</div>
     </div>
     <div class="header-actions">
       <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
@@ -278,7 +279,7 @@
       <div class="settings-section">
         <h4>Alkalmazás</h4>
         <button class="ghost-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
-        <div class="detail-row compact-setting-detail"><span>Build</span><b>Player Core V2.3 DEV</b></div>
+        <div class="detail-row compact-setting-detail"><span>Build</span><b>Player Core V2.3.3 DEV</b></div>
       </div>
 
       <div class="dialog-actions"><button class="ghost-btn" id="closeSettingsBtn">Bezárás</button></div>
@@ -308,6 +309,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.1-otp-flex"></script>
+  <script src="./app.js?v=13.3-theme-sync"></script>
 </body>
 </html>

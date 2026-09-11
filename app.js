@@ -724,7 +724,15 @@ window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change',
 themeBtn.addEventListener('click',()=>{
   const next=document.body.classList.contains('dark') ? 'light' : 'dark';
   localStorage.setItem('cc-theme-mode',next);
+
+  // Keep the quick header theme button and the Settings state in sync.
+  // Without this, Settings could reopen with an older remote value and
+  // the Close button would appear to switch the app back to that theme.
+  if(currentPlayerSettings) currentPlayerSettings.theme=next;
   applyThemePreference_(next);
+
+  // Persist the quick theme change as well when the player is available.
+  scheduleSettingsSave_();
 });
 
 renderEvents();
@@ -876,7 +884,10 @@ function scheduleSettingsSave_(){
 }
 
 document.getElementById('openSettingsBtn')?.addEventListener('click',()=>{
-  applySettingsUi_(currentPlayerSettings||defaultSettingsPayload_());
+  // Local theme preference is the current visual truth.
+  // Merge it over any older remote settings before the dialog opens.
+  const source=currentPlayerSettings||defaultSettingsPayload_();
+  applySettingsUi_({...source,theme:currentThemePreference_()});
   settingsDialog.showModal();
 });
 document.getElementById('closeSettingsBtn')?.addEventListener('click',async()=>{
