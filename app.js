@@ -602,6 +602,31 @@ function updatePlannerFilterButton_(){
   if(resetBtn) resetBtn.hidden=isDefault;
 }
 
+function syncPlannerGridViewport_(){
+  const plannerView=document.getElementById('plannerView');
+  const scroller=document.getElementById('matrixScroll');
+  const bottomNav=document.querySelector('.bottom-nav');
+
+  if(!plannerView?.classList.contains('active') || !scroller || !bottomNav) return;
+
+  const portrait=window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches;
+  if(!portrait){
+    scroller.style.removeProperty('height');
+    scroller.style.removeProperty('max-height');
+    return;
+  }
+
+  const top=scroller.getBoundingClientRect().top;
+  const navTop=bottomNav.getBoundingClientRect().top;
+  const gap=6;
+  const available=Math.floor(navTop-top-gap);
+
+  if(available>260){
+    scroller.style.height=`${available}px`;
+    scroller.style.maxHeight=`${available}px`;
+  }
+}
+
 function renderPlanner(){
   updatePlannerFilterButton_();
   const rows=filteredPlannerEvents();
@@ -620,7 +645,13 @@ function renderPlanner(){
   }
 
   bindSliderDrag();
-  requestAnimationFrame(()=>{ if(plannerMode==='calendar') markCalendarToday(); });
+  requestAnimationFrame(()=>{
+    if(plannerMode==='calendar'){
+      markCalendarToday();
+    }else{
+      syncPlannerGridViewport_();
+    }
+  });
 }
 
 function askCancel(event){
@@ -848,13 +879,19 @@ function switchView(viewId){
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
   window.scrollTo({top:0,behavior:'auto'});
 
-  if(viewId==='plannerView' && !plannerUserPositioned){
-    positionPlannerInitial_(filteredPlannerEvents());
+  if(viewId==='plannerView'){
+    requestAnimationFrame(syncPlannerGridViewport_);
+    if(!plannerUserPositioned){
+      positionPlannerInitial_(filteredPlannerEvents());
+    }
   }
 }
 
 document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
 document.querySelectorAll('[data-view-jump]').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.viewJump)));
+
+window.addEventListener('resize',()=>requestAnimationFrame(syncPlannerGridViewport_));
+window.addEventListener('orientationchange',()=>setTimeout(syncPlannerGridViewport_,80));
 
 const themeBtn=document.getElementById('themeBtn');
 function currentThemePreference_(){ return localStorage.getItem('cc-theme-mode') || localStorage.getItem('cc-theme') || 'system'; }

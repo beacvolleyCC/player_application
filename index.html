@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.14-ui-corrections">
+  <link rel="stylesheet" href="./styles.css?v=13.5.15-icons-gap">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -129,8 +129,18 @@
           <p>Rács és naptár a teljes szezonhoz.</p>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
-          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">▣</button>
-          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok">▦</button>
+          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">
+            <svg class="cc-icon cc-icon-square-in-square" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="4" y="4" width="24" height="24" rx="1"></rect>
+              <rect x="10" y="10" width="12" height="12" rx=".5"></rect>
+            </svg>
+          </button>
+          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok">
+            <svg class="cc-icon cc-icon-schedule-grid" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="4" y="4" width="24" height="24" rx="1"></rect>
+              <path d="M8.8 4V28 M13.6 4V28 M18.4 4V28 M23.2 4V28 M4 8.8H28 M4 13.6H28 M4 18.4H28 M4 23.2H28"></path>
+            </svg>
+          </button>
           <button class="view-mode-btn icon-only filter-state-btn" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">
             <span class="filter-funnel" aria-hidden="true">
               <span class="filter-icon-outline">▽</span>
@@ -223,8 +233,24 @@
   </main>
 
   <nav class="bottom-nav">
-    <button data-view="homeView" class="nav-btn active"><span>⌂</span><small>Edzések</small></button>
-    <button data-view="plannerView" class="nav-btn"><span>▦</span><small>Menetrend</small></button>
+    <button data-view="homeView" class="nav-btn active">
+      <span class="cc-bottom-icon cc-bottom-home" aria-hidden="true">
+        <svg viewBox="0 0 36 36" focusable="false">
+          <path class="home-shape" d="M7 18 L18 8 L29 18 M9.5 17.5 V26.5 M26.5 17.5 V26.5"></path>
+          <path class="home-base" d="M4.5 31 Q18 24.5 31.5 31"></path>
+        </svg>
+      </span>
+      <small>Edzések</small>
+    </button>
+    <button data-view="plannerView" class="nav-btn">
+      <span class="cc-bottom-icon cc-bottom-planner" aria-hidden="true">
+        <svg class="cc-icon cc-icon-schedule-grid" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="4" y="4" width="24" height="24" rx="1"></rect>
+              <path d="M8.8 4V28 M13.6 4V28 M18.4 4V28 M23.2 4V28 M4 8.8H28 M4 13.6H28 M4 18.4H28 M4 23.2H28"></path>
+            </svg>
+      </span>
+      <small>Menetrend</small>
+    </button>
     <button data-view="profileView" class="nav-btn"><span>●</span><small>Profil</small></button>
   </nav>
 
@@ -319,6 +345,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.14-ui-corrections"></script>
+  <script src="./app.js?v=13.5.15-icons-gap"></script>
 </body>
 </html>

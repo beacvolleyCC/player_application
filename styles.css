@@ -2896,3 +2896,104 @@ html,body{
 #plannerView #plannerList:has(.transposed-matrix){
   align-items:stretch !important;
 }
+/* ==========================================================
+   PLAYER V2.3.5.15 — ICON RESTORE + PLANNER BOTTOM FILL
+   Base: V2.3.5.14
+   ========================================================== */
+
+/* Top Menetrend icons: deterministic SVG, no platform-dependent Unicode glyphs. */
+.planner-view-actions .cc-icon{
+  display:block !important;
+  width:25px !important;
+  height:25px !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.8 !important;
+  stroke-linecap:square !important;
+  stroke-linejoin:miter !important;
+  vector-effect:non-scaling-stroke;
+}
+
+.planner-view-actions .cc-icon-square-in-square{
+  width:25px !important;
+  height:25px !important;
+}
+
+.planner-view-actions .cc-icon-schedule-grid{
+  width:24px !important;
+  height:24px !important;
+  stroke-width:1.15 !important;
+}
+
+/* Bottom nav: fixed icon boxes keep labels on the same baseline. */
+.cc-bottom-icon{
+  width:44px !important;
+  min-width:44px !important;
+  height:44px !important;
+  display:grid !important;
+  place-items:center !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+  border-radius:9px !important;
+  line-height:0 !important;
+}
+
+.nav-btn.active .cc-bottom-icon{
+  background:#fff0a3 !important;
+  color:#111 !important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10) !important;
+}
+
+.dark .nav-btn.active .cc-bottom-icon{
+  background:#d5a72f !important;
+  color:#17130b !important;
+}
+
+/* Edzések: requested simple house, no door, with curved base. */
+.cc-bottom-home svg{
+  width:34px !important;
+  height:34px !important;
+  display:block !important;
+  overflow:visible !important;
+}
+.cc-bottom-home .home-shape,
+.cc-bottom-home .home-base{
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:2.05 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  vector-effect:non-scaling-stroke;
+}
+
+/* Neutralize the older pseudo-contour around the home glyph. */
+.nav-btn[data-view="homeView"] .cc-bottom-icon::before,
+.nav-btn[data-view="homeView"] .cc-bottom-icon::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Menetrend bottom icon = exact same dense grid family as top date view. */
+.cc-bottom-planner .cc-icon-schedule-grid{
+  width:29px !important;
+  height:29px !important;
+  display:block !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.05 !important;
+  vector-effect:non-scaling-stroke;
+}
+
+/* V2.3.5.14 hard-coded min-height is superseded by runtime exact sizing. */
+@media(max-width:760px) and (orientation:portrait){
+  #plannerView #plannerList:has(.transposed-matrix) .matrix-scroll{
+    min-height:0 !important;
+    max-height:none;
+  }
+
+  /* Keep page padding normal; the fixed matrix itself now ends ~6px above nav. */
+  #plannerView{
+    padding-bottom:0 !important;
+  }
+}
