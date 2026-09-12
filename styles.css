@@ -3036,3 +3036,249 @@ html,body{
   font-size:0 !important;
   line-height:0 !important;
 }
+/* ==========================================================
+   PLAYER V2.3.5.18 — BOTTOM NAV + PROFILE + EVENT ICONS
+   BASE: V2.3.5.17
+   Scope only:
+   - bottom nav flush edge-to-edge, no rounding
+   - profile icon = two concentric empty circles
+   - bottom nav icons thinner, moved a few px lower
+   - bottom home icon cleaner / tighter double outline
+   - event card small icons replaced as requested
+   ========================================================== */
+
+/* 1) BOTTOM NAV PANEL — edge to edge, square corners */
+.bottom-nav{
+  left:0 !important;
+  right:0 !important;
+  transform:none !important;
+  width:100% !important;
+  border-radius:0 !important;
+  border-left:0 !important;
+  border-right:0 !important;
+  margin:0 !important;
+}
+
+@media(orientation:landscape) and (max-height:520px){
+  .bottom-nav{
+    left:0 !important;
+    top:0 !important;
+    bottom:0 !important;
+    right:auto !important;
+    transform:none !important;
+    border-radius:0 !important;
+  }
+}
+
+/* 2) Bottom-nav icon geometry & positioning
+   Move icons slightly lower so the yellow active tile has more top breathing room. */
+.bottom-nav .nav-btn{
+  padding-top:4px !important;
+}
+.bottom-nav .nav-btn > span{
+  transform:translateY(3px) !important;
+}
+.bottom-nav .nav-btn small{
+  margin-top:1px !important;
+}
+
+/* Keep the active background but make the icon box slightly calmer and even. */
+.cc-bottom-icon{
+  width:42px !important;
+  min-width:42px !important;
+  height:42px !important;
+  border-radius:10px !important;
+}
+
+.nav-btn.active .cc-bottom-icon{
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12) !important;
+}
+
+/* 3) Bottom profile icon = exactly two empty concentric rings */
+.nav-btn[data-view="profileView"] span{
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+  width:34px !important;
+  min-width:34px !important;
+  height:34px !important;
+  font-size:0 !important;
+  line-height:0 !important;
+  color:currentColor !important;
+  background:transparent !important;
+}
+.nav-btn[data-view="profileView"] span::before{
+  content:"" !important;
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  width:28px !important;
+  height:28px !important;
+  transform:translate(-50%,-50%) !important;
+  border-radius:50% !important;
+  border:1.2px solid currentColor !important;
+  background:transparent !important;
+  opacity:.52 !important;
+}
+.nav-btn[data-view="profileView"] span::after{
+  content:"" !important;
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  width:18px !important;
+  height:18px !important;
+  transform:translate(-50%,-50%) !important;
+  border-radius:50% !important;
+  border:1.2px solid currentColor !important;
+  background:transparent !important;
+  opacity:.52 !important;
+}
+.nav-btn.active[data-view="profileView"] span::before,
+.nav-btn.active[data-view="profileView"] span::after{
+  opacity:.7 !important;
+}
+
+/* 4) Bottom home icon — thin lines, tighter roof spacing, no pseudo extras */
+.cc-bottom-home svg{
+  width:29px !important;
+  height:29px !important;
+  display:block !important;
+  overflow:visible !important;
+}
+.cc-bottom-home .home-outline-outer,
+.cc-bottom-home .home-outline-inner{
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.15 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  vector-effect:non-scaling-stroke !important;
+}
+.nav-btn[data-view="homeView"] .cc-bottom-home::before,
+.nav-btn[data-view="homeView"] .cc-bottom-home::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* 5) Bottom planner icon — same thin optical weight */
+.cc-bottom-planner .cc-icon-schedule-grid{
+  width:28px !important;
+  height:28px !important;
+  display:block !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.0 !important;
+  vector-effect:non-scaling-stroke !important;
+}
+
+/* 6) Event-card small icons — all in the same yellow family, no accidental green/blue */
+.event-symbol{
+  width:27px !important;
+  height:27px !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.55 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+}
+.event-symbol.training,
+.event-symbol.home,
+.event-symbol.away{
+  color:#d6a103 !important;
+}
+.dark .event-symbol.training,
+.dark .event-symbol.home,
+.dark .event-symbol.away{
+  color:#f2c02f !important;
+}
+/* ==========================================================
+   PLAYER V2.3.5.19 — ICON SYSTEM CORRECTION
+   BASE: V2.3.5.18
+   ========================================================== */
+
+/* One design token for every double-contour nav icon:
+   same stroke width and same geometric contour separation.
+   Home + Profile both use 36×36 viewBox and 3.5 unit separation. */
+.cc-double-contour-icon svg{
+  width:32px !important;
+  height:32px !important;
+  display:block !important;
+  overflow:visible !important;
+}
+
+.cc-double-contour-icon path,
+.cc-double-contour-icon circle{
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.25 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  vector-effect:non-scaling-stroke !important;
+}
+
+/* Edzések: clean double house contour.
+   Inner polygon is a true constant inward offset of the outer polygon. */
+.cc-bottom-home{
+  position:relative !important;
+}
+.cc-bottom-home svg{
+  width:32px !important;
+  height:32px !important;
+}
+.cc-bottom-home::before,
+.cc-bottom-home::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Profil: exactly two empty concentric circles. */
+.cc-bottom-profile{
+  position:relative !important;
+  font-size:0 !important;
+  line-height:0 !important;
+}
+.cc-bottom-profile::before,
+.cc-bottom-profile::after{
+  content:none !important;
+  display:none !important;
+}
+.cc-bottom-profile svg{
+  width:32px !important;
+  height:32px !important;
+}
+.cc-bottom-profile .profile-outline-outer,
+.cc-bottom-profile .profile-outline-inner{
+  opacity:.58 !important;
+}
+.nav-btn.active .cc-bottom-profile .profile-outline-outer,
+.nav-btn.active .cc-bottom-profile .profile-outline-inner{
+  opacity:.78 !important;
+}
+
+/* Neutralize old pseudo-circle rules from historical builds. */
+.nav-btn[data-view="profileView"] .cc-bottom-profile::before,
+.nav-btn[data-view="profileView"] .cc-bottom-profile::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Event-card icon colors — requested semantic color system. */
+.event-symbol.training{
+  color:#d69f00 !important; /* Edzés = arany */
+}
+.event-symbol.home{
+  color:#287d3f !important; /* Hazai meccs = zöld */
+}
+.event-symbol.away{
+  color:#3478b8 !important; /* Idegenbeli meccs = kék */
+}
+
+.dark .event-symbol.training{
+  color:#f7bd24 !important;
+}
+.dark .event-symbol.home{
+  color:#6fc184 !important;
+}
+.dark .event-symbol.away{
+  color:#72aee6 !important;
+}

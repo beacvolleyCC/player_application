@@ -104,28 +104,29 @@ function typeIconClass(e){
 function typeIcon(e){
   const cls=typeIconClass(e);
 
-  // Recognisable volleyball: outer ball + panel seams.
+  // Edzés = röplabda ikon
   if(cls==='training') return `<svg class="event-symbol training" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="12" cy="12" r="8.4"></circle>
-    <path d="M12 3.6c1.3 2.5 1.8 5 1.4 7.3"></path>
-    <path d="M18.9 7.2c-2.8.1-5.2 1-7 2.8"></path>
-    <path d="M20.2 13.6c-2.5-1.2-5-1.5-7.4-.8"></path>
-    <path d="M14.6 19.9c-.4-2.8-1.6-5.1-3.6-6.8"></path>
-    <path d="M5.3 17.1c2.8-.3 5.1-1.3 6.8-3.1"></path>
-    <path d="M3.7 10.2c2.4 1.4 4.9 1.9 7.4 1.3"></path>
+    <circle cx="12" cy="12" r="8"></circle>
+    <path d="M11.8 4.2c1.2 2.3 1.6 4.5 1.2 6.6"></path>
+    <path d="M18.4 7.6c-2.5.1-4.8 1-6.5 2.5"></path>
+    <path d="M19.6 13.3c-2.3-1-4.6-1.2-6.8-.6"></path>
+    <path d="M14.5 19.2c-.4-2.5-1.5-4.7-3.2-6.2"></path>
+    <path d="M5.5 16.7c2.5-.3 4.7-1.3 6.2-2.8"></path>
+    <path d="M4.2 10.4c2.2 1.3 4.4 1.7 6.8 1.2"></path>
   </svg>`;
 
+  // Hazai meccs = ház ikon az íves talpvonallal
   if(cls==='home') return `<svg class="event-symbol home" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 11.2 12 4l8 7.2"></path>
-    <path d="M6.5 10v9h11v-9M10 19v-5h4v5"></path>
-    <circle cx="18.2" cy="6.2" r="2.1"></circle>
+    <path d="M6 11.7 12 6.2l6 5.5"></path>
+    <path d="M7.7 11.4v5.2M16.3 11.4v5.2"></path>
+    <path d="M3.8 19.3Q12 15.5 20.2 19.3"></path>
   </svg>`;
 
-  // Away match: unmistakable map pin with a tiny volleyball inside.
+  // Idegenbeli meccs = marker ikon az íves talpvonallal
   return `<svg class="event-symbol away" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M12 21s6-5.3 6-11a6 6 0 1 0-12 0c0 5.7 6 11 6 11Z"></path>
-    <circle cx="12" cy="10" r="3.1"></circle>
-    <path d="M12 6.9c.6 1 .8 2 .6 3M14.6 8.5c-1 .1-1.9.5-2.6 1.2M9.2 11c1-.2 2 0 2.8.6"></path>
+    <path d="M12 18.3c-1.9-2-4.9-4.6-4.9-8.2a4.9 4.9 0 1 1 9.8 0c0 3.6-3 6.2-4.9 8.2Z"></path>
+    <circle cx="12" cy="10.1" r="1.9"></circle>
+    <path d="M3.8 19.3Q12 15.5 20.2 19.3"></path>
   </svg>`;
 }
 function typeLabel(e){

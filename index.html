@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.17-planner-autoposition">
+  <link rel="stylesheet" href="./styles.css?v=13.5.19-icon-system-correction">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -234,10 +234,10 @@
 
   <nav class="bottom-nav">
     <button data-view="homeView" class="nav-btn active">
-      <span class="cc-bottom-icon cc-bottom-home" aria-hidden="true">
+      <span class="cc-bottom-icon cc-bottom-home cc-double-contour-icon" aria-hidden="true">
         <svg viewBox="0 0 36 36" focusable="false">
-          <path class="home-outline-outer" d="M6.5 17.2 L18 6.8 L29.5 17.2 V27.7 H6.5 Z"></path>
-          <path class="home-outline-inner" d="M9.7 17.6 L18 10.0 L26.3 17.6 V24.8 H9.7 Z"></path>
+          <path class="home-outline-outer" d="M6 17 L18 6 L30 17 V29 H6 Z"></path>
+          <path class="home-outline-inner" d="M9.5 18.54 L18 10.75 L26.5 18.54 V25.5 H9.5 Z"></path>
         </svg>
       </span>
       <small>Edzések</small>
@@ -251,7 +251,15 @@
       </span>
       <small>Menetrend</small>
     </button>
-    <button data-view="profileView" class="nav-btn"><span>●</span><small>Profil</small></button>
+    <button data-view="profileView" class="nav-btn">
+      <span class="cc-bottom-icon cc-bottom-profile cc-double-contour-icon" aria-hidden="true">
+        <svg viewBox="0 0 36 36" focusable="false">
+          <circle class="profile-outline-outer" cx="18" cy="18" r="14"></circle>
+          <circle class="profile-outline-inner" cx="18" cy="18" r="10.5"></circle>
+        </svg>
+      </span>
+      <small>Profil</small>
+    </button>
   </nav>
 
   <dialog id="settingsDialog">
@@ -345,6 +353,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.17-planner-autoposition"></script>
+  <script src="./app.js?v=13.5.19-icon-system-correction"></script>
 </body>
 </html>

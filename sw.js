@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-17-planner-autoposition';
+const CACHE='club-control-player-v2-3-5-19-icon-system-correction';
 const CORE=['./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 
 self.addEventListener('install', event => {
