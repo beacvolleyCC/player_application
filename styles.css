@@ -2997,3 +2997,42 @@ html,body{
     padding-bottom:0 !important;
   }
 }
+/* ==========================================================
+   PLAYER V2.3.5.16 — EXACT EDZÉSEK HOME ICON
+   Reference: user-provided double-outline house screenshot.
+   Scope: bottom Edzések icon ONLY.
+   ========================================================== */
+
+.cc-bottom-home{
+  position:relative !important;
+}
+
+/* Keep the active yellow rounded square from the established nav system. */
+.cc-bottom-home svg{
+  width:31px !important;
+  height:31px !important;
+  display:block !important;
+  overflow:visible !important;
+}
+
+.cc-bottom-home .home-outline-outer,
+.cc-bottom-home .home-outline-inner{
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.75 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  vector-effect:non-scaling-stroke;
+}
+
+/* No extra contour, no base arc, no door, no pseudo-drawing. */
+.nav-btn[data-view="homeView"] .cc-bottom-home::before,
+.nav-btn[data-view="homeView"] .cc-bottom-home::after{
+  content:none !important;
+  display:none !important;
+}
+
+.nav-btn[data-view="homeView"] .cc-bottom-home{
+  font-size:0 !important;
+  line-height:0 !important;
+}

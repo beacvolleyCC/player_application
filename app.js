@@ -746,13 +746,8 @@ plannerList.addEventListener('click',e=>{
   }
 });
 
-plannerList.addEventListener('scroll',event=>{
-  if(plannerAutoPositioning) return;
-  if(event.target?.classList?.contains('matrix-scroll')){
-    plannerUserPositioned=true;
-  }
-},true);
-
+// Only explicit user gestures should disable automatic positioning.
+// Programmatic scrollTop changes must NOT set plannerUserPositioned.
 plannerList.addEventListener('touchmove',event=>{
   if(plannerAutoPositioning) return;
   if(event.target?.closest?.('.matrix-scroll')){

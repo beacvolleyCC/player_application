@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.15-icons-gap">
+  <link rel="stylesheet" href="./styles.css?v=13.5.17-planner-autoposition">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -236,8 +236,8 @@
     <button data-view="homeView" class="nav-btn active">
       <span class="cc-bottom-icon cc-bottom-home" aria-hidden="true">
         <svg viewBox="0 0 36 36" focusable="false">
-          <path class="home-shape" d="M7 18 L18 8 L29 18 M9.5 17.5 V26.5 M26.5 17.5 V26.5"></path>
-          <path class="home-base" d="M4.5 31 Q18 24.5 31.5 31"></path>
+          <path class="home-outline-outer" d="M6.5 17.2 L18 6.8 L29.5 17.2 V27.7 H6.5 Z"></path>
+          <path class="home-outline-inner" d="M9.7 17.6 L18 10.0 L26.3 17.6 V24.8 H9.7 Z"></path>
         </svg>
       </span>
       <small>Edzések</small>
@@ -345,6 +345,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.15-icons-gap"></script>
+  <script src="./app.js?v=13.5.17-planner-autoposition"></script>
 </body>
 </html>
