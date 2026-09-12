@@ -2324,3 +2324,116 @@ html,body{
 .dark .bottom-nav{
   background:rgba(18,17,15,.96) !important;
 }
+/* ==========================================================
+   PLAYER V2.3.5.4 — POLISH / STABILITY
+   ========================================================== */
+
+/* ----------------------------------------------------------
+   Bottom nav: active indicator must NEVER push the label.
+   Every icon gets the same fixed geometry; active state only changes paint.
+   ---------------------------------------------------------- */
+@media(max-width:760px) and (orientation:portrait){
+  .nav-btn{
+    display:grid !important;
+    grid-template-rows:46px 10px !important;
+    align-content:center !important;
+    justify-items:center !important;
+    row-gap:0 !important;
+    padding:0 !important;
+  }
+
+  .nav-btn span,
+  .nav-btn.active span{
+    width:46px !important;
+    min-width:46px !important;
+    height:46px !important;
+    padding:0 !important;
+    margin:0 !important;
+    display:grid !important;
+    place-items:center !important;
+    box-sizing:border-box !important;
+  }
+
+  .nav-btn small{
+    height:10px !important;
+    line-height:10px !important;
+    margin:0 !important;
+    align-self:end !important;
+  }
+}
+
+/* ----------------------------------------------------------
+   Active filter = outer outline triangle + smaller filled triangle inside.
+   Opening the panel rotates the complete two-triangle glyph.
+   ---------------------------------------------------------- */
+.filter-icon-outline{
+  opacity:1 !important;
+  font-size:24px !important;
+}
+
+.filter-icon-filled{
+  opacity:0 !important;
+  font-size:10px !important;
+  transform:translateY(1px) !important;
+  color:var(--black) !important;
+}
+
+.filter-state-btn.has-active-filter .filter-icon-outline{
+  opacity:1 !important;
+}
+
+.filter-state-btn.has-active-filter .filter-icon-filled{
+  opacity:1 !important;
+}
+
+/* ----------------------------------------------------------
+   Menetrend matrix: clearly close the sticky header row.
+   ---------------------------------------------------------- */
+.transposed-matrix thead th{
+  border-bottom:1px solid var(--line) !important;
+  box-shadow:inset 0 -1px 0 var(--line) !important;
+}
+
+.transposed-matrix thead .current-player-head{
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    inset 0 -1px 0 var(--line) !important;
+}
+
+/* ----------------------------------------------------------
+   Profile disclosure: a larger, CSS-drawn symmetric chevron.
+   Avoid rotating the typographic ⌄ glyph, which looks off-center on iOS.
+   ---------------------------------------------------------- */
+.profile-details-chevron{
+  position:relative !important;
+  width:24px !important;
+  height:24px !important;
+  flex:0 0 24px !important;
+  font-size:0 !important;
+  line-height:0 !important;
+  transform:none !important;
+  transition:none !important;
+}
+
+.profile-details-chevron::before{
+  content:"";
+  position:absolute;
+  width:10px;
+  height:10px;
+  left:50%;
+  top:44%;
+  border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor;
+  transform:translate(-50%,-50%) rotate(45deg);
+  transform-origin:center;
+  transition:transform .16s ease, top .16s ease;
+}
+
+.profile-more-details[open] .profile-details-chevron{
+  transform:none !important;
+}
+
+.profile-more-details[open] .profile-details-chevron::before{
+  top:58%;
+  transform:translate(-50%,-50%) rotate(225deg);
+}

@@ -204,10 +204,21 @@ function monthDividerLabel_(e){ return eventDateObj(e).toLocaleDateString('hu-HU
 function monthDividerHtml_(e){ return `<div class="month-divider" aria-hidden="true"><span>${monthDividerLabel_(e)}</span></div>`; }
 function renderEventCardsWithMonths_(rows){
   let lastMonth='';
+  let firstVisibleMonth=true;
+
   return rows.map(e=>{
     const key=monthKeyFromDate(eventDateObj(e));
-    const divider=key!==lastMonth ? monthDividerHtml_(e) : '';
-    lastMonth=key;
+    const monthChanged=key!==lastMonth;
+    const divider=
+      monthChanged && !firstVisibleMonth
+        ? monthDividerHtml_(e)
+        : '';
+
+    if(monthChanged){
+      lastMonth=key;
+      firstVisibleMonth=false;
+    }
+
     return divider+eventCard(e);
   }).join('');
 }
@@ -581,7 +592,9 @@ function renderPlanner(){
   }else{
     plannerMode='grid';
     plannerList.innerHTML=renderGridMatrix(rows);
-    requestAnimationFrame(()=>scrollGridToCurrent('auto'));
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>scrollGridToCurrent('auto'));
+    });
   }
 
   bindSliderDrag();
@@ -809,7 +822,18 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   document.body.appendChild(indicator);
 
   document.addEventListener('touchstart',event=>{
-    if(window.scrollY>1 || running || !event.touches || !event.touches.length){
+    const matrixScroll=
+      event.target && event.target.closest
+        ? event.target.closest('.matrix-scroll')
+        : null;
+
+    if(
+      window.scrollY>1 ||
+      running ||
+      !event.touches ||
+      !event.touches.length ||
+      (matrixScroll && matrixScroll.scrollTop>1)
+    ){
       startY=null;
       return;
     }
@@ -826,9 +850,9 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
       event.touches[0].clientY-startY
     );
 
-    if(distance>55){
+    if(distance>75){
       indicator.textContent=
-        distance>90
+        distance>130
           ? 'Engedd el a frissítéshez'
           : 'Húzd lejjebb…';
 
@@ -839,7 +863,7 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   document.addEventListener('touchend',async()=>{
     if(startY===null) return;
 
-    const shouldRefresh=distance>90;
+    const shouldRefresh=distance>130;
 
     startY=null;
     distance=0;
