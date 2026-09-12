@@ -2206,3 +2206,121 @@ html,body{
     border-radius:9px !important;
   }
 }
+/* ==========================================================
+   PLAYER V2.3.5.3 — NAV BACKGROUND + ICON SCALE
+   Scope: navigation visuals only.
+   ========================================================== */
+
+/* Light mode navigation surface: one neutral gray system in portrait + landscape. */
+.bottom-nav{
+  background:rgba(239,239,237,.98) !important;
+}
+
+/* Larger navigation symbols overall. */
+.nav-btn span{
+  font-size:34px !important;
+  line-height:1 !important;
+}
+
+/* Optical compensation: the house glyph reads smaller than the grid icon. */
+.nav-btn[data-view="homeView"] span{
+  font-size:38px !important;
+}
+
+/* Profile icon: larger circle + a second fine ring a few pixels outside. */
+.nav-btn[data-view="profileView"] span{
+  position:relative !important;
+  font-size:31px !important;
+}
+.nav-btn[data-view="profileView"] span::after{
+  content:"";
+  position:absolute;
+  width:33px;
+  height:33px;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  border:1px solid currentColor;
+  border-radius:50%;
+  opacity:.42;
+  pointer-events:none;
+}
+
+/* Active selection keeps the same rounded-square language as the top view switcher. */
+.nav-btn.active span{
+  width:46px !important;
+  min-width:46px !important;
+  height:46px !important;
+  padding:0 !important;
+  border-radius:9px !important;
+}
+
+/* Profile outer ring stays circular inside the active rounded-square selection. */
+.nav-btn.active[data-view="profileView"] span::after{
+  width:34px;
+  height:34px;
+  opacity:.5;
+}
+
+/* Portrait: still compact, but enough room for the larger icons. */
+@media(max-width:760px) and (orientation:portrait){
+  body{
+    padding-bottom:calc(66px + env(safe-area-inset-bottom)) !important;
+  }
+  .bottom-nav{
+    min-height:62px !important;
+  }
+  .nav-btn{
+    min-height:62px !important;
+    gap:0 !important;
+  }
+  .nav-btn span{
+    font-size:34px !important;
+  }
+  .nav-btn[data-view="homeView"] span{
+    font-size:39px !important;
+  }
+  .nav-btn[data-view="profileView"] span{
+    font-size:32px !important;
+  }
+  .nav-btn small{
+    font-size:8px !important;
+    margin-top:-2px !important;
+  }
+}
+
+/* Landscape: same gray surface, larger icon-only rail. */
+@media(orientation:landscape) and (max-height:520px){
+  body{
+    padding-left:calc(60px + env(safe-area-inset-left)) !important;
+  }
+  .bottom-nav{
+    width:calc(60px + env(safe-area-inset-left)) !important;
+    background:rgba(239,239,237,.98) !important;
+  }
+  .nav-btn{
+    width:60px !important;
+    min-height:58px !important;
+    height:58px !important;
+    flex:0 0 58px !important;
+  }
+  .nav-btn span{
+    font-size:36px !important;
+  }
+  .nav-btn[data-view="homeView"] span{
+    font-size:41px !important;
+  }
+  .nav-btn[data-view="profileView"] span{
+    font-size:34px !important;
+  }
+  .nav-btn.active span{
+    width:48px !important;
+    min-width:48px !important;
+    height:48px !important;
+  }
+}
+
+/* Keep dark-mode palette unchanged except for inheriting the existing dark nav surface. */
+.dark .bottom-nav{
+  background:rgba(18,17,15,.96) !important;
+}
