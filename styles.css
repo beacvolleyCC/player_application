@@ -3768,3 +3768,93 @@ html,body{
 .dark .matrix-floating-head-table thead .matrix-count-head{
   background:var(--card) !important;
 }
+/* ==========================================================
+   PLAYER V2.3.5.24 — PLANNER INTERNAL SCROLL RESTORE
+   BASE: V2.3.5.23
+   ========================================================== */
+
+/* .23 floating header is intentionally disabled. */
+.matrix-floating-head-shell{
+  display:none !important;
+}
+
+/* Menetrend title/actions remain visible because the PAGE does not auto-scroll.
+   Matrix gets its own Y scroll only when its content is taller than available space. */
+#plannerView .planner-card:has(.transposed-matrix){
+  overflow:hidden !important;
+  border-radius:15px !important;
+}
+
+#plannerView #plannerList:has(.transposed-matrix) .matrix-scroll{
+  width:100% !important;
+  min-height:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:var(--card) !important;
+  overflow-x:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+
+/* Original matrix header is sticky INSIDE the matrix scroll area. */
+#plannerView .transposed-matrix thead th{
+  position:sticky !important;
+  top:0 !important;
+  z-index:12 !important;
+  background:var(--card) !important;
+}
+
+#plannerView .transposed-matrix thead .matrix-event-side{
+  z-index:14 !important;
+  background:var(--card) !important;
+}
+
+#plannerView .transposed-matrix thead .matrix-count-head{
+  z-index:13 !important;
+  background:var(--card) !important;
+}
+
+/* Left sticky columns keep working at the same time as sticky header. */
+#plannerView .transposed-matrix .matrix-event-side{
+  position:sticky !important;
+  left:0 !important;
+}
+
+#plannerView .transposed-matrix .matrix-count-head,
+#plannerView .transposed-matrix .matrix-count-cell{
+  position:sticky !important;
+  left:124px !important;
+}
+
+/* No page-scroll pre-positioning fade/overlay. */
+#plannerList.planner-prepositioning{
+  visibility:visible !important;
+  opacity:1 !important;
+}
+/* ==========================================================
+   PLAYER V2.3.5.25 — FINAL PLANNER START POSITION FIX
+   Consolidated on V2.3.5.24 + V2.3.5.24A PWA icon patch
+   ========================================================== */
+
+/* In portrait Menetrend grid, the MATRIX is the vertical scroller.
+   The body/page must remain at top so header + title + controls stay visible. */
+html.planner-grid-page-lock,
+body.planner-grid-page-lock{
+  height:100% !important;
+  overflow-y:hidden !important;
+  overscroll-behavior-y:none !important;
+}
+
+/* Internal matrix scrolling remains smooth on iPhone/PWA. */
+body.planner-grid-page-lock #plannerView .matrix-scroll{
+  overscroll-behavior-y:contain !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+
+/* Keep the original rounded outer panel permanently visible;
+   only its internal matrix content scrolls. */
+body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix){
+  border-radius:15px !important;
+  overflow:hidden !important;
+}

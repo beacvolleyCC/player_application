@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-24a-pwa-icon-android-patch';
+const CACHE='club-control-player-v2-3-5-25-final-planner-start';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

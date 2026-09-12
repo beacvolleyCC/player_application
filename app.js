@@ -273,6 +273,32 @@ let plannerMode=(plannerDefaultMode==='last' ? plannerLastMode : plannerDefaultM
 if(!['grid','calendar'].includes(plannerMode)) plannerMode='grid';
 
 let plannerUserPositioned=false;
+
+// V2.3.5.25 — the Menetrend grid owns its own vertical scroll.
+// iOS/PWA must not restore a previous BODY/page scroll position.
+if('scrollRestoration' in history){
+  try{ history.scrollRestoration='manual'; }catch(_){}
+}
+
+function forcePlannerPageTop_(){
+  if(window.scrollY!==0) window.scrollTo(0,0);
+  if(document.documentElement.scrollTop!==0) document.documentElement.scrollTop=0;
+  if(document.body.scrollTop!==0) document.body.scrollTop=0;
+}
+
+function plannerGridPageLockNeeded_(){
+  const plannerView=document.getElementById('plannerView');
+  const portrait=window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches;
+  return !!(plannerView?.classList.contains('active') && plannerMode==='grid' && portrait);
+}
+
+function syncPlannerPageLock_(){
+  const lock=plannerGridPageLockNeeded_();
+  document.documentElement.classList.toggle('planner-grid-page-lock',lock);
+  document.body.classList.toggle('planner-grid-page-lock',lock);
+  if(lock) forcePlannerPageTop_();
+}
+
 let plannerAutoPositioning=false;
 
 let calendarCursor=null;
@@ -537,41 +563,28 @@ function scrollPlannerToNearest(rows, behavior='auto'){
     const row=scroller?.querySelector(`[data-grid-event="${next.id}"]`);
     if(!scroller || !row) return;
 
-    const computed=getComputedStyle(scroller);
-    const canScrollVertically=
-      scroller.scrollHeight > scroller.clientHeight + 2 &&
-      computed.overflowY !== 'visible';
+    const head=scroller.querySelector('thead');
 
-    if(canScrollVertically){
-      const head=scroller.querySelector('thead');
-      const scrollerRect=scroller.getBoundingClientRect();
-      const rowRect=row.getBoundingClientRect();
-      const top=
-        scroller.scrollTop +
-        (rowRect.top-scrollerRect.top) -
-        (head?.offsetHeight || 0) -
-        2;
+    // Keep the page itself at the top.
+    forcePlannerPageTop_();
 
-      const target=Math.max(0,top);
-      if(behavior==='auto'){
-        scroller.scrollTop=target;
-      }else{
-        scroller.scrollTo({top:target,behavior});
-      }
-      return;
-    }
+    // Use element geometry only inside the matrix scroller.
+    const scrollerRect=scroller.getBoundingClientRect();
+    const rowRect=row.getBoundingClientRect();
+    const target=Math.max(
+      0,
+      scroller.scrollTop +
+      (rowRect.top-scrollerRect.top) -
+      (head?.offsetHeight || 0) -
+      2
+    );
 
-    // Natural-height planner (.21+): position the PAGE itself.
-    // This restores "open at today / next training" even without an inner Y scroller.
-    const rowTop=row.getBoundingClientRect().top + window.scrollY;
-    const headHeight=scroller.querySelector('thead')?.getBoundingClientRect().height || 0;
-    // Put the actual current/next event directly under the floating matrix header.
-    const target=Math.max(0,rowTop - headHeight - 4);
     if(behavior==='auto'){
-      window.scrollTo(0,target);
+      scroller.scrollTop=target;
     }else{
-      window.scrollTo({top:target,behavior});
+      scroller.scrollTo({top:target,behavior});
     }
+
     return;
   }
 
@@ -597,124 +610,53 @@ function updatePlannerFilterButton_(){
 }
 
 function syncPlannerGridViewport_(){
+  const plannerView=document.getElementById('plannerView');
   const scroller=document.getElementById('matrixScroll');
-  if(!scroller) return;
+  const bottomNav=document.querySelector('.bottom-nav');
 
-  // Menetrend follows normal page flow like Edzések/Profil.
-  // No artificial vertical viewport height and no inner vertical scroll area.
+  syncPlannerPageLock_();
+
+  if(!plannerView?.classList.contains('active') || !scroller || !bottomNav) return;
+
+  const portrait=window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches;
+
+  if(!portrait){
+    scroller.style.removeProperty('height');
+    scroller.style.removeProperty('max-height');
+    scroller.style.removeProperty('overflow-y');
+    return;
+  }
+
+  // Always measure from PAGE TOP, never from a restored page scroll position.
+  forcePlannerPageTop_();
+
+  const rect=scroller.getBoundingClientRect();
+  const navTop=bottomNav.getBoundingClientRect().top;
+  const available=Math.max(280,Math.floor(navTop-rect.top-2));
+
+  // Synchronous sizing: autoposition runs only after this has finished.
   scroller.style.removeProperty('height');
   scroller.style.removeProperty('max-height');
+  scroller.style.overflowY='visible';
+
+  const contentHeight=scroller.scrollHeight;
+
+  if(contentHeight>available){
+    scroller.style.height=`${available}px`;
+    scroller.style.maxHeight=`${available}px`;
+    scroller.style.overflowY='auto';
+  }else{
+    scroller.style.removeProperty('height');
+    scroller.style.removeProperty('max-height');
+    scroller.style.overflowY='visible';
+  }
 }
 
-let plannerFloatingHeaderState_={
-  shell:null,
-  scroll:null,
-  table:null,
-  sourceScroller:null
-};
+function hidePlannerFloatingHeader_(){}
 
-function hidePlannerFloatingHeader_(){
-  const shell=plannerFloatingHeaderState_.shell;
-  if(shell) shell.hidden=true;
-}
+function syncPlannerFloatingHeaderGeometry_(){}
 
-function syncPlannerFloatingHeaderGeometry_(){
-  const plannerView=document.getElementById('plannerView');
-  const source=document.getElementById('matrixScroll');
-  const shell=plannerFloatingHeaderState_.shell;
-  const headScroll=plannerFloatingHeaderState_.scroll;
-  const headTable=plannerFloatingHeaderState_.table;
-
-  if(!plannerView?.classList.contains('active') || plannerMode!=='grid' ||
-     !source || !shell || !headScroll || !headTable){
-    hidePlannerFloatingHeader_();
-    return;
-  }
-
-  const sourceTable=source.querySelector('.transposed-matrix');
-  const sourceHead=sourceTable?.querySelector('thead');
-  if(!sourceTable || !sourceHead){
-    hidePlannerFloatingHeader_();
-    return;
-  }
-
-  const rect=source.getBoundingClientRect();
-  const headHeight=Math.ceil(sourceHead.getBoundingClientRect().height);
-
-  // Visible only after the real header has left the viewport,
-  // and only while there are still matrix rows below it.
-  const shouldShow=rect.top < 0 && rect.bottom > headHeight + 2;
-  shell.hidden=!shouldShow;
-  if(!shouldShow) return;
-
-  shell.style.left=`${Math.round(rect.left)}px`;
-  shell.style.width=`${Math.round(rect.width)}px`;
-  shell.style.height=`${headHeight}px`;
-
-  headScroll.style.height=`${headHeight}px`;
-  headScroll.scrollLeft=source.scrollLeft;
-
-  const sourceCells=[...sourceHead.querySelectorAll('th')];
-  const cloneCells=[...headTable.querySelectorAll('th')];
-  sourceCells.forEach((cell,i)=>{
-    const clone=cloneCells[i];
-    if(!clone) return;
-    const w=Math.ceil(cell.getBoundingClientRect().width);
-    clone.style.width=`${w}px`;
-    clone.style.minWidth=`${w}px`;
-    clone.style.maxWidth=`${w}px`;
-  });
-
-  headTable.style.width=`${Math.ceil(sourceTable.scrollWidth)}px`;
-}
-
-function setupPlannerFloatingHeader_(){
-  const source=document.getElementById('matrixScroll');
-  const sourceHead=source?.querySelector('.transposed-matrix thead');
-  if(!source || !sourceHead){
-    hidePlannerFloatingHeader_();
-    return;
-  }
-
-  let shell=plannerFloatingHeaderState_.shell;
-  if(!shell){
-    shell=document.createElement('div');
-    shell.className='matrix-floating-head-shell';
-    shell.hidden=true;
-
-    const headScroll=document.createElement('div');
-    headScroll.className='matrix-floating-head-scroll';
-
-    const headTable=document.createElement('table');
-    headTable.className='season-matrix transposed-matrix matrix-floating-head-table';
-
-    headScroll.appendChild(headTable);
-    shell.appendChild(headScroll);
-    document.body.appendChild(shell);
-
-    plannerFloatingHeaderState_.shell=shell;
-    plannerFloatingHeaderState_.scroll=headScroll;
-    plannerFloatingHeaderState_.table=headTable;
-
-    window.addEventListener('scroll',()=>requestAnimationFrame(syncPlannerFloatingHeaderGeometry_),{passive:true});
-    window.addEventListener('resize',()=>requestAnimationFrame(syncPlannerFloatingHeaderGeometry_),{passive:true});
-  }
-
-  const headTable=plannerFloatingHeaderState_.table;
-  headTable.replaceChildren(sourceHead.cloneNode(true));
-  plannerFloatingHeaderState_.sourceScroller=source;
-
-  if(!source.dataset.floatingHeaderBound){
-    source.dataset.floatingHeaderBound='1';
-    source.addEventListener('scroll',()=>{
-      const headScroll=plannerFloatingHeaderState_.scroll;
-      if(headScroll) headScroll.scrollLeft=source.scrollLeft;
-      requestAnimationFrame(syncPlannerFloatingHeaderGeometry_);
-    },{passive:true});
-  }
-
-  requestAnimationFrame(syncPlannerFloatingHeaderGeometry_);
-}
+function setupPlannerFloatingHeader_(){}
 
 function renderPlanner(){
   updatePlannerFilterButton_();
@@ -736,11 +678,9 @@ function renderPlanner(){
   bindSliderDrag();
   requestAnimationFrame(()=>{
     if(plannerMode==='calendar'){
-      hidePlannerFloatingHeader_();
       markCalendarToday();
     }else{
       syncPlannerGridViewport_();
-      setupPlannerFloatingHeader_();
     }
   });
 }
@@ -939,6 +879,7 @@ document.getElementById('resetPlannerFiltersBtn')?.addEventListener('click',()=>
 
 function positionPlannerInitial_(rows=filteredPlannerEvents()){
   if(plannerMode==='calendar'){
+    syncPlannerPageLock_();
     calendarCursor=initialCalendarCursor(rows);
     renderPlanner();
     return;
@@ -946,18 +887,28 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
 
   plannerAutoPositioning=true;
   plannerList.classList.add('planner-prepositioning');
+
+  forcePlannerPageTop_();
   renderPlanner();
 
   requestAnimationFrame(()=>{
+    forcePlannerPageTop_();
+    syncPlannerGridViewport_();
+
     requestAnimationFrame(()=>{
+      // First visible event row = current/next training.
       scrollPlannerToNearest(rows,'auto');
 
-      // One extra layout frame catches Safari/PWA geometry settling after tab switch.
       requestAnimationFrame(()=>{
+        // iOS/PWA sometimes settles one frame later.
+        forcePlannerPageTop_();
+        syncPlannerGridViewport_();
         scrollPlannerToNearest(rows,'auto');
+
         plannerList.classList.remove('planner-prepositioning');
 
         requestAnimationFrame(()=>{
+          forcePlannerPageTop_();
           plannerAutoPositioning=false;
         });
       });
@@ -967,24 +918,29 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
 
 function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
+
+  forcePlannerPageTop_();
+
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
-  window.scrollTo({top:0,behavior:'auto'});
 
   if(viewId==='plannerView'){
-    // Entering Menetrend from another main view starts from today's / next event again.
-    // Manual positioning is still respected while the user remains in Menetrend.
     if(previousView!=='plannerView') plannerUserPositioned=false;
 
-    requestAnimationFrame(()=>{
-      syncPlannerGridViewport_();
-      setupPlannerFloatingHeader_();
-    });
+    syncPlannerPageLock_();
+    forcePlannerPageTop_();
 
-    if(!plannerUserPositioned){
-      positionPlannerInitial_(filteredPlannerEvents());
-    }
+    requestAnimationFrame(()=>{
+      forcePlannerPageTop_();
+      syncPlannerGridViewport_();
+
+      if(!plannerUserPositioned){
+        positionPlannerInitial_(filteredPlannerEvents());
+      }
+    });
   }else{
+    syncPlannerPageLock_();
+    forcePlannerPageTop_();
     hidePlannerFloatingHeader_();
   }
 }
@@ -992,8 +948,8 @@ function switchView(viewId){
 document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
 document.querySelectorAll('[data-view-jump]').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.viewJump)));
 
-window.addEventListener('resize',()=>requestAnimationFrame(syncPlannerGridViewport_));
-window.addEventListener('orientationchange',()=>setTimeout(syncPlannerGridViewport_,80));
+window.addEventListener('resize',()=>requestAnimationFrame(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();}));
+window.addEventListener('orientationchange',()=>setTimeout(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();},80));
 
 const themeBtn=document.getElementById('themeBtn');
 function currentThemePreference_(){ return localStorage.getItem('cc-theme-mode') || localStorage.getItem('cc-theme') || 'system'; }
@@ -1038,6 +994,8 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
     plannerMode=nextMode;
     localStorage.setItem('cc-planner-mode',plannerMode);
     plannerUserPositioned=false;
+    syncPlannerPageLock_();
+    forcePlannerPageTop_();
     positionPlannerInitial_(filteredPlannerEvents());
   });
 });
