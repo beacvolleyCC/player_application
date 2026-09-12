@@ -185,10 +185,20 @@ function eventCard(e){
 function ccNow_(){ return ccRemoteConfigured_() ? new Date() : new Date(DEMO_NOW); }
 function dateOnly_(value){ const d=new Date(value.getFullYear(),value.getMonth(),value.getDate()); d.setHours(0,0,0,0); return d; }
 function parseHuDate_(text){
-  const m=String(text||'').trim().match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})\.?$/);
+  const value=String(text||'').trim();
+  const m=value.match(/^(\d{4})[.-](\d{1,2})[.-](\d{1,2})\.?$/);
   if(!m) return null;
   const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
   return Number.isNaN(d.getTime()) ? null : d;
+}
+function dateInputValue_(text){
+  const d=parseHuDate_(text);
+  if(!d) return '';
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,'0'),
+    String(d.getDate()).padStart(2,'0')
+  ].join('-');
 }
 function monthDividerLabel_(e){ return eventDateObj(e).toLocaleDateString('hu-HU',{year:'numeric',month:'long'}); }
 function monthDividerHtml_(e){ return `<div class="month-divider" aria-hidden="true"><span>${monthDividerLabel_(e)}</span></div>`; }
@@ -231,8 +241,8 @@ function updateHomeFilterUi_(){
     eventPeriodFilter:homeFilters.period,
     eventTypeFilter:homeFilters.type,
     eventStatusFilter:homeFilters.status,
-    eventDateFrom:homeFilters.from||'',
-    eventDateTo:homeFilters.to||''
+    eventDateFrom:dateInputValue_(homeFilters.from),
+    eventDateTo:dateInputValue_(homeFilters.to)
   };
   Object.entries(values).forEach(([id,value])=>{ const el=document.getElementById(id); if(el) el.value=value; });
   const custom=document.getElementById('eventCustomRange');
@@ -680,10 +690,7 @@ function toggleFilterPanel_(buttonId,panelId,force){
   panel.classList.toggle('is-collapsed',!open);
   panel.setAttribute('aria-hidden',open?'false':'true');
   btn.setAttribute('aria-expanded',open?'true':'false');
-  if(buttonId==='plannerFilterBtn'){
-    const active=open || missingOnly || document.getElementById('monthFilter')?.value!=='all' || document.getElementById('typeFilter')?.value!=='all';
-    btn.classList.toggle('active-filter',active);
-  }
+  btn.classList.toggle('filter-open',open);
 }
 
 document.getElementById('eventFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('eventFilterBtn','eventFilterPanel'));
@@ -857,7 +864,7 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
 })();
 
 
-document.getElementById('homeRefreshBtn').addEventListener('click',async e=>{
+document.getElementById('homeRefreshBtn')?.addEventListener('click',async e=>{
   const btn=e.currentTarget;
   if(btn.disabled) return;
   btn.disabled=true;

@@ -1764,3 +1764,213 @@ html,body{
 .cc-pull-refresh-indicator.show{
   transform:translate(-50%,0);
 }
+/* ==========================================================
+   PLAYER CORE V2.3.5 — MOBILE NAV / HEADER / FILTER POLISH
+   Scope:
+   - compact portrait header
+   - compact portrait bottom navigation
+   - icon-only left navigation in landscape
+   - filter open/closed chevron motion
+   - native custom-range date picker
+   Dark palette intentionally unchanged in this build.
+   ========================================================== */
+
+/* Header: team + season stay in one compact block, actions on the same row. */
+.compact-topbar{
+  min-height:56px !important;
+  height:56px !important;
+  padding:4px 0 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+}
+.brand-left.brand-inline{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  grid-template-areas:none !important;
+  align-content:center !important;
+  justify-self:auto !important;
+  min-width:0 !important;
+  gap:1px !important;
+}
+.team-heading{
+  margin:0 !important;
+  line-height:1.02 !important;
+  max-width:min(68vw,680px) !important;
+  font-size:21px !important;
+}
+.player-season-label{
+  margin:0 !important;
+  font-size:8.5px !important;
+  line-height:1.1 !important;
+  letter-spacing:.08em !important;
+  opacity:.68 !important;
+}
+.header-actions{
+  display:flex !important;
+  align-items:center !important;
+  justify-self:auto !important;
+  flex:0 0 auto !important;
+  gap:7px !important;
+}
+.compact-topbar .round-btn{
+  width:36px !important;
+  height:36px !important;
+}
+.compact-topbar .profile-btn{
+  min-height:36px !important;
+  padding:3px 7px 3px 3px !important;
+}
+.compact-topbar .profile-dot{
+  width:30px !important;
+  height:30px !important;
+  font-size:10px !important;
+}
+@media(max-width:760px){
+  .compact-topbar{
+    min-height:54px !important;
+    height:54px !important;
+    grid-template-columns:none !important;
+    grid-template-areas:none !important;
+  }
+  .team-heading{
+    max-width:58vw !important;
+    font-size:20px !important;
+  }
+  .profile-meta{display:none !important}
+}
+
+/* Portrait/mobile bottom nav: less height, larger icons, smaller labels. */
+@media(max-width:760px) and (orientation:portrait){
+  body{
+    padding-bottom:calc(62px + env(safe-area-inset-bottom)) !important;
+  }
+  .bottom-nav{
+    min-height:54px !important;
+    padding-bottom:env(safe-area-inset-bottom) !important;
+    border-radius:15px 15px 0 0 !important;
+  }
+  .nav-btn{
+    min-height:54px !important;
+    gap:1px !important;
+  }
+  .nav-btn span{
+    font-size:24px !important;
+    line-height:1 !important;
+  }
+  .nav-btn small{
+    font-size:8px !important;
+    line-height:1 !important;
+    font-weight:850 !important;
+  }
+  .nav-btn.active span{
+    min-width:34px !important;
+    padding:2px 5px !important;
+  }
+}
+
+/* Landscape phone: bottom nav becomes a narrow, safe-area-aware left icon rail. */
+@media(orientation:landscape) and (max-height:520px){
+  body{
+    padding-bottom:0 !important;
+    padding-left:calc(50px + env(safe-area-inset-left)) !important;
+  }
+  .bottom-nav{
+    left:0 !important;
+    right:auto !important;
+    top:0 !important;
+    bottom:0 !important;
+    transform:none !important;
+    width:calc(50px + env(safe-area-inset-left)) !important;
+    height:100dvh !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+    gap:7px !important;
+    padding:
+      env(safe-area-inset-top)
+      0
+      env(safe-area-inset-bottom)
+      env(safe-area-inset-left) !important;
+    border:0 !important;
+    border-right:1px solid var(--line) !important;
+    border-radius:0 13px 13px 0 !important;
+  }
+  .nav-btn{
+    width:50px !important;
+    min-height:48px !important;
+    height:48px !important;
+    flex:0 0 48px !important;
+    display:grid !important;
+    place-items:center !important;
+    padding:0 !important;
+  }
+  .nav-btn span{
+    font-size:25px !important;
+    line-height:1 !important;
+  }
+  .nav-btn small{
+    display:none !important;
+  }
+  .nav-btn.active span{
+    min-width:36px !important;
+    padding:4px !important;
+  }
+  .compact-topbar{
+    min-height:50px !important;
+    height:50px !important;
+  }
+  .page{
+    padding-top:12px !important;
+  }
+}
+
+/* Filters: arrow direction is the main open/closed state signal. */
+.filter-funnel,
+.filter-chevron{
+  display:inline-block;
+  transition:transform .18s ease !important;
+  transform-origin:center !important;
+}
+.filter-funnel{
+  transform:translateY(-1px) rotate(0deg) !important;
+}
+.filter-open .filter-funnel{
+  transform:translateY(-1px) rotate(180deg) !important;
+}
+.filter-chevron{
+  transform:rotate(0deg);
+}
+.filter-open .filter-chevron{
+  transform:rotate(180deg);
+}
+
+/* Menetrend filter: no large active fill; the arrow carries open/closed state. */
+#plannerFilterBtn,
+#plannerFilterBtn.active-filter,
+#plannerFilterBtn.filter-open{
+  background:transparent !important;
+  color:var(--muted) !important;
+  box-shadow:none !important;
+  border-color:transparent !important;
+}
+#plannerFilterBtn:hover{
+  background:var(--soft) !important;
+  color:var(--black) !important;
+}
+.dark #plannerFilterBtn,
+.dark #plannerFilterBtn.active-filter,
+.dark #plannerFilterBtn.filter-open{
+  background:transparent !important;
+  color:#8f8a82 !important;
+  box-shadow:none !important;
+}
+
+/* Native date picker: keep visual parity with the existing compact filter fields. */
+.custom-date-range input[type="date"]{
+  color-scheme:light;
+}
+.dark .custom-date-range input[type="date"]{
+  color-scheme:dark;
+}
