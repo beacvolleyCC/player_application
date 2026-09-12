@@ -585,6 +585,39 @@ function scrollPlannerToNearest(rows, behavior='auto'){
   }
 }
 
+function fitPlannerMatrixHeight_(){
+  const scroller=document.getElementById('matrixScroll');
+  if(!scroller) return;
+
+  if(
+    plannerMode!=='grid' ||
+    !window.matchMedia?.('(max-width:760px)').matches
+  ){
+    scroller.style.maxHeight='';
+    return;
+  }
+
+  const nav=document.querySelector('.bottom-nav');
+  const viewportHeight=
+    window.visualViewport?.height ||
+    window.innerHeight ||
+    document.documentElement.clientHeight;
+
+  const scrollerRect=scroller.getBoundingClientRect();
+  const navRect=nav?.getBoundingClientRect();
+  const navTop=
+    navRect && Number.isFinite(navRect.top)
+      ? navRect.top
+      : viewportHeight-70;
+
+  // Leave only a small visual breathing space above the fixed navigation.
+  const available=Math.floor(navTop-scrollerRect.top-10);
+
+  if(available>280){
+    scroller.style.maxHeight=`${available}px`;
+  }
+}
+
 function plannerFilterIsDefault_(){
   const month=document.getElementById('monthFilter')?.value || 'all';
   const type=document.getElementById('typeFilter')?.value || 'all';
@@ -614,7 +647,10 @@ function renderPlanner(){
     plannerMode='grid';
     plannerList.innerHTML=renderGridMatrix(rows);
     requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>scrollGridToCurrent('auto'));
+      requestAnimationFrame(()=>{
+        fitPlannerMatrixHeight_();
+        scrollGridToCurrent('auto');
+      });
     });
   }
 
@@ -816,10 +852,12 @@ function switchView(viewId){
     requestAnimationFrame(()=>{
       requestAnimationFrame(()=>{
         if(plannerMode==='grid'){
+          fitPlannerMatrixHeight_();
           scrollPlannerToNearest(rows,'auto');
 
           // One delayed correction covers late font/layout sizing in PWA mode.
           setTimeout(()=>{
+            fitPlannerMatrixHeight_();
             scrollPlannerToNearest(filteredPlannerEvents(),'auto');
           },80);
         }
@@ -881,13 +919,28 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
 
     if(plannerMode==='grid'){
       requestAnimationFrame(()=>{
-        requestAnimationFrame(()=>scrollPlannerToNearest(rows,'auto'));
+        requestAnimationFrame(()=>{
+          fitPlannerMatrixHeight_();
+          scrollPlannerToNearest(rows,'auto');
+        });
       });
     }
   });
 });
 
 
+
+window.addEventListener('resize',()=>{
+  if(plannerMode==='grid'){
+    requestAnimationFrame(()=>fitPlannerMatrixHeight_());
+  }
+});
+
+window.visualViewport?.addEventListener?.('resize',()=>{
+  if(plannerMode==='grid'){
+    requestAnimationFrame(()=>fitPlannerMatrixHeight_());
+  }
+});
 
 (function installPullToRefresh_(){
   let startY=null;
