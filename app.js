@@ -779,6 +779,84 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
 });
 
 
+
+(function installPullToRefresh_(){
+  let startY=null;
+  let distance=0;
+  let running=false;
+
+  const indicator=document.createElement('div');
+  indicator.className='cc-pull-refresh-indicator';
+  indicator.textContent='Frissítés…';
+  document.body.appendChild(indicator);
+
+  document.addEventListener('touchstart',event=>{
+    if(window.scrollY>1 || running || !event.touches || !event.touches.length){
+      startY=null;
+      return;
+    }
+
+    startY=event.touches[0].clientY;
+    distance=0;
+  },{passive:true});
+
+  document.addEventListener('touchmove',event=>{
+    if(startY===null || !event.touches || !event.touches.length) return;
+
+    distance=Math.max(
+      0,
+      event.touches[0].clientY-startY
+    );
+
+    if(distance>55){
+      indicator.textContent=
+        distance>90
+          ? 'Engedd el a frissítéshez'
+          : 'Húzd lejjebb…';
+
+      indicator.classList.add('show');
+    }
+  },{passive:true});
+
+  document.addEventListener('touchend',async()=>{
+    if(startY===null) return;
+
+    const shouldRefresh=distance>90;
+
+    startY=null;
+    distance=0;
+
+    if(!shouldRefresh){
+      indicator.classList.remove('show');
+      return;
+    }
+
+    running=true;
+    indicator.textContent='Frissítés…';
+    indicator.classList.add('show');
+
+    try{
+      if(ccRemoteConfigured_()){
+        await loadBootstrap();
+      }else{
+        renderEvents();
+        renderPlanner();
+      }
+
+      indicator.textContent='Frissítve';
+    }catch(error){
+      console.error(error);
+      indicator.textContent='Nem sikerült frissíteni';
+    }finally{
+      window.setTimeout(()=>{
+        indicator.classList.remove('show');
+        running=false;
+      },650);
+    }
+  },{passive:true});
+})();
+
+
 document.getElementById('homeRefreshBtn').addEventListener('click',async e=>{
   const btn=e.currentTarget;
   if(btn.disabled) return;

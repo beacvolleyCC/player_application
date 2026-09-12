@@ -1743,3 +1743,24 @@ html,body{
 .profile-more-content .detail-row:last-child{
   border-bottom:0;
 }
+/* Player PWA pull-to-refresh visszajelzés. */
+.cc-pull-refresh-indicator{
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top) + 8px);
+  transform:translate(-50%,-140%);
+  z-index:80;
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--black);
+  box-shadow:var(--shadow);
+  font-size:11px;
+  font-weight:900;
+  transition:transform .16s ease;
+  pointer-events:none;
+}
+.cc-pull-refresh-indicator.show{
+  transform:translate(-50%,0);
+}
