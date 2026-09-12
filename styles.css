@@ -2770,221 +2770,129 @@ html,body{
   border-right:1px solid var(--line) !important;
 }
 /* ==========================================================
-   PLAYER V2.3.5.12 — ICON + BOTTOM SAFE AREA FIX
+   PLAYER V2.3.5.13 — RESTORE V2.3.5.10 + TOP PROFILE RING
    BASE: V2.3.5.10
-   SCOPE: filter icon + bottom nav icons + bottom scroll clearance ONLY
+   SCOPE:
+   - restore .10 visual baseline (by using .10 files)
+   - keep matrix right-edge border
+   - fix ONLY the top-right account/profile icon to be clearly two-circle
    ========================================================== */
 
-/* ---------- FILTER: fixed geometry, no font glyph dependence ---------- */
-.filter-funnel{
+/* Top-right account / profile initials button:
+   inner black disc + clearly larger outer ring.
+   This is the ONLY new visual change on top of the V2.3.5.10 baseline. */
+.compact-topbar .profile-dot{
   position:relative !important;
-  width:28px !important;
-  height:26px !important;
-  display:grid !important;
-  place-items:center !important;
-  margin:0 !important;
-  font-size:0 !important;
-  line-height:0 !important;
-  transform:rotate(0deg) !important;
-  transform-origin:50% 50% !important;
-  transition:transform .18s ease !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  line-height:1 !important;
+  letter-spacing:0 !important;
+  z-index:0;
 }
 
-.filter-svg{
-  width:28px !important;
-  height:26px !important;
-  display:block !important;
-  overflow:visible !important;
+.compact-topbar .profile-dot::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:38px;
+  height:38px;
+  transform:translate(-50%,-50%);
+  border:1.5px solid rgba(0,0,0,.22);
+  border-radius:50%;
+  pointer-events:none;
 }
 
-.filter-outline{
-  fill:var(--card) !important;
-  stroke:currentColor !important;
-  stroke-width:2 !important;
-  stroke-linejoin:miter !important;
-  vector-effect:non-scaling-stroke;
+.dark .compact-topbar .profile-dot::after{
+  border-color:rgba(255,255,255,.22);
 }
 
-.filter-inner{
-  fill:currentColor !important;
-  stroke:none !important;
-  opacity:0 !important;
-  transition:opacity .12s ease !important;
+@media(max-width:760px){
+  .compact-topbar .profile-dot::after{
+    width:38px;
+    height:38px;
+  }
+}
+/* ==========================================================
+   PLAYER V2.3.5.14 — TARGETED UI CORRECTIONS
+   BASE: V2.3.5.13
+   SCOPE ONLY:
+   - top-right account button = true two-circle mobile form
+   - restore old top Menetrend mode icons
+   - keep bottom home icon simple, just with outer contour
+   - remove giant grey gap by letting planner grid panel fill downward
+   ========================================================== */
+
+@media(max-width:760px){
+  .compact-topbar .profile-btn{
+    width:38px !important;
+    min-width:38px !important;
+    height:38px !important;
+    padding:3px !important;
+    gap:0 !important;
+    border-radius:50% !important;
+    justify-content:center !important;
+    background:rgba(255,255,255,.72) !important;
+    border:1px solid rgba(0,0,0,.18) !important;
+  }
+  .compact-topbar .profile-dot{
+    width:30px !important;
+    height:30px !important;
+    font-size:10px !important;
+  }
+  .compact-topbar .profile-dot::after{
+    content:none !important;
+    display:none !important;
+  }
 }
 
-.filter-state-btn.has-active-filter .filter-inner{
-  opacity:1 !important;
+.view-mode-btn.icon-only{
+  font-size:28px !important;
+  line-height:1 !important;
 }
-
-.filter-state-btn.filter-open .filter-funnel{
-  transform:rotate(180deg) !important;
+.view-mode-btn.icon-only[data-mode="grid"]{
+  font-size:29px !important;
 }
-
-/* Old glyph spans must never interfere if stale DOM/cache briefly exists. */
-.filter-icon-outline,
-.filter-icon-filled{
+.view-mode-btn.icon-only[data-mode="calendar"]{
+  font-size:27px !important;
+}
+.view-mode-btn .planner-mode-icon{
   display:none !important;
 }
 
-/* ---------- BOTTOM NAV: stable SVG geometry ---------- */
-.bottom-nav .nav-btn{
-  overflow:visible !important;
-}
-
-.bottom-nav .nav-icon-shell,
-.bottom-nav .nav-btn.active .nav-icon-shell{
+.nav-btn[data-view="homeView"] span{
   position:relative !important;
-  width:44px !important;
-  min-width:44px !important;
-  height:44px !important;
-  padding:0 !important;
-  margin:0 !important;
-  display:grid !important;
-  place-items:center !important;
-  box-sizing:border-box !important;
-  border-radius:9px !important;
-  font-size:0 !important;
-  line-height:0 !important;
+  font-size:30px !important;
+  line-height:1 !important;
 }
-
-.bottom-nav .nav-icon-shell svg{
-  display:block !important;
-  width:32px !important;
-  height:32px !important;
-  overflow:visible !important;
-  color:currentColor;
+.nav-btn[data-view="homeView"] span::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:32px;
+  height:32px;
+  transform:translate(-50%,-50%);
+  border:1.5px solid currentColor;
+  border-radius:8px;
+  opacity:.38;
+  pointer-events:none;
 }
-
-/* Active state changes the backing square only; label/icon position never moves. */
-.bottom-nav .nav-btn.active .nav-icon-shell{
-  background:#fff0a3 !important;
-  color:#111 !important;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10) !important;
+.nav-btn.active[data-view="homeView"] span::after{
+  opacity:.62;
 }
-
-.dark .bottom-nav .nav-btn.active .nav-icon-shell{
-  background:#d5a72f !important;
-  color:#17130b !important;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.10) !important;
-}
-
-/* Edzések: house + subtle outer contour, both perfectly centered. */
-.nav-icon-home svg{
-  width:33px !important;
-  height:33px !important;
-}
-
-.nav-home-contour{
-  fill:none !important;
-  stroke:currentColor !important;
-  stroke-width:1.35 !important;
-  opacity:.42 !important;
-  vector-effect:non-scaling-stroke;
-}
-
-.nav-home-house{
-  fill:none !important;
-  stroke:currentColor !important;
-  stroke-width:2.15 !important;
-  stroke-linecap:round !important;
-  stroke-linejoin:round !important;
-  vector-effect:non-scaling-stroke;
-}
-
-.nav-btn.active .nav-home-contour{
-  opacity:.62 !important;
-}
-
-/* Menetrend bottom icon: restrained grid, exact center, no font-metric drift. */
-.nav-icon-planner svg{
-  width:30px !important;
-  height:30px !important;
-}
-.nav-icon-planner rect,
-.nav-icon-planner path{
-  fill:none !important;
-  stroke:currentColor !important;
-  stroke-width:1.15 !important;
-  vector-effect:non-scaling-stroke;
-}
-
-/* Profil: TWO OUTLINE RINGS, same tone. Inner ring slightly larger than before. */
-.nav-icon-profile svg{
-  width:34px !important;
-  height:34px !important;
-}
-
-.profile-ring-outer,
-.profile-ring-inner{
-  fill:none !important;
-  stroke:currentColor !important;
-  stroke-width:1.7 !important;
-  opacity:.58 !important;
-  vector-effect:non-scaling-stroke;
-}
-
-.nav-btn.active .profile-ring-outer,
-.nav-btn.active .profile-ring-inner{
-  opacity:.82 !important;
-}
-
-/* Neutralize all legacy pseudo-icon drawings from earlier builds. */
-.nav-btn[data-view="homeView"] .nav-icon-shell::before,
-.nav-btn[data-view="homeView"] .nav-icon-shell::after,
-.nav-btn[data-view="profileView"] .nav-icon-shell::before,
-.nav-btn[data-view="profileView"] .nav-icon-shell::after{
+.nav-btn[data-view="homeView"] span::before{
   content:none !important;
   display:none !important;
 }
 
-/* Keep labels on a fixed baseline under the fixed 44px icon box. */
 @media(max-width:760px) and (orientation:portrait){
-  body{
-    /* Fixed nav is ~60px + iPhone safe area.
-       Leave a real invisible scroll clearance so the last content is never
-       hidden/cut behind the navigation. */
-    padding-bottom:calc(80px + env(safe-area-inset-bottom)) !important;
-    scroll-padding-bottom:calc(80px + env(safe-area-inset-bottom)) !important;
-  }
-
-  .bottom-nav{
-    min-height:60px !important;
-  }
-
-  .bottom-nav .nav-btn{
-    min-height:60px !important;
-    display:grid !important;
-    grid-template-rows:44px 10px !important;
-    align-content:center !important;
-    justify-items:center !important;
-    row-gap:0 !important;
-    padding:0 !important;
-    overflow:visible !important;
-  }
-
-  .bottom-nav .nav-btn small{
-    height:10px !important;
-    line-height:10px !important;
-    margin:0 !important;
-    align-self:end !important;
+  #plannerView #plannerList:has(.transposed-matrix) .matrix-scroll{
+    min-height:calc(100svh - 236px - env(safe-area-inset-bottom)) !important;
   }
 }
-
-/* Landscape rail: same icon system, no bottom spacer needed. */
-@media(orientation:landscape) and (max-height:520px){
-  body{
-    padding-bottom:0 !important;
-    scroll-padding-bottom:0 !important;
-  }
-
-  .bottom-nav .nav-icon-shell,
-  .bottom-nav .nav-btn.active .nav-icon-shell{
-    width:44px !important;
-    min-width:44px !important;
-    height:44px !important;
-  }
-
-  .bottom-nav .nav-btn small{
-    display:none !important;
-  }
+#plannerView #plannerList:has(.transposed-matrix){
+  align-items:stretch !important;
 }

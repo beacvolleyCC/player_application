@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.12-icon-bottom-fix">
+  <link rel="stylesheet" href="./styles.css?v=13.5.14-ui-corrections">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -75,10 +75,8 @@
         <div class="home-head-actions">
           <button class="ghost-btn icon-action-btn filter-state-btn" id="eventFilterBtn" aria-label="Edzések szűrése" aria-expanded="false" title="Szűrő">
             <span class="filter-funnel" aria-hidden="true">
-              <svg class="filter-svg" viewBox="0 0 28 26" focusable="false" aria-hidden="true">
-                <path class="filter-outline" d="M14 2 L26 24 H2 Z"></path>
-                <path class="filter-inner" d="M14 8 L21 21 H7 Z"></path>
-              </svg>
+              <span class="filter-icon-outline">▽</span>
+              <span class="filter-icon-filled">▼</span>
             </span>
           </button>
         </div>
@@ -131,14 +129,12 @@
           <p>Rács és naptár a teljes szezonhoz.</p>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
-          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok"><span class="planner-mode-icon planner-grid-icon" aria-hidden="true"></span></button>
-          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok"><span class="planner-mode-icon planner-calendar-icon" aria-hidden="true"></span></button>
+          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">▣</button>
+          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok">▦</button>
           <button class="view-mode-btn icon-only filter-state-btn" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">
             <span class="filter-funnel" aria-hidden="true">
-              <svg class="filter-svg" viewBox="0 0 28 26" focusable="false" aria-hidden="true">
-                <path class="filter-outline" d="M14 2 L26 24 H2 Z"></path>
-                <path class="filter-inner" d="M14 8 L21 21 H7 Z"></path>
-              </svg>
+              <span class="filter-icon-outline">▽</span>
+              <span class="filter-icon-filled">▼</span>
             </span>
           </button>
         </div>
@@ -227,33 +223,9 @@
   </main>
 
   <nav class="bottom-nav">
-    <button data-view="homeView" class="nav-btn active" aria-label="Edzések">
-      <span class="nav-icon-shell nav-icon-home" aria-hidden="true">
-        <svg viewBox="0 0 36 36" focusable="false">
-          <rect class="nav-home-contour" x="2.5" y="2.5" width="31" height="31" rx="7"></rect>
-          <path class="nav-home-house" d="M9.5 17 L18 9.5 L26.5 17 V27 H20.8 V21.2 H15.2 V27 H9.5 Z"></path>
-        </svg>
-      </span>
-      <small>Edzések</small>
-    </button>
-    <button data-view="plannerView" class="nav-btn" aria-label="Menetrend">
-      <span class="nav-icon-shell nav-icon-planner" aria-hidden="true">
-        <svg viewBox="0 0 36 36" focusable="false">
-          <rect x="5" y="5" width="26" height="26" rx=".7"></rect>
-          <path d="M8.7 5 V31 M12.4 5 V31 M16.1 5 V31 M19.9 5 V31 M23.6 5 V31 M27.3 5 V31 M5 8.7 H31 M5 12.4 H31 M5 16.1 H31 M5 19.9 H31 M5 23.6 H31 M5 27.3 H31"></path>
-        </svg>
-      </span>
-      <small>Menetrend</small>
-    </button>
-    <button data-view="profileView" class="nav-btn" aria-label="Profil">
-      <span class="nav-icon-shell nav-icon-profile" aria-hidden="true">
-        <svg viewBox="0 0 36 36" focusable="false">
-          <circle class="profile-ring-outer" cx="18" cy="18" r="15"></circle>
-          <circle class="profile-ring-inner" cx="18" cy="18" r="9.5"></circle>
-        </svg>
-      </span>
-      <small>Profil</small>
-    </button>
+    <button data-view="homeView" class="nav-btn active"><span>⌂</span><small>Edzések</small></button>
+    <button data-view="plannerView" class="nav-btn"><span>▦</span><small>Menetrend</small></button>
+    <button data-view="profileView" class="nav-btn"><span>●</span><small>Profil</small></button>
   </nav>
 
   <dialog id="settingsDialog">
@@ -347,6 +319,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.12-icon-bottom-fix"></script>
+  <script src="./app.js?v=13.5.14-ui-corrections"></script>
 </body>
 </html>
