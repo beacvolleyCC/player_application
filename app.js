@@ -739,6 +739,7 @@ document.getElementById('resetEventFiltersBtn')?.addEventListener('click',()=>{
   homeFilters={period:'next14',type:'all',status:'all',from:'',to:''};
   localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
   renderEvents();
+  toggleFilterPanel_('eventFilterBtn','eventFilterPanel',true);
 });
 
 document.getElementById('plannerFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel'));
@@ -752,6 +753,25 @@ document.getElementById('plannerFilterBtn')?.addEventListener('click',()=>toggle
 document.getElementById('missingOnlyBtn')?.addEventListener('click',e=>{
   missingOnly=!missingOnly;
   e.currentTarget.classList.toggle('active-filter',missingOnly);
+  renderPlanner();
+  toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);
+});
+
+document.getElementById('resetPlannerFiltersBtn')?.addEventListener('click',()=>{
+  const month=document.getElementById('monthFilter');
+  const type=document.getElementById('typeFilter');
+  const missing=document.getElementById('missingOnlyBtn');
+
+  if(month) month.value='all';
+  if(type) type.value='all';
+
+  missingOnly=false;
+  missing?.classList.remove('active-filter');
+
+  if(plannerMode==='calendar'){
+    calendarCursor=initialCalendarCursor(filteredPlannerEvents());
+  }
+
   renderPlanner();
   toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);
 });

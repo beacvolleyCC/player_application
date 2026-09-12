@@ -2437,3 +2437,89 @@ html,body{
   top:58%;
   transform:translate(-50%,-50%) rotate(225deg);
 }
+/* ==========================================================
+   PLAYER V2.3.5.5 — FILTER / PROFILE ALIGNMENT
+   ========================================================== */
+
+/* Edzések and Menetrend title rows use exactly the same vertical geometry. */
+.home-panel-head,
+.planner-title-row{
+  min-height:48px !important;
+  margin:8px 0 14px !important;
+  padding:0 !important;
+  align-items:center !important;
+}
+
+.home-head-actions,
+.planner-view-actions{
+  height:42px !important;
+  min-height:42px !important;
+  align-items:center !important;
+}
+
+#eventFilterBtn,
+#plannerFilterBtn{
+  width:42px !important;
+  min-width:42px !important;
+  height:42px !important;
+  margin:0 !important;
+  padding:0 !important;
+  align-self:center !important;
+  transform:none !important;
+}
+
+/* Reset is available only inside the expanded panel, because the whole panel
+   is collapsed/hidden when the filter is closed. */
+.filter-panel-actions{
+  display:flex;
+  justify-content:flex-end;
+  padding-top:10px;
+  margin-top:10px;
+  border-top:1px solid color-mix(in srgb,var(--line) 78%,transparent);
+}
+
+.filter-reset-btn{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  padding:6px 2px;
+  font:inherit;
+  font-size:10px;
+  font-weight:850;
+  cursor:pointer;
+  text-decoration:underline;
+  text-decoration-thickness:1px;
+  text-underline-offset:3px;
+}
+
+.filter-reset-btn:hover,
+.filter-reset-btn:focus-visible{
+  color:var(--black);
+}
+
+/* További adatok is always the visual footer of the Personal data card.
+   DOM stays accessible: summary remains the first summary element. */
+.profile-more-details{
+  display:flex !important;
+  flex-direction:column !important;
+  margin-top:0 !important;
+  border-top:0 !important;
+}
+
+.profile-more-details summary{
+  order:2 !important;
+  margin-top:0 !important;
+  border-top:1px solid var(--line) !important;
+}
+
+.profile-more-content{
+  order:1 !important;
+  border-top:0 !important;
+}
+
+/* When open, the extra data appears ABOVE the footer toggle, so the
+   “További adatok” row remains the bottom-most line of the panel. */
+.profile-more-details[open] .profile-more-content{
+  padding-top:0 !important;
+}
