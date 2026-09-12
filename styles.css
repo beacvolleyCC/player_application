@@ -2761,3 +2761,127 @@ html,body{
 .nav-btn.active[data-view="profileView"] span::after{
   opacity:.82 !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.9 — PLANNER START / ICON FINETUNE
+   ========================================================== */
+
+/* Keep the planner completely hidden until the initial row position is ready. */
+#plannerList.planner-prepositioning{
+  visibility:hidden !important;
+}
+
+/* Close the player list visually after the last player column as well. */
+.transposed-matrix thead tr > *:last-child,
+.transposed-matrix tbody tr > *:last-child{
+  border-right:1px solid var(--line) !important;
+  box-shadow:inset -1px 0 0 var(--line) !important;
+}
+
+/* Filter icon: precise centered inner triangle. */
+.filter-funnel{
+  position:relative !important;
+}
+.filter-icon-outline,
+.filter-icon-filled{
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  transform:translate(-50%,-50%) !important;
+}
+.filter-state-btn.filter-open .filter-funnel{
+  transform:rotate(180deg) !important;
+}
+.filter-icon-filled{
+  font-size:10px !important;
+}
+
+/* Bottom nav icons: slightly more restrained than v2.3.5.8. */
+.nav-btn span{
+  font-size:28px !important;
+}
+.nav-btn[data-view="homeView"] span{
+  font-size:31px !important;
+}
+.nav-btn.active span{
+  width:44px !important;
+  min-width:44px !important;
+  height:44px !important;
+}
+
+/* Home icon gets a clearer contour similar in spirit to the profile mark. */
+.nav-btn[data-view="homeView"] span::after{
+  width:34px !important;
+  height:34px !important;
+  border:2px solid currentColor !important;
+  opacity:.58 !important;
+}
+.nav-btn.active[data-view="homeView"] span::after{
+  opacity:.78 !important;
+}
+
+/* Profile symbol: slightly larger inner dot; both circles same tone. */
+.nav-btn[data-view="profileView"] span::before{
+  width:17px !important;
+  height:17px !important;
+  background:currentColor !important;
+  opacity:.72 !important;
+}
+.nav-btn[data-view="profileView"] span::after{
+  width:34px !important;
+  height:34px !important;
+  border:2px solid currentColor !important;
+  opacity:.72 !important;
+}
+.nav-btn.active[data-view="profileView"] span::before,
+.nav-btn.active[data-view="profileView"] span::after{
+  opacity:.9 !important;
+}
+
+/* Top planner icons: make the calendar/grid look less dense. */
+.planner-mode-icon{
+  width:20px !important;
+  height:20px !important;
+}
+.planner-grid-icon::before{
+  width:1.25px !important;
+  top:3px !important;
+  bottom:3px !important;
+}
+.planner-grid-icon::after{
+  height:1.25px !important;
+  left:3px !important;
+  right:3px !important;
+}
+.planner-calendar-icon::before{
+  left:3px !important;
+  right:3px !important;
+  top:7px !important;
+  height:1.25px !important;
+  box-shadow:0 6px 0 currentColor !important;
+}
+
+@media(max-width:760px) and (orientation:portrait){
+  .nav-btn span{
+    font-size:28px !important;
+  }
+  .nav-btn[data-view="homeView"] span{
+    font-size:32px !important;
+  }
+  .nav-btn span,
+  .nav-btn.active span{
+    width:44px !important;
+    min-width:44px !important;
+    height:44px !important;
+  }
+}
+
+@media(orientation:landscape) and (max-height:520px){
+  .nav-btn span{
+    font-size:30px !important;
+  }
+  .nav-btn[data-view="homeView"] span{
+    font-size:33px !important;
+  }
+}

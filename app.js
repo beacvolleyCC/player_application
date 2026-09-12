@@ -824,6 +824,7 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
   if(plannerMode==='calendar'){
     calendarCursor=initialCalendarCursor(rows);
     renderPlanner();
+    plannerList.classList.remove('planner-prepositioning');
     return;
   }
 
@@ -834,9 +835,9 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
       scrollPlannerToNearest(rows,'auto');
-      plannerList.classList.remove('planner-prepositioning');
 
       requestAnimationFrame(()=>{
+        plannerList.classList.remove('planner-prepositioning');
         plannerAutoPositioning=false;
       });
     });
@@ -844,12 +845,18 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
 }
 
 function switchView(viewId){
+  const shouldPreposition=viewId==='plannerView' && !plannerUserPositioned;
+
+  if(shouldPreposition){
+    plannerList.classList.add('planner-prepositioning');
+  }
+
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
   window.scrollTo({top:0,behavior:'auto'});
 
-  if(viewId==='plannerView' && !plannerUserPositioned){
-    positionPlannerInitial_(filteredPlannerEvents());
+  if(shouldPreposition){
+    requestAnimationFrame(()=>positionPlannerInitial_(filteredPlannerEvents()));
   }
 }
 
