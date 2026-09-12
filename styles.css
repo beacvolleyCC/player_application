@@ -3384,3 +3384,187 @@ html,body{
 .bottom-nav{
   border-radius:0 !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.21 — FINAL BUILD
+   BASE: V2.3.5.20
+   Scope:
+   - exact requested event icon family
+   - planner matrix flush to bottom nav
+   - planner end behavior aligned visually with other lists
+   - active bottom-nav tiles size unified
+   - double-contour icon family gap/proportion unified
+   ========================================================== */
+
+/* Shared geometry for double-contour icons: same stroke + same visual gap logic. */
+.cc-double-contour-icon svg,
+.planner-view-actions .cc-icon-square-in-square{
+  overflow:visible !important;
+}
+
+.cc-double-contour-icon path,
+.cc-double-contour-icon circle,
+.planner-view-actions .cc-icon-square-in-square rect{
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.25 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  vector-effect:non-scaling-stroke !important;
+}
+
+/* Make the top active square icon part of the same visual family. */
+.planner-view-actions .view-mode-btn[data-mode="grid"] .cc-icon-square-in-square{
+  width:28px !important;
+  height:28px !important;
+  display:block !important;
+}
+
+/* Bottom nav: identical active tile size for all items; more breathing room above the label. */
+.bottom-nav{
+  left:0 !important;
+  right:0 !important;
+  width:100% !important;
+  transform:none !important;
+  border-radius:0 !important;
+  border-left:0 !important;
+  border-right:0 !important;
+  border-bottom:0 !important;
+}
+.bottom-nav .nav-btn{
+  min-height:84px !important;
+  padding-top:10px !important;
+  padding-bottom:8px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:0 !important;
+}
+.bottom-nav .nav-btn > span{
+  transform:translateY(2px) !important;
+}
+.bottom-nav .nav-btn small{
+  margin-top:7px !important;
+  line-height:1.1 !important;
+}
+.cc-bottom-icon{
+  width:44px !important;
+  min-width:44px !important;
+  height:44px !important;
+  border-radius:10px !important;
+  display:grid !important;
+  place-items:center !important;
+}
+.nav-btn.active .cc-bottom-icon{
+  background:#f4e68c !important;
+  color:#111 !important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12) !important;
+}
+.dark .nav-btn.active .cc-bottom-icon{
+  background:#d8b233 !important;
+  color:#111 !important;
+}
+
+/* Exact-ish bottom icon sizes and centered placement. */
+.cc-bottom-home svg,
+.cc-bottom-profile svg{
+  width:30px !important;
+  height:30px !important;
+  display:block !important;
+}
+.cc-bottom-planner .cc-icon-schedule-grid{
+  width:27px !important;
+  height:27px !important;
+  display:block !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.05 !important;
+  vector-effect:non-scaling-stroke !important;
+}
+.cc-bottom-home .home-outline-outer,
+.cc-bottom-home .home-outline-inner,
+.cc-bottom-profile .profile-outline-outer,
+.cc-bottom-profile .profile-outline-inner{
+  opacity:.72 !important;
+}
+.nav-btn.active .cc-bottom-home .home-outline-outer,
+.nav-btn.active .cc-bottom-home .home-outline-inner,
+.nav-btn.active .cc-bottom-profile .profile-outline-outer,
+.nav-btn.active .cc-bottom-profile .profile-outline-inner{
+  opacity:1 !important;
+}
+
+/* Planner main panel: same width as other panels and visually flush to the nav. */
+#plannerView .planner-card{
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  min-height:0 !important;
+}
+#plannerView #plannerList:has(.transposed-matrix){
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+#plannerView #plannerList:has(.transposed-matrix) .matrix-scroll{
+  width:100% !important;
+  margin:0 !important;
+  border-top-left-radius:15px !important;
+  border-top-right-radius:15px !important;
+  border-bottom-left-radius:0 !important;
+  border-bottom-right-radius:0 !important;
+}
+
+/* Give the internal matrix content end-space only at the end, not as a permanent outer gap. */
+#plannerView #plannerList:has(.transposed-matrix) .season-matrix.transposed-matrix{
+  margin-bottom:90px !important;
+}
+@media (orientation:landscape) and (max-height:520px){
+  #plannerView #plannerList:has(.transposed-matrix) .season-matrix.transposed-matrix{
+    margin-bottom:24px !important;
+  }
+}
+
+/* Slightly wider event side so dates stay inside. */
+.transposed-matrix .matrix-event-side{
+  min-width:128px !important;
+  width:128px !important;
+  max-width:128px !important;
+  padding:6px 10px !important;
+}
+.transposed-matrix .matrix-event-side-btn small{
+  max-width:88px !important;
+}
+
+/* Event cards / row icons — exact semantic colors and a cleaner reference-like weight. */
+.event-symbol{
+  width:27px !important;
+  height:27px !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.6 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  vector-effect:non-scaling-stroke !important;
+}
+.event-symbol.training{ color:#d6a103 !important; }
+.event-symbol.home{ color:#2e8b45 !important; }
+.event-symbol.away{ color:#2d75c9 !important; }
+.dark .event-symbol.training{ color:#f4c330 !important; }
+.dark .event-symbol.home{ color:#72ca8d !important; }
+.dark .event-symbol.away{ color:#78b0f0 !important; }
+
+/* Keep the dark header exactly the same yellow. */
+.dark .hero{
+  background:var(--yellow) !important;
+  color:#111 !important;
+}
+.dark .hero, .dark .compact-topbar, .dark .topbar{
+  background-image:none !important;
+  box-shadow:none !important;
+}

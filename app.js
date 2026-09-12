@@ -104,29 +104,29 @@ function typeIconClass(e){
 function typeIcon(e){
   const cls=typeIconClass(e);
 
-  /* Edzés = röplabda / logo-szerű labda ikon */
+  /* Edzés = user-requested volleyball/logo icon */
   if(cls==='training') return `<svg class="event-symbol training" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="12" cy="12" r="8.5"></circle>
-    <path d="M7.3 4.9c1.7 2 2.7 4.4 2.8 6.9"></path>
-    <path d="M17 5.2c-2.8.1-5.4 1.1-7.4 2.9"></path>
-    <path d="M19.4 12.2c-2.5-1.3-5.2-1.8-8-1.5"></path>
-    <path d="M14.9 19.3c-.2-2.8-1.2-5.3-3-7.2"></path>
-    <path d="M4.8 15.2c2.8 0 5.4-.9 7.4-2.7"></path>
+    <circle cx="12" cy="12" r="8.6"></circle>
+    <path d="M6 7.1c2 .9 3.6 2.4 4.5 4.4"></path>
+    <path d="M14.5 4.8c-1.9 1.6-3.2 3.8-3.8 6.2"></path>
+    <path d="M19.6 9c-2.5-.2-4.9.4-6.9 1.8"></path>
+    <path d="M17.7 17.6c-1.2-2-3-3.6-5.2-4.6"></path>
+    <path d="M5.2 14.9c2.4.5 4.9.1 7.1-1.1"></path>
   </svg>`;
 
-  /* Hazai meccs = ház ikon az íves talpvonallal */
+  /* Hazai meccs = user-requested home icon with same family as reference */
   if(cls==='home') return `<svg class="event-symbol home" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M5.3 11.6 12 5.7l6.7 5.9"></path>
-    <path d="M7 11.7v5.9"></path>
-    <path d="M17 11.7v5.9"></path>
-    <path d="M2.8 20c2.4-1.7 5.8-2.7 9.2-2.7s6.8 1 9.2 2.7"></path>
+    <path d="M5.5 11.8 12 6l6.5 5.8"></path>
+    <path d="M7.4 11.9v5.9"></path>
+    <path d="M16.6 11.9v5.9"></path>
+    <path d="M2.8 20c2.4-1.6 5.8-2.5 9.2-2.5s6.8.9 9.2 2.5"></path>
   </svg>`;
 
-  /* Idegenbeli meccs = marker ikon az íves talpvonallal */
+  /* Idegenbeli meccs = user-requested marker icon with same family as reference */
   return `<svg class="event-symbol away" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M12 18.8c-1.9-2-5.4-5.2-5.4-8.8a5.4 5.4 0 1 1 10.8 0c0 3.6-3.5 6.8-5.4 8.8Z"></path>
-    <circle cx="12" cy="10" r="2.2"></circle>
-    <path d="M2.8 20c2.4-1.7 5.8-2.7 9.2-2.7s6.8 1 9.2 2.7"></path>
+    <path d="M12 18.4c-2.1-2.1-5.4-5.3-5.4-8.5a5.4 5.4 0 1 1 10.8 0c0 3.2-3.3 6.4-5.4 8.5Z"></path>
+    <circle cx="12" cy="9.8" r="2.15"></circle>
+    <path d="M2.8 20c2.4-1.6 5.8-2.5 9.2-2.5s6.8.9 9.2 2.5"></path>
   </svg>`;
 }
 function typeLabel(e){
@@ -619,7 +619,7 @@ function syncPlannerGridViewport_(){
 
   const top=scroller.getBoundingClientRect().top;
   const navTop=bottomNav.getBoundingClientRect().top;
-  const gap=2;
+  const gap=0;
   const available=Math.floor(navTop-top-gap);
 
   if(available>260){
