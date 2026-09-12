@@ -555,16 +555,31 @@ function scrollPlannerToNearest(rows, behavior='auto'){
     const scroller=document.getElementById('matrixScroll');
     const row=scroller?.querySelector(`[data-grid-event="${next.id}"]`);
     if(!scroller || !row) return;
+
     const head=scroller.querySelector('thead');
-    const top=row.offsetTop - (head?.offsetHeight || 0) - 2;
-    scroller.scrollTo({top:Math.max(0,top), behavior});
+    const scrollerRect=scroller.getBoundingClientRect();
+    const rowRect=row.getBoundingClientRect();
+    const top=
+      scroller.scrollTop +
+      (rowRect.top-scrollerRect.top) -
+      (head?.offsetHeight || 0) -
+      2;
+
+    const target=Math.max(0,top);
+
+    // Direct scrollTop is more reliable than smooth/object scroll on iOS
+    // immediately after a hidden view becomes visible.
+    if(behavior==='auto'){
+      scroller.scrollTop=target;
+    }else{
+      scroller.scrollTo({top:target,behavior});
+    }
     return;
   }
 
   if(plannerMode==='cards'){
     const el=document.querySelector(`#plannerList [data-event-id="${next.id}"]`);
     if(!el) return;
-    // Keep the Menetrend header visible while positioning the next event at the top.
     const y=el.getBoundingClientRect().top + window.scrollY - 118;
     window.scrollTo({top:Math.max(0,y), behavior});
   }
@@ -786,6 +801,31 @@ function switchView(viewId){
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
   window.scrollTo({top:0,behavior:'smooth'});
+
+  if(viewId==='plannerView'){
+    const rows=filteredPlannerEvents();
+
+    // Important on iOS: the planner must already be visible before
+    // calculating the internal scroll position.
+    if(plannerMode==='calendar'){
+      calendarCursor=initialCalendarCursor(rows);
+    }
+
+    renderPlanner();
+
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        if(plannerMode==='grid'){
+          scrollPlannerToNearest(rows,'auto');
+
+          // One delayed correction covers late font/layout sizing in PWA mode.
+          setTimeout(()=>{
+            scrollPlannerToNearest(filteredPlannerEvents(),'auto');
+          },80);
+        }
+      });
+    });
+  }
 }
 
 document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
