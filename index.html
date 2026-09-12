@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.21-final-build">
+  <link rel="stylesheet" href="./styles.css?v=13.5.21-targeted-final-fix">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -130,9 +130,9 @@
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
           <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">
-            <svg class="cc-icon cc-icon-square-in-square" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-              <rect x="5" y="5" width="26" height="26" rx="1"></rect>
-              <rect x="9" y="9" width="18" height="18" rx="1"></rect>
+            <svg class="cc-icon cc-icon-square-in-square" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="4" y="4" width="24" height="24" rx="1"></rect>
+              <rect x="10" y="10" width="12" height="12" rx=".5"></rect>
             </svg>
           </button>
           <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok">
@@ -236,8 +236,8 @@
     <button data-view="homeView" class="nav-btn active">
       <span class="cc-bottom-icon cc-bottom-home cc-double-contour-icon" aria-hidden="true">
         <svg viewBox="0 0 36 36" focusable="false">
-          <path class="home-outline-outer" d="M7 17 L18 7 L29 17 V28 H7 Z"></path>
-          <path class="home-outline-inner" d="M10.6 19 L18 12.2 L25.4 19 V24.8 H10.6 Z"></path>
+          <path class="home-outline-outer" d="M6 17 L18 6 L30 17 V29 H6 Z"></path>
+          <path class="home-outline-inner" d="M9.5 18.54 L18 10.75 L26.5 18.54 V25.5 H9.5 Z"></path>
         </svg>
       </span>
       <small>Edzések</small>
@@ -254,8 +254,8 @@
     <button data-view="profileView" class="nav-btn">
       <span class="cc-bottom-icon cc-bottom-profile cc-double-contour-icon" aria-hidden="true">
         <svg viewBox="0 0 36 36" focusable="false">
-          <circle class="profile-outline-outer" cx="18" cy="18" r="13.6"></circle>
-          <circle class="profile-outline-inner" cx="18" cy="18" r="9.8"></circle>
+          <circle class="profile-outline-outer" cx="18" cy="18" r="14"></circle>
+          <circle class="profile-outline-inner" cx="18" cy="18" r="10.5"></circle>
         </svg>
       </span>
       <small>Profil</small>
@@ -353,6 +353,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.21-final-build"></script>
+  <script src="./app.js?v=13.5.21-targeted-final-fix"></script>
 </body>
 </html>

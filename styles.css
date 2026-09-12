@@ -3384,187 +3384,191 @@ html,body{
 .bottom-nav{
   border-radius:0 !important;
 }
-
-
 /* ==========================================================
-   PLAYER V2.3.5.21 — FINAL BUILD
+   PLAYER V2.3.5.21 — TARGETED FINAL FIX
    BASE: V2.3.5.20
    Scope:
-   - exact requested event icon family
-   - planner matrix flush to bottom nav
-   - planner end behavior aligned visually with other lists
-   - active bottom-nav tiles size unified
-   - double-contour icon family gap/proportion unified
+   - exact user-reference event icons
+   - planner natural-height / normal page-flow ending
+   - equal bottom-nav active tiles + fixed label baseline
    ========================================================== */
 
-/* Shared geometry for double-contour icons: same stroke + same visual gap logic. */
-.cc-double-contour-icon svg,
-.planner-view-actions .cc-icon-square-in-square{
-  overflow:visible !important;
-}
-
-.cc-double-contour-icon path,
-.cc-double-contour-icon circle,
-.planner-view-actions .cc-icon-square-in-square rect{
-  fill:none !important;
-  stroke:currentColor !important;
-  stroke-width:1.25 !important;
-  stroke-linecap:round !important;
-  stroke-linejoin:round !important;
-  vector-effect:non-scaling-stroke !important;
-}
-
-/* Make the top active square icon part of the same visual family. */
-.planner-view-actions .view-mode-btn[data-mode="grid"] .cc-icon-square-in-square{
+/* A) EXACT REFERENCE EVENT ICONS
+   Silhouettes are vectorized from the user's supplied artwork. */
+.event-symbol.event-symbol-ref{
   width:28px !important;
   height:28px !important;
   display:block !important;
+  fill:currentColor !important;
+  stroke:none !important;
+  overflow:visible !important;
+}
+.event-symbol.event-symbol-ref path{
+  fill:currentColor !important;
+  stroke:none !important;
+}
+.event-symbol-ref.training{ color:#d69f00 !important; } /* arany */
+.event-symbol-ref.home{ color:#287d3f !important; }     /* zöld */
+.event-symbol-ref.away{ color:#3478b8 !important; }     /* kék */
+.dark .event-symbol-ref.training{ color:#f7bd24 !important; }
+.dark .event-symbol-ref.home{ color:#6fc184 !important; }
+.dark .event-symbol-ref.away{ color:#72aee6 !important; }
+
+/* Preserve appropriate smaller sizes in compact planner/calendar contexts. */
+.matrix-event-open .event-symbol.event-symbol-ref{ width:21px !important; height:21px !important; }
+.calendar-event .event-symbol.event-symbol-ref{ width:15px !important; height:15px !important; }
+.large-symbol .event-symbol.event-symbol-ref{ width:34px !important; height:34px !important; }
+
+/* B) MENETREND = NATURAL DOCUMENT FLOW
+   No artificial tall panel. The fixed bottom nav may overlay content while scrolling.
+   At the true list end, normal body/page bottom spacing exposes the rounded panel ending,
+   matching Edzések/Profil. */
+#plannerView .planner-card:has(.transposed-matrix){
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  margin-bottom:0 !important;
+  background:var(--card) !important;
+  border:1px solid var(--line) !important;
+  border-radius:15px !important;
+  box-shadow:var(--shadow) !important;
+  overflow:hidden !important;
 }
 
-/* Bottom nav: identical active tile size for all items; more breathing room above the label. */
+#plannerView #plannerList:has(.transposed-matrix){
+  display:block !important;
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+#plannerView #plannerList:has(.transposed-matrix) .matrix-scroll{
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:var(--card) !important;
+  overflow-x:auto !important;
+  overflow-y:visible !important;
+}
+
+/* Outer planner-card supplies the same rounded lower corners as other content cards. */
+#plannerView .planner-card:has(.transposed-matrix) .transposed-matrix{
+  margin:0 !important;
+}
+
+/* C) BOTTOM NAV — THREE IDENTICAL ACTIVE TILE BOXES + FIXED LABEL ROW */
+.bottom-nav{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+
+.bottom-nav .nav-btn{
+  width:100% !important;
+  min-width:0 !important;
+  min-height:64px !important;
+  height:64px !important;
+  display:grid !important;
+  grid-template-rows:44px 12px !important;
+  grid-template-columns:1fr !important;
+  align-content:center !important;
+  justify-items:center !important;
+  gap:3px !important;
+  padding:2px 0 0 !important;
+  overflow:visible !important;
+}
+
+.bottom-nav .nav-btn > .cc-bottom-icon,
+.bottom-nav .nav-btn[data-view="homeView"] > .cc-bottom-icon,
+.bottom-nav .nav-btn[data-view="plannerView"] > .cc-bottom-icon,
+.bottom-nav .nav-btn[data-view="profileView"] > .cc-bottom-icon{
+  grid-row:1 !important;
+  justify-self:center !important;
+  align-self:center !important;
+  width:44px !important;
+  min-width:44px !important;
+  max-width:44px !important;
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
+  padding:0 !important;
+  margin:0 !important;
+  transform:none !important;
+  border-radius:10px !important;
+  box-sizing:border-box !important;
+  display:grid !important;
+  place-items:center !important;
+}
+
+.bottom-nav .nav-btn.active > .cc-bottom-icon{
+  width:44px !important;
+  min-width:44px !important;
+  max-width:44px !important;
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
+  background:#fff0a3 !important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12) !important;
+}
+
+.dark .bottom-nav .nav-btn.active > .cc-bottom-icon{
+  background:#d5a72f !important;
+}
+
+.bottom-nav .nav-btn > small{
+  grid-row:2 !important;
+  justify-self:center !important;
+  align-self:start !important;
+  width:auto !important;
+  height:12px !important;
+  min-height:12px !important;
+  margin:0 !important;
+  padding:0 !important;
+  transform:none !important;
+  line-height:12px !important;
+  font-size:8px !important;
+  white-space:nowrap !important;
+  text-align:center !important;
+}
+
+/* Historical profile-span sizing rules must not shrink the active tile. */
+.bottom-nav .nav-btn[data-view="profileView"] > .cc-bottom-profile{
+  width:44px !important;
+  min-width:44px !important;
+  height:44px !important;
+  min-height:44px !important;
+  background:transparent;
+}
+.bottom-nav .nav-btn.active[data-view="profileView"] > .cc-bottom-profile{
+  background:#fff0a3 !important;
+}
+.dark .bottom-nav .nav-btn.active[data-view="profileView"] > .cc-bottom-profile{
+  background:#d5a72f !important;
+}
+
+/* Icon artwork remains centered inside the equal 44px tile. */
+.bottom-nav .cc-bottom-home svg,
+.bottom-nav .cc-bottom-profile svg{
+  width:32px !important;
+  height:32px !important;
+}
+.bottom-nav .cc-bottom-planner .cc-icon-schedule-grid{
+  width:28px !important;
+  height:28px !important;
+}
+
+/* Keep edge-to-edge square nav panel from .20. */
 .bottom-nav{
   left:0 !important;
   right:0 !important;
   width:100% !important;
   transform:none !important;
   border-radius:0 !important;
-  border-left:0 !important;
-  border-right:0 !important;
-  border-bottom:0 !important;
-}
-.bottom-nav .nav-btn{
-  min-height:84px !important;
-  padding-top:10px !important;
-  padding-bottom:8px !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-  gap:0 !important;
-}
-.bottom-nav .nav-btn > span{
-  transform:translateY(2px) !important;
-}
-.bottom-nav .nav-btn small{
-  margin-top:7px !important;
-  line-height:1.1 !important;
-}
-.cc-bottom-icon{
-  width:44px !important;
-  min-width:44px !important;
-  height:44px !important;
-  border-radius:10px !important;
-  display:grid !important;
-  place-items:center !important;
-}
-.nav-btn.active .cc-bottom-icon{
-  background:#f4e68c !important;
-  color:#111 !important;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12) !important;
-}
-.dark .nav-btn.active .cc-bottom-icon{
-  background:#d8b233 !important;
-  color:#111 !important;
-}
-
-/* Exact-ish bottom icon sizes and centered placement. */
-.cc-bottom-home svg,
-.cc-bottom-profile svg{
-  width:30px !important;
-  height:30px !important;
-  display:block !important;
-}
-.cc-bottom-planner .cc-icon-schedule-grid{
-  width:27px !important;
-  height:27px !important;
-  display:block !important;
-  fill:none !important;
-  stroke:currentColor !important;
-  stroke-width:1.05 !important;
-  vector-effect:non-scaling-stroke !important;
-}
-.cc-bottom-home .home-outline-outer,
-.cc-bottom-home .home-outline-inner,
-.cc-bottom-profile .profile-outline-outer,
-.cc-bottom-profile .profile-outline-inner{
-  opacity:.72 !important;
-}
-.nav-btn.active .cc-bottom-home .home-outline-outer,
-.nav-btn.active .cc-bottom-home .home-outline-inner,
-.nav-btn.active .cc-bottom-profile .profile-outline-outer,
-.nav-btn.active .cc-bottom-profile .profile-outline-inner{
-  opacity:1 !important;
-}
-
-/* Planner main panel: same width as other panels and visually flush to the nav. */
-#plannerView .planner-card{
-  width:100% !important;
-  margin:0 !important;
-  padding:0 !important;
-  border:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  min-height:0 !important;
-}
-#plannerView #plannerList:has(.transposed-matrix){
-  width:100% !important;
-  margin:0 !important;
-  padding:0 !important;
-}
-#plannerView #plannerList:has(.transposed-matrix) .matrix-scroll{
-  width:100% !important;
-  margin:0 !important;
-  border-top-left-radius:15px !important;
-  border-top-right-radius:15px !important;
-  border-bottom-left-radius:0 !important;
-  border-bottom-right-radius:0 !important;
-}
-
-/* Give the internal matrix content end-space only at the end, not as a permanent outer gap. */
-#plannerView #plannerList:has(.transposed-matrix) .season-matrix.transposed-matrix{
-  margin-bottom:90px !important;
-}
-@media (orientation:landscape) and (max-height:520px){
-  #plannerView #plannerList:has(.transposed-matrix) .season-matrix.transposed-matrix{
-    margin-bottom:24px !important;
-  }
-}
-
-/* Slightly wider event side so dates stay inside. */
-.transposed-matrix .matrix-event-side{
-  min-width:128px !important;
-  width:128px !important;
-  max-width:128px !important;
-  padding:6px 10px !important;
-}
-.transposed-matrix .matrix-event-side-btn small{
-  max-width:88px !important;
-}
-
-/* Event cards / row icons — exact semantic colors and a cleaner reference-like weight. */
-.event-symbol{
-  width:27px !important;
-  height:27px !important;
-  fill:none !important;
-  stroke:currentColor !important;
-  stroke-width:1.6 !important;
-  stroke-linecap:round !important;
-  stroke-linejoin:round !important;
-  vector-effect:non-scaling-stroke !important;
-}
-.event-symbol.training{ color:#d6a103 !important; }
-.event-symbol.home{ color:#2e8b45 !important; }
-.event-symbol.away{ color:#2d75c9 !important; }
-.dark .event-symbol.training{ color:#f4c330 !important; }
-.dark .event-symbol.home{ color:#72ca8d !important; }
-.dark .event-symbol.away{ color:#78b0f0 !important; }
-
-/* Keep the dark header exactly the same yellow. */
-.dark .hero{
-  background:var(--yellow) !important;
-  color:#111 !important;
-}
-.dark .hero, .dark .compact-topbar, .dark .topbar{
-  background-image:none !important;
-  box-shadow:none !important;
 }
