@@ -159,13 +159,14 @@
 <section id="profileView" class="view">
       <div class="section-head">
         <div>
-          <h3>Profil</h3>
+          <h3 id="profilePageTitle">Profil</h3>
           <p>Saját adatok, díjak, szezon és beállítások.</p>
         </div>
       </div>
 
       <div class="card profile-personal-card">
         <h4>Személyes adatok</h4>
+        <div class="detail-row" id="profileFullNameRow"><span>Teljes név</span><b id="profileFullName">–</b></div>
         <div class="detail-row" id="profileLicenseRow"><span>Igazolási szám</span><b id="profileLicense">–</b></div>
         <div class="detail-row" id="profileMedicalRow"><span>Sportorvosi lejár</span><b class="ok" id="profileMedical">–</b></div>
 
@@ -279,7 +280,7 @@
       <div class="settings-section">
         <h4>Alkalmazás</h4>
         <button class="ghost-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
-        <div class="detail-row compact-setting-detail"><span>Build</span><b>Player Core V2.3.3 DEV</b></div>
+        <div class="detail-row compact-setting-detail"><span>Build</span><b>Player Core V2.3.4 DEV</b></div>
       </div>
 
       <div class="dialog-actions"><button class="ghost-btn" id="closeSettingsBtn">Bezárás</button></div>
@@ -309,6 +310,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.3-theme-sync"></script>
+  <script src="./app.js?v=13.4-display-name"></script>
 </body>
 </html>

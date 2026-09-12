@@ -29,6 +29,7 @@ let pendingCancel = null;
 let missingOnly = false;
 let detailedMode = localStorage.getItem('cc-detailed-mode') === 'true';
 let currentPlayerName = 'Te';
+let currentPlayerDisplayName = 'Te';
 let currentPlayerData = null;
 let teamPlayerDirectory = [];
 
@@ -174,9 +175,9 @@ function eventCard(e){
 
     <button class="roster-toggle" data-roster="${e.id}">Névsor</button>
     <div class="roster" id="roster-${e.id}">
-      <div class="roster-group"><b>Jönnek (${e.yes.length})</b><div class="chips">${e.yes.map(n=>`<span class="chip">${n}</span>`).join('')}</div></div>
-      <div class="roster-group"><b>Nem jönnek (${e.no.length})</b><div class="chips">${e.no.map(n=>`<span class="chip no">${n}</span>`).join('')||'<span class="muted">–</span>'}</div></div>
-      <div class="roster-group"><b>Még nem jelzett (${e.unknown.length})</b><div class="chips">${e.unknown.map(n=>`<span class="chip">${n}</span>`).join('')}</div></div>
+      <div class="roster-group"><b>Jönnek (${e.yes.length})</b><div class="chips">${e.yes.map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div>
+      <div class="roster-group"><b>Nem jönnek (${e.no.length})</b><div class="chips">${e.no.map(n=>`<span class="chip no">${rosterDisplayName_(n)}</span>`).join('')||'<span class="muted">–</span>'}</div></div>
+      <div class="roster-group"><b>Még nem jelzett (${e.unknown.length})</b><div class="chips">${e.unknown.map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div>
     </div>
   </article>`;
 }
@@ -290,6 +291,19 @@ function filteredPlannerEvents(){
 }
 
 
+function rosterDisplayName_(name){
+  const raw=String(name || '').trim();
+  if(!raw) return '';
+
+  if(raw==='Te' || raw===currentPlayerName){
+    return currentPlayerDisplayName || currentPlayerName || raw;
+  }
+
+  const person=(teamPlayerDirectory || []).find(p=>String(p?.name || '').trim()===raw);
+  const display=String(person?.displayName || '').trim();
+  return display || raw;
+}
+
 function personStatusForEvent(e,person){
   if(person && person.id==='__ME__') return e.status || null;
   const name=typeof person==='string' ? person : person?.name;
@@ -299,6 +313,8 @@ function personStatusForEvent(e,person){
 }
 
 function gridGivenName(person){
+  const displayName=(person?.displayName || '').trim();
+  if(displayName) return displayName;
   const explicit=(person?.firstName || '').trim();
   if(explicit) return explicit;
   const raw=(typeof person==='string' ? person : (person?.name || '')).trim();
@@ -328,13 +344,20 @@ function gridPeople(rows){
   const mine={
     id:'__ME__',
     name:currentPlayerName || 'Én',
+    displayName:currentPlayerDisplayName || '',
     firstName:currentPlayerData?.firstName || '',
     jerseyNo:currentPlayerData?.jerseyNo ?? null
   };
 
   const rest=Array.from(seenNames).map(name=>{
     const meta=metaByName.get(String(name).trim()) || {};
-    return {id:meta.playerId || name, name, firstName:meta.firstName || '', jerseyNo:meta.jerseyNo ?? null};
+    return {
+      id:meta.playerId || name,
+      name,
+      displayName:meta.displayName || '',
+      firstName:meta.firstName || '',
+      jerseyNo:meta.jerseyNo ?? null
+    };
   });
 
   rest.sort((a,b)=>{
@@ -929,7 +952,7 @@ document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=
 
 const eventDialog=document.getElementById('eventDialog');
 function eventDialogRoster(e){
-  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>`<span class="chip">${n}</span>`).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>`<span class="chip no">${n}</span>`).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>`<span class="chip">${n}</span>`).join('')}</div></div></div>`;
+  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>`<span class="chip no">${rosterDisplayName_(n)}</span>`).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div></div>`;
 }
 function openEventDialog(eventId){
   const e=events.find(x=>x.id===eventId); if(!e) return;
@@ -1062,6 +1085,27 @@ function normalizeApiEvent(x){
 
 function applyBootstrap(j){
   if(!j || !Array.isArray(j.events)) throw new Error('Hibás eseményadat érkezett a szervertől.');
+
+  const displayRows=Array.isArray(j.displayNames) ? j.displayNames : [];
+  const displayById=new Map();
+  const displayByName=new Map();
+
+  displayRows.forEach(row=>{
+    const playerId=String(row?.playerId || '').trim();
+    const name=String(row?.name || '').trim();
+    const displayName=String(row?.displayName || '').trim();
+    if(playerId) displayById.set(playerId,displayName);
+    if(name) displayByName.set(name,displayName);
+  });
+
+  const resolveDisplayName=(player)=>{
+    const playerId=String(player?.playerId || player?.id || '').trim();
+    const name=String(player?.name || '').trim();
+    if(playerId && displayById.has(playerId)) return displayById.get(playerId) || '';
+    if(name && displayByName.has(name)) return displayByName.get(name) || '';
+    return '';
+  };
+
   if(j.team){
     currentTeamData=j.team;
     document.getElementById('teamTitle').textContent=j.team.teamName || j.team.name || 'Csapat';
@@ -1069,12 +1113,19 @@ function applyBootstrap(j){
     if(seasonEl) seasonEl.textContent=j.team.season || '2026/27';
   }
   if(j.player){
-    currentPlayerData=j.player;
     currentPlayerName=j.player.name||'Te';
-    document.getElementById('profileName').textContent=currentPlayerName;
+    currentPlayerDisplayName=resolveDisplayName(j.player) || currentPlayerName;
+    currentPlayerData={...j.player,displayName:currentPlayerDisplayName};
+
+    document.getElementById('profileName').textContent=currentPlayerDisplayName;
+    const profilePageTitle=document.getElementById('profilePageTitle');
+    if(profilePageTitle) profilePageTitle.textContent=currentPlayerDisplayName;
+    const profileFullName=document.getElementById('profileFullName');
+    if(profileFullName) profileFullName.textContent=currentPlayerName;
+
     const meta=[j.player.position, j.player.jerseyNo ? '#'+j.player.jerseyNo : ''].filter(Boolean).join(' • ');
     document.getElementById('profileMeta').textContent=meta;
-    document.getElementById('profileInitials').textContent=(j.player.name||'JT').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+    document.getElementById('profileInitials').textContent=(currentPlayerDisplayName||'JT').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
 
     const setRow=(rowId,valueId,value,hideIfEmpty=false)=>{
       const row=document.getElementById(rowId);
@@ -1097,7 +1148,12 @@ function applyBootstrap(j){
   currentPlayerSettings=j.settings || currentPlayerSettings || defaultSettingsPayload_();
   applySettingsUi_(currentPlayerSettings);
 
-  teamPlayerDirectory=Array.isArray(j.teamPlayers) ? j.teamPlayers : [];
+  teamPlayerDirectory=Array.isArray(j.teamPlayers)
+    ? j.teamPlayers.map(player=>({
+        ...player,
+        displayName:resolveDisplayName(player)
+      }))
+    : [];
   events=j.events.map(normalizeApiEvent).filter(e=>e.id && e.date);
   renderEvents();
   renderPlanner();
@@ -1142,6 +1198,13 @@ async function loadBootstrap(options={}){
     const {data,error}=await ccSupabase.rpc('cc_player_bootstrap');
     if(error) throw error;
     const payload = typeof data==='string' ? JSON.parse(data) : data;
+
+    const {data:displayNameData,error:displayNameError}=await ccSupabase.rpc('cc_player_display_names');
+    if(displayNameError) throw displayNameError;
+    payload.displayNames=typeof displayNameData==='string'
+      ? JSON.parse(displayNameData)
+      : (Array.isArray(displayNameData) ? displayNameData : []);
+
     applyBootstrap(payload);
     if(!options.skipRealtimeSetup) await ccSetupRealtime_(payload.team);
     hideLogin();
