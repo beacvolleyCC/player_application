@@ -258,8 +258,11 @@ function updateHomeFilterUi_(){
   Object.entries(values).forEach(([id,value])=>{ const el=document.getElementById(id); if(el) el.value=value; });
   const custom=document.getElementById('eventCustomRange');
   if(custom) custom.hidden=homeFilters.period!=='custom';
+  const isDefault=homeFilterIsDefault_();
   const filterBtn=document.getElementById('eventFilterBtn');
-  if(filterBtn) filterBtn.classList.toggle('has-active-filter',!homeFilterIsDefault_());
+  if(filterBtn) filterBtn.classList.toggle('has-active-filter',!isDefault);
+  const resetBtn=document.getElementById('resetEventFiltersBtn');
+  if(resetBtn) resetBtn.hidden=isDefault;
   const summary=document.getElementById('homeFilterSummary');
   if(summary){
     const labels={next14:'Következő 14 nap.',next30:'Következő 30 nap.',future:'Minden következő alkalom.',past:'Elmúlt alkalmak.',all:'Teljes szezon.',custom:'Egyéni időszak.'};
@@ -573,8 +576,11 @@ function plannerFilterIsDefault_(){
   return month==='all' && type==='all' && !missingOnly;
 }
 function updatePlannerFilterButton_(){
+  const isDefault=plannerFilterIsDefault_();
   const btn=document.getElementById('plannerFilterBtn');
-  if(btn) btn.classList.toggle('has-active-filter',!plannerFilterIsDefault_());
+  if(btn) btn.classList.toggle('has-active-filter',!isDefault);
+  const resetBtn=document.getElementById('resetPlannerFiltersBtn');
+  if(resetBtn) resetBtn.hidden=isDefault;
 }
 
 function renderPlanner(){
@@ -824,8 +830,20 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     plannerMode=btn.dataset.mode;
     localStorage.setItem('cc-planner-mode',plannerMode);
-    if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
+
+    const rows=filteredPlannerEvents();
+
+    if(plannerMode==='calendar'){
+      calendarCursor=initialCalendarCursor(rows);
+    }
+
     renderPlanner();
+
+    if(plannerMode==='grid'){
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>scrollPlannerToNearest(rows,'auto'));
+      });
+    }
   });
 });
 

@@ -2523,3 +2523,134 @@ html,body{
 .profile-more-details[open] .profile-more-content{
   padding-top:0 !important;
 }
+/* ==========================================================
+   PLAYER V2.3.5.6 — REFINEMENT PATCH
+   ========================================================== */
+
+/* Filter reset only appears when JS removes the hidden attribute. */
+.filter-reset-btn[hidden]{
+  display:none !important;
+}
+
+/* The reset action should look like a quiet text action, not a link. */
+.filter-reset-btn{
+  text-decoration:none !important;
+  text-underline-offset:0 !important;
+}
+
+/* Slightly smaller nav icons than V2.3.5.3, still larger than the original. */
+.nav-btn span{
+  font-size:30px !important;
+}
+.nav-btn[data-view="homeView"] span{
+  font-size:33px !important;
+}
+
+/* Active square remains fixed, but a touch more compact visually. */
+.nav-btn.active span{
+  width:44px !important;
+  min-width:44px !important;
+  height:44px !important;
+}
+
+/* Bottom profile nav icon: draw centered circles with CSS instead of relying on ● glyph metrics. */
+.nav-btn[data-view="profileView"] span{
+  position:relative !important;
+  font-size:0 !important;
+  line-height:0 !important;
+  color:currentColor !important;
+}
+.nav-btn[data-view="profileView"] span::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:14px;
+  height:14px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:currentColor;
+  opacity:.65;
+}
+.nav-btn[data-view="profileView"] span::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:33px;
+  height:33px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:2px solid currentColor;
+  opacity:.32;
+}
+.nav-btn.active[data-view="profileView"] span::before{
+  opacity:.9;
+}
+.nav-btn.active[data-view="profileView"] span::after{
+  opacity:.55;
+}
+
+/* Header profile initials: enforce true geometric centering. */
+.profile-dot,
+.compact-topbar .profile-dot{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  line-height:1 !important;
+  letter-spacing:0 !important;
+  padding:0 !important;
+}
+
+/* Portrait-specific nav sizing after the refinement pass. */
+@media(max-width:760px) and (orientation:portrait){
+  body{
+    padding-bottom:calc(64px + env(safe-area-inset-bottom)) !important;
+  }
+  .bottom-nav{
+    min-height:60px !important;
+  }
+  .nav-btn{
+    min-height:60px !important;
+    grid-template-rows:44px 10px !important;
+  }
+  .nav-btn span,
+  .nav-btn.active span{
+    width:44px !important;
+    min-width:44px !important;
+    height:44px !important;
+  }
+  .nav-btn span{
+    font-size:30px !important;
+  }
+  .nav-btn[data-view="homeView"] span{
+    font-size:34px !important;
+  }
+}
+
+/* Landscape rail: keep icon-only, but reduce from the previous oversize pass. */
+@media(orientation:landscape) and (max-height:520px){
+  .nav-btn{
+    width:58px !important;
+    min-height:56px !important;
+    height:56px !important;
+    flex:0 0 56px !important;
+  }
+  .nav-btn span{
+    font-size:32px !important;
+  }
+  .nav-btn[data-view="homeView"] span{
+    font-size:36px !important;
+  }
+  .nav-btn.active span{
+    width:46px !important;
+    min-width:46px !important;
+    height:46px !important;
+  }
+}
+
+/* If there is no active filter, the panel footer should not feel empty. */
+.filter-panel-actions{
+  min-height:0 !important;
+}
