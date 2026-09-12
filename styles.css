@@ -2654,121 +2654,110 @@ html,body{
 .filter-panel-actions{
   min-height:0 !important;
 }
+
 /* ==========================================================
-   PLAYER V2.3.5.8 — VISUAL MATCH TO APPROVED MOBILE MOCK
+   PLAYER V2.3.5.8 — PLANNER START POSITION + ICON REFINEMENT
    ========================================================== */
 
-/* ----------------------------------------------------------
-   Active filter:
-   keep the large hollow outer triangle and make the inner
-   filled triangle visibly larger, as in the annotated image.
-   ---------------------------------------------------------- */
-.filter-funnel{
-  width:26px !important;
-  height:26px !important;
+/* Initial planner positioning happens before the matrix is shown.
+   This removes the visible "fast scroll" on first entry. */
+#plannerList.planner-prepositioning{
+  visibility:hidden !important;
 }
 
-.filter-icon-outline{
-  font-size:25px !important;
-  line-height:1 !important;
-}
-
+/* Active filter: keep the smaller filled triangle geometrically centered. */
 .filter-icon-filled{
-  font-size:15px !important;
-  line-height:1 !important;
-  transform:translateY(1px) !important;
+  transform:translate(0,-1px) scale(.92) !important;
+  transform-origin:center center !important;
 }
 
-/* ----------------------------------------------------------
-   Bottom Profile icon:
-   exactly two hollow concentric circles — no filled center.
-   ---------------------------------------------------------- */
-.nav-btn[data-view="profileView"] span{
+/* Top Menetrend mode icons: drawn consistently instead of font glyphs. */
+.planner-mode-icon{
+  position:relative;
+  display:block;
+  width:22px;
+  height:22px;
+  box-sizing:border-box;
+  color:currentColor;
+}
+
+/* Player grid: simple framed 2×2 grid. */
+.planner-grid-icon{
+  border:2px solid currentColor;
+  border-radius:1px;
+}
+.planner-grid-icon::before,
+.planner-grid-icon::after{
+  content:"";
+  position:absolute;
+  background:currentColor;
+  opacity:.9;
+}
+.planner-grid-icon::before{
+  left:50%;
+  top:2px;
+  bottom:2px;
+  width:1.5px;
+  transform:translateX(-50%);
+}
+.planner-grid-icon::after{
+  left:2px;
+  right:2px;
+  top:50%;
+  height:1.5px;
+  transform:translateY(-50%);
+}
+
+/* Date/calendar view: deliberately sparse — only two internal rows. */
+.planner-calendar-icon{
+  border:2px solid currentColor;
+  border-radius:1px;
+}
+.planner-calendar-icon::before{
+  content:"";
+  position:absolute;
+  left:2px;
+  right:2px;
+  top:7px;
+  height:1.5px;
+  background:currentColor;
+  box-shadow:0 5px 0 currentColor;
+  opacity:.9;
+}
+
+/* Bottom Edzések icon gets a quiet contour like the profile symbol. */
+.nav-btn[data-view="homeView"] span{
   position:relative !important;
-  font-size:0 !important;
-  line-height:0 !important;
+}
+.nav-btn[data-view="homeView"] span::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:33px;
+  height:33px;
+  transform:translate(-50%,-50%);
+  border:2px solid currentColor;
+  border-radius:8px;
+  opacity:.48;
+  pointer-events:none;
+}
+.nav-btn.active[data-view="homeView"] span::after{
+  opacity:.72;
 }
 
+/* Profile symbol: slightly larger inner circle; inner + outer use same currentColor tone. */
 .nav-btn[data-view="profileView"] span::before{
-  content:"";
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:22px !important;
-  height:22px !important;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  border:1.5px solid currentColor !important;
-  background:transparent !important;
-  opacity:.72 !important;
-  box-sizing:border-box;
-}
-
-.nav-btn[data-view="profileView"] span::after{
-  content:"";
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:32px !important;
-  height:32px !important;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  border:1.5px solid currentColor !important;
-  background:transparent !important;
-  opacity:.38 !important;
-  box-sizing:border-box;
-}
-
-.nav-btn.active[data-view="profileView"] span::before{
-  background:transparent !important;
-  opacity:.95 !important;
-}
-
-.nav-btn.active[data-view="profileView"] span::after{
+  width:16px !important;
+  height:16px !important;
+  background:currentColor !important;
   opacity:.58 !important;
 }
-
-/* ----------------------------------------------------------
-   Header profile button:
-   when the metadata is hidden on mobile, equal padding is
-   essential; otherwise the black initials circle sits left.
-   ---------------------------------------------------------- */
-@media(max-width:760px){
-  .compact-topbar .profile-btn{
-    width:38px !important;
-    min-width:38px !important;
-    height:38px !important;
-    min-height:38px !important;
-    padding:3px !important;
-    margin:0 !important;
-    display:grid !important;
-    place-items:center !important;
-    box-sizing:border-box !important;
-    gap:0 !important;
-  }
-
-  .compact-topbar .profile-dot{
-    width:30px !important;
-    min-width:30px !important;
-    height:30px !important;
-    min-height:30px !important;
-    margin:0 !important;
-    padding:0 !important;
-    display:grid !important;
-    place-items:center !important;
-    text-align:center !important;
-    line-height:30px !important;
-    box-sizing:border-box !important;
-    transform:none !important;
-  }
+.nav-btn[data-view="profileView"] span::after{
+  border-color:currentColor !important;
+  opacity:.58 !important;
 }
-
-/* ----------------------------------------------------------
-   Mobile grid height is now calculated from the real space
-   between the matrix and fixed navigation. Remove old 61vh cap.
-   ---------------------------------------------------------- */
-@media(max-width:760px){
-  .matrix-scroll{
-    max-height:none;
-  }
+.nav-btn.active[data-view="profileView"] span::before,
+.nav-btn.active[data-view="profileView"] span::after{
+  opacity:.82 !important;
 }

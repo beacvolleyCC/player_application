@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.8-visual-match">
+  <link rel="stylesheet" href="./styles.css?v=13.5.8-planner-ux">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -129,8 +129,8 @@
           <p>Rács és naptár a teljes szezonhoz.</p>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
-          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">▣</button>
-          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok">▦</button>
+          <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok"><span class="planner-mode-icon planner-grid-icon" aria-hidden="true"></span></button>
+          <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok"><span class="planner-mode-icon planner-calendar-icon" aria-hidden="true"></span></button>
           <button class="view-mode-btn icon-only filter-state-btn" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">
             <span class="filter-funnel" aria-hidden="true">
               <span class="filter-icon-outline">▽</span>
@@ -319,6 +319,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.8-visual-match"></script>
+  <script src="./app.js?v=13.5.8-planner-ux"></script>
 </body>
 </html>

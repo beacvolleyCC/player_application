@@ -294,6 +294,10 @@ const plannerDefaultMode=localStorage.getItem('cc-planner-default') || 'last';
 const plannerLastMode=localStorage.getItem('cc-planner-mode') || 'grid';
 let plannerMode=(plannerDefaultMode==='last' ? plannerLastMode : plannerDefaultMode);
 if(!['grid','calendar'].includes(plannerMode)) plannerMode='grid';
+
+let plannerUserPositioned=false;
+let plannerAutoPositioning=false;
+
 let calendarCursor=null;
 function plannerStatusControls(e, archived){
   return `<div class="attendance-slider planner-slider ${e.status||'none'}" data-slider="${e.id}">
@@ -585,39 +589,6 @@ function scrollPlannerToNearest(rows, behavior='auto'){
   }
 }
 
-function fitPlannerMatrixHeight_(){
-  const scroller=document.getElementById('matrixScroll');
-  if(!scroller) return;
-
-  if(
-    plannerMode!=='grid' ||
-    !window.matchMedia?.('(max-width:760px)').matches
-  ){
-    scroller.style.maxHeight='';
-    return;
-  }
-
-  const nav=document.querySelector('.bottom-nav');
-  const viewportHeight=
-    window.visualViewport?.height ||
-    window.innerHeight ||
-    document.documentElement.clientHeight;
-
-  const scrollerRect=scroller.getBoundingClientRect();
-  const navRect=nav?.getBoundingClientRect();
-  const navTop=
-    navRect && Number.isFinite(navRect.top)
-      ? navRect.top
-      : viewportHeight-70;
-
-  // Leave only a small visual breathing space above the fixed navigation.
-  const available=Math.floor(navTop-scrollerRect.top-10);
-
-  if(available>280){
-    scroller.style.maxHeight=`${available}px`;
-  }
-}
-
 function plannerFilterIsDefault_(){
   const month=document.getElementById('monthFilter')?.value || 'all';
   const type=document.getElementById('typeFilter')?.value || 'all';
@@ -646,12 +617,6 @@ function renderPlanner(){
   }else{
     plannerMode='grid';
     plannerList.innerHTML=renderGridMatrix(rows);
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        fitPlannerMatrixHeight_();
-        scrollGridToCurrent('auto');
-      });
-    });
   }
 
   bindSliderDrag();
@@ -726,6 +691,7 @@ plannerList.addEventListener('click',e=>{
   if(nav){
     if(!calendarCursor) calendarCursor=initialCalendarCursor(filteredPlannerEvents());
     calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+(nav.dataset.calNav==='next'?1:-1),1);
+    plannerUserPositioned=true;
     renderPlanner();
     return;
   }
@@ -748,6 +714,27 @@ plannerList.addEventListener('click',e=>{
     return;
   }
 });
+
+plannerList.addEventListener('scroll',event=>{
+  if(plannerAutoPositioning) return;
+  if(event.target?.classList?.contains('matrix-scroll')){
+    plannerUserPositioned=true;
+  }
+},true);
+
+plannerList.addEventListener('touchmove',event=>{
+  if(plannerAutoPositioning) return;
+  if(event.target?.closest?.('.matrix-scroll')){
+    plannerUserPositioned=true;
+  }
+},{passive:true});
+
+plannerList.addEventListener('wheel',event=>{
+  if(plannerAutoPositioning) return;
+  if(event.target?.closest?.('.matrix-scroll')){
+    plannerUserPositioned=true;
+  }
+},{passive:true});
 
 document.getElementById('confirmCancel').addEventListener('click',ev=>{
   ev.preventDefault();
@@ -833,36 +820,36 @@ document.getElementById('resetPlannerFiltersBtn')?.addEventListener('click',()=>
   toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);
 });
 
+function positionPlannerInitial_(rows=filteredPlannerEvents()){
+  if(plannerMode==='calendar'){
+    calendarCursor=initialCalendarCursor(rows);
+    renderPlanner();
+    return;
+  }
+
+  plannerAutoPositioning=true;
+  plannerList.classList.add('planner-prepositioning');
+  renderPlanner();
+
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      scrollPlannerToNearest(rows,'auto');
+      plannerList.classList.remove('planner-prepositioning');
+
+      requestAnimationFrame(()=>{
+        plannerAutoPositioning=false;
+      });
+    });
+  });
+}
+
 function switchView(viewId){
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'auto'});
 
-  if(viewId==='plannerView'){
-    const rows=filteredPlannerEvents();
-
-    // Important on iOS: the planner must already be visible before
-    // calculating the internal scroll position.
-    if(plannerMode==='calendar'){
-      calendarCursor=initialCalendarCursor(rows);
-    }
-
-    renderPlanner();
-
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        if(plannerMode==='grid'){
-          fitPlannerMatrixHeight_();
-          scrollPlannerToNearest(rows,'auto');
-
-          // One delayed correction covers late font/layout sizing in PWA mode.
-          setTimeout(()=>{
-            fitPlannerMatrixHeight_();
-            scrollPlannerToNearest(filteredPlannerEvents(),'auto');
-          },80);
-        }
-      });
-    });
+  if(viewId==='plannerView' && !plannerUserPositioned){
+    positionPlannerInitial_(filteredPlannerEvents());
   }
 }
 
@@ -906,41 +893,17 @@ if('serviceWorker' in navigator){
 
 document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    plannerMode=btn.dataset.mode;
+    const nextMode=btn.dataset.mode;
+    if(nextMode===plannerMode) return;
+
+    plannerMode=nextMode;
     localStorage.setItem('cc-planner-mode',plannerMode);
-
-    const rows=filteredPlannerEvents();
-
-    if(plannerMode==='calendar'){
-      calendarCursor=initialCalendarCursor(rows);
-    }
-
-    renderPlanner();
-
-    if(plannerMode==='grid'){
-      requestAnimationFrame(()=>{
-        requestAnimationFrame(()=>{
-          fitPlannerMatrixHeight_();
-          scrollPlannerToNearest(rows,'auto');
-        });
-      });
-    }
+    plannerUserPositioned=false;
+    positionPlannerInitial_(filteredPlannerEvents());
   });
 });
 
 
-
-window.addEventListener('resize',()=>{
-  if(plannerMode==='grid'){
-    requestAnimationFrame(()=>fitPlannerMatrixHeight_());
-  }
-});
-
-window.visualViewport?.addEventListener?.('resize',()=>{
-  if(plannerMode==='grid'){
-    requestAnimationFrame(()=>fitPlannerMatrixHeight_());
-  }
-});
 
 (function installPullToRefresh_(){
   let startY=null;
