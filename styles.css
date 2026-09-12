@@ -3282,3 +3282,105 @@ html,body{
 .dark .event-symbol.away{
   color:#72aee6 !important;
 }
+/* ==========================================================
+   PLAYER V2.3.5.20 — FINAL UI CORRECTIONS
+   BASE: V2.3.5.19
+   Scope:
+   - dark header yellow = same as light
+   - planner matrix panel width/height alignment
+   - planner matrix reaches bottom nav visually
+   - event-card title/date robustness
+   - exact semantic event icons
+   ========================================================== */
+
+/* A) Dark-mode yellow header must match light mode exactly. */
+.dark .hero{
+  background:var(--yellow) !important;
+  color:#111 !important;
+}
+.dark .hero,
+.dark .compact-topbar,
+.dark .topbar{
+  box-shadow:none !important;
+  background-image:none !important;
+}
+
+/* B) Planner matrix panel: same width as the other main panels,
+      no extra inner side padding, and flush visual ending. */
+#plannerView .planner-card{
+  width:100% !important;
+  margin:0 !important;
+  min-height:0 !important;
+}
+
+#plannerView #plannerList:has(.transposed-matrix){
+  width:100% !important;
+  padding-inline:0 !important;
+  margin:0 !important;
+  display:block !important;
+}
+
+#plannerView #plannerList:has(.transposed-matrix) .matrix-scroll{
+  width:100% !important;
+  margin:0 !important;
+  border-bottom-left-radius:0 !important;
+  border-bottom-right-radius:0 !important;
+}
+
+/* Slightly wider event-side column so date/time stay inside more cleanly. */
+.transposed-matrix .matrix-event-side{
+  min-width:124px !important;
+  width:124px !important;
+  max-width:124px !important;
+  padding:6px 10px !important;
+}
+.transposed-matrix .matrix-event-side-btn small{
+  max-width:84px !important;
+}
+
+/* C) Event cards: protect the date/title block from overflow. */
+.event-top.centered-card{
+  grid-template-columns:auto minmax(0,1fr) auto !important;
+  text-align:left !important;
+  align-items:center !important;
+}
+.event-top .event-main,
+.centered-card .event-main{
+  min-width:0 !important;
+  justify-self:start !important;
+  padding-left:0 !important;
+}
+.event-title{
+  line-height:1.08 !important;
+  overflow-wrap:anywhere !important;
+}
+.event-meta{
+  overflow-wrap:anywhere !important;
+}
+.event-top .head-count{
+  justify-self:end !important;
+}
+
+/* D) Exact semantic event-icon system. */
+.event-symbol{
+  width:27px !important;
+  height:27px !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.65 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  vector-effect:non-scaling-stroke !important;
+}
+.event-symbol.training{ color:#d69f00 !important; } /* arany */
+.event-symbol.home{ color:#287d3f !important; }     /* zöld */
+.event-symbol.away{ color:#3478b8 !important; }     /* kék */
+
+.dark .event-symbol.training{ color:#f7bd24 !important; }
+.dark .event-symbol.home{ color:#6fc184 !important; }
+.dark .event-symbol.away{ color:#72aee6 !important; }
+
+/* Keep the bottom-nav panel edge-to-edge, fully squared. */
+.bottom-nav{
+  border-radius:0 !important;
+}

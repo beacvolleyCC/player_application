@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-19-icon-system-correction';
+const CACHE='club-control-player-v2-3-5-20-final-ui-corrections';
 const CORE=['./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 
 self.addEventListener('install', event => {
