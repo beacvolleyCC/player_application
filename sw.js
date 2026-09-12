@@ -1,8 +1,10 @@
-const CACHE='club-control-player-v2-3-5-23-planner-position-header';
+const CACHE='club-control-player-v2-3-5-24a-pwa-icon-android-patch';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/apple-touch-icon.png',
+  './icons/favicon-32.png',
   './icons/event-training-mask.png',
   './icons/event-home-mask.png',
   './icons/event-away-mask.png'
