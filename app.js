@@ -247,8 +247,8 @@ function updateHomeFilterUi_(){
   Object.entries(values).forEach(([id,value])=>{ const el=document.getElementById(id); if(el) el.value=value; });
   const custom=document.getElementById('eventCustomRange');
   if(custom) custom.hidden=homeFilters.period!=='custom';
-  const badge=document.getElementById('eventFilterBadge');
-  if(badge) badge.hidden=homeFilterIsDefault_();
+  const filterBtn=document.getElementById('eventFilterBtn');
+  if(filterBtn) filterBtn.classList.toggle('has-active-filter',!homeFilterIsDefault_());
   const summary=document.getElementById('homeFilterSummary');
   if(summary){
     const labels={next14:'Következő 14 nap.',next30:'Következő 30 nap.',future:'Minden következő alkalom.',past:'Elmúlt alkalmak.',all:'Teljes szezon.',custom:'Egyéni időszak.'};
@@ -556,7 +556,18 @@ function scrollPlannerToNearest(rows, behavior='auto'){
   }
 }
 
+function plannerFilterIsDefault_(){
+  const month=document.getElementById('monthFilter')?.value || 'all';
+  const type=document.getElementById('typeFilter')?.value || 'all';
+  return month==='all' && type==='all' && !missingOnly;
+}
+function updatePlannerFilterButton_(){
+  const btn=document.getElementById('plannerFilterBtn');
+  if(btn) btn.classList.toggle('has-active-filter',!plannerFilterIsDefault_());
+}
+
 function renderPlanner(){
+  updatePlannerFilterButton_();
   const rows=filteredPlannerEvents();
   const settingsToggle=document.getElementById('settingsDetailToggle');
   if(settingsToggle) settingsToggle.checked=detailedMode;

@@ -1974,3 +1974,235 @@ html,body{
 .dark .custom-date-range input[type="date"]{
   color-scheme:dark;
 }
+/* ==========================================================
+   PLAYER V2.3.5.1 — CUSTOM DATE RANGE FIX
+   ========================================================== */
+
+/* The HTML hidden attribute must always win over the grid display rule. */
+.custom-date-range[hidden]{
+  display:none !important;
+}
+
+/* Native iOS date inputs have a large intrinsic min-width.
+   minmax(0,1fr) + min-width:0 prevents the two controls from colliding. */
+.custom-date-range{
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:10px !important;
+}
+.custom-date-range label{
+  min-width:0 !important;
+}
+.custom-date-range input[type="date"]{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+}
+
+/* On phones, stacked date pickers are clearer and avoid iOS control overflow. */
+@media(max-width:520px){
+  .custom-date-range{
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+}
+/* ==========================================================
+   PLAYER V2.3.5.2 — UNIFIED NAV / FILTER / MATRIX UI
+   Dark palette itself is intentionally unchanged.
+   ========================================================== */
+
+/* ----------------------------------------------------------
+   Edzések heading = same visual language as Menetrend.
+   No separate white/card panel around the title.
+   ---------------------------------------------------------- */
+.home-panel-head{
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  margin:8px 0 14px !important;
+  box-shadow:none !important;
+}
+.home-panel-head h3{
+  margin:0 !important;
+  font-size:22px !important;
+}
+.home-panel-head p{
+  margin:4px 0 0 !important;
+  color:var(--muted) !important;
+  font-size:12px !important;
+}
+@media(max-width:720px){
+  .home-panel-head h3{
+    font-size:20px !important;
+  }
+}
+
+/* ----------------------------------------------------------
+   Header action buttons: grayscale only, no browser-blue state.
+   Same geometry as Menetrend view controls.
+   ---------------------------------------------------------- */
+.home-head-actions .icon-action-btn,
+.planner-view-actions .view-mode-btn{
+  width:42px !important;
+  min-width:42px !important;
+  height:42px !important;
+  padding:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  border-radius:9px !important;
+  border:0 !important;
+  background:transparent !important;
+  color:var(--muted) !important;
+  box-shadow:none !important;
+  -webkit-text-fill-color:currentColor;
+}
+.home-head-actions .icon-action-btn:hover,
+.planner-view-actions .view-mode-btn:hover{
+  background:var(--soft) !important;
+  color:var(--black) !important;
+}
+
+/* Selected Menetrend view: subtle framed square, not a heavy black block. */
+.planner-view-actions .view-mode-btn.active{
+  background:var(--card) !important;
+  color:var(--black) !important;
+  box-shadow:inset 0 0 0 1px var(--line) !important;
+}
+
+/* ----------------------------------------------------------
+   Filter state:
+   inactive = outline triangle
+   active criteria = filled triangle
+   open panel = whole glyph rotates upward
+   No separate status dot.
+   ---------------------------------------------------------- */
+.filter-active-dot{
+  display:none !important;
+}
+.filter-funnel{
+  position:relative !important;
+  width:24px !important;
+  height:24px !important;
+  display:grid !important;
+  place-items:center !important;
+  font-size:23px !important;
+  line-height:1 !important;
+  transform:rotate(0deg) !important;
+  transition:transform .18s ease !important;
+  color:inherit !important;
+}
+.filter-icon-outline,
+.filter-icon-filled{
+  grid-area:1 / 1 !important;
+  display:block !important;
+  line-height:1 !important;
+  transition:opacity .12s ease !important;
+}
+.filter-icon-outline{
+  opacity:1;
+}
+.filter-icon-filled{
+  opacity:0;
+  color:var(--black);
+}
+.filter-state-btn.has-active-filter .filter-icon-outline{
+  opacity:0;
+}
+.filter-state-btn.has-active-filter .filter-icon-filled{
+  opacity:1;
+}
+.filter-state-btn.has-active-filter{
+  color:var(--black) !important;
+}
+.filter-state-btn.filter-open .filter-funnel{
+  transform:rotate(180deg) !important;
+}
+
+/* Opening a filter is intentionally NOT a separate heavy active button state. */
+#eventFilterBtn.filter-open,
+#plannerFilterBtn.filter-open,
+#plannerFilterBtn.active-filter{
+  background:transparent !important;
+  color:var(--black) !important;
+  box-shadow:none !important;
+  border-color:transparent !important;
+}
+
+/* ----------------------------------------------------------
+   Menetrend matrix header row: white/card instead of gray.
+   Includes Alkalom / Fő / player-name header cells.
+   ---------------------------------------------------------- */
+.transposed-matrix thead th,
+.transposed-matrix thead .matrix-event-side,
+.transposed-matrix thead .matrix-count-head,
+.season-matrix thead .sticky-matrix-col,
+.matrix-event-head,
+.schedule-grid th{
+  background:var(--card) !important;
+}
+.dark .transposed-matrix thead th,
+.dark .transposed-matrix thead .matrix-event-side,
+.dark .transposed-matrix thead .matrix-count-head{
+  background:var(--card) !important;
+}
+
+/* Current-player header keeps only a restrained outline emphasis. */
+.transposed-matrix thead .current-player-head,
+.current-player-head{
+  background:var(--card) !important;
+  color:var(--black) !important;
+  box-shadow:inset 0 0 0 1px var(--line) !important;
+}
+
+/* ----------------------------------------------------------
+   Bottom nav active item:
+   same rounded-square geometry as the top Menetrend selector.
+   Yellow remains as Player navigation accent.
+   ---------------------------------------------------------- */
+.nav-btn.active span{
+  width:42px !important;
+  min-width:42px !important;
+  height:42px !important;
+  padding:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  border-radius:9px !important;
+  background:#fff0a3 !important;
+  color:#111 !important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10) !important;
+}
+.dark .nav-btn.active span{
+  background:#d5a72f !important;
+  color:#17130b !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.10) !important;
+}
+
+/* Keep the compact portrait nav despite the square active indicator. */
+@media(max-width:760px) and (orientation:portrait){
+  .bottom-nav{
+    min-height:58px !important;
+  }
+  .nav-btn{
+    min-height:58px !important;
+    gap:0 !important;
+  }
+  .nav-btn small{
+    margin-top:-1px !important;
+  }
+}
+
+/* Landscape left rail uses the same active-square geometry. */
+@media(orientation:landscape) and (max-height:520px){
+  .nav-btn.active span{
+    width:40px !important;
+    min-width:40px !important;
+    height:40px !important;
+    border-radius:9px !important;
+  }
+}

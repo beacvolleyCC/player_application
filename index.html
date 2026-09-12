@@ -9,7 +9,7 @@
   <title>Club Control – Versenycsapat</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5-mobile-ui">
+  <link rel="stylesheet" href="./styles.css?v=13.5.2-unified-ui">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -73,8 +73,11 @@
           <p id="homeFilterSummary">Következő 14 nap.</p>
         </div>
         <div class="home-head-actions">
-          <button class="ghost-btn icon-action-btn" id="eventFilterBtn" aria-label="Edzések szűrése" aria-expanded="false" title="Szűrő">
-            <span class="filter-funnel" aria-hidden="true">▽</span><i id="eventFilterBadge" class="filter-active-dot" hidden></i>
+          <button class="ghost-btn icon-action-btn filter-state-btn" id="eventFilterBtn" aria-label="Edzések szűrése" aria-expanded="false" title="Szűrő">
+            <span class="filter-funnel" aria-hidden="true">
+              <span class="filter-icon-outline">▽</span>
+              <span class="filter-icon-filled">▼</span>
+            </span>
           </button>
         </div>
       </div>
@@ -111,9 +114,6 @@
           <label><span>Ettől</span><input id="eventDateFrom" type="date" aria-label="Egyéni időszak kezdő dátuma"></label>
           <label><span>Eddig</span><input id="eventDateTo" type="date" aria-label="Egyéni időszak záró dátuma"></label>
         </div>
-        <div class="filter-panel-actions">
-          <button class="text-btn" type="button" id="resetEventFiltersBtn">Alapállapot</button>
-        </div>
       </div>
 
       <div id="eventList" class="stack event-stack"></div>
@@ -128,7 +128,12 @@
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
           <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">▣</button>
           <button class="view-mode-btn icon-only" data-mode="calendar" title="Naptárnézet – dátumok" aria-label="Naptárnézet – dátumok">▦</button>
-          <button class="view-mode-btn icon-only" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false"><span class="filter-chevron" aria-hidden="true">▽</span></button>
+          <button class="view-mode-btn icon-only filter-state-btn" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">
+            <span class="filter-funnel" aria-hidden="true">
+              <span class="filter-icon-outline">▽</span>
+              <span class="filter-icon-filled">▼</span>
+            </span>
+          </button>
         </div>
       </div>
 
@@ -136,7 +141,6 @@
         <div class="filter-bar compact-filters">
           <select id="monthFilter" aria-label="Hónap">
             <option value="all">Teljes szezon</option>
-            <option value="Aug">Augusztus</option>
             <option value="Szept">Szeptember</option>
             <option value="Okt">Október</option>
             <option value="Nov">November</option>
@@ -309,6 +313,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5-mobile-ui"></script>
+  <script src="./app.js?v=13.5.2-unified-ui"></script>
 </body>
 </html>
