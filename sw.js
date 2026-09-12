@@ -1,5 +1,12 @@
-const CACHE='club-control-player-v2-3-5-21-targeted-final-fix';
-const CORE=['./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
+const CACHE='club-control-player-v2-3-5-22-regression-fix';
+const CORE=[
+  './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/event-training-mask.png',
+  './icons/event-home-mask.png',
+  './icons/event-away-mask.png'
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));

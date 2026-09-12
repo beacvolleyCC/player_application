@@ -103,13 +103,7 @@ function typeIconClass(e){
 }
 function typeIcon(e){
   const cls=typeIconClass(e);
-
-  // These three silhouettes are vectorized directly from the user's reference artwork.
-  if(cls==='training') return `<svg class="event-symbol event-symbol-ref training" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M11.19,1.20 L14.79,3.19 L17.09,6.23 L17.71,10.20 L16.59,14.11 L13.24,11.63 L13.06,7.22 L11.63,3.68 L8.40,2.26 L4.68,4.18 L1.63,8.83 L4.30,5.73 L8.03,3.56 L10.01,3.74 L11.50,6.10 L4.61,9.08 L2.38,12.06 L1.94,14.86 L3.19,18.21 L2.88,14.17 L4.43,10.88 L8.15,8.15 L11.81,7.28 L11.94,11.07 L6.35,14.11 L4.18,18.33 L6.85,21.50 L12.50,22.80 L15.54,21.81 L11.63,22.12 L7.41,20.57 L5.42,18.46 L6.85,15.35 L11.81,19.51 L17.15,19.94 L19.88,18.52 L21.50,16.28 L18.27,18.46 L14.48,18.95 L10.70,17.65 L7.78,14.54 L12.19,12.56 L15.85,15.29 L20.01,15.91 L21.74,14.73 L22.37,11.32 L19.63,5.61 L21.19,9.64 L21.19,13.06 L19.82,14.73 L17.71,14.67 L18.77,10.57 L18.08,5.67 L15.29,2.38 Z"></path></svg>`;
-
-  if(cls==='home') return `<svg class="event-symbol event-symbol-ref home" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M1.20,20.29 L4.66,18.80 L7.17,18.09 L10.09,17.61 L13.01,17.55 L14.98,17.73 L18.03,18.38 L21.19,19.52 L22.80,20.35 L21.19,19.04 L18.74,17.85 L16.30,17.13 L13.19,16.71 L9.55,16.83 L6.33,17.49 L3.23,18.80 Z M3.83,10.75 L4.18,11.40 L6.21,11.46 L6.21,16.24 L6.81,16.42 L7.05,16.06 L7.05,10.87 L6.81,10.57 L5.26,10.51 L12.18,4.60 L18.86,10.51 L17.37,10.57 L17.07,10.81 L17.25,16.42 L17.85,16.24 L17.85,11.52 L19.94,11.40 L20.23,11.10 L20.23,10.69 L12.30,3.65 L11.52,3.94 Z"></path></svg>`;
-
-  return `<svg class="event-symbol event-symbol-ref away" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M13.46,18.04 L14.71,18.10 L16.67,18.40 L18.69,18.87 L20.78,19.53 L22.80,20.36 L22.68,20.18 L22.26,19.88 L20.42,18.87 L18.81,18.22 L16.97,17.68 L15.00,17.33 L13.99,17.27 Z M10.24,17.27 L8.52,17.44 L6.85,17.80 L5.13,18.34 L3.46,19.05 L2.39,19.65 L1.20,20.54 L3.46,19.53 L5.72,18.81 L8.28,18.28 L10.13,18.04 L10.78,18.04 Z M12.74,3.46 L11.67,3.46 L10.48,3.70 L9.47,4.12 L8.40,4.83 L7.15,6.26 L6.56,7.63 L6.38,8.88 L6.50,10.07 L7.21,11.85 L9.53,15.36 L12.09,18.63 L14.23,15.90 L16.61,12.39 L17.44,10.78 L17.80,9.29 L17.62,7.39 L17.03,6.08 L16.49,5.37 L15.00,4.18 L13.70,3.64 Z M12.51,4.29 L13.52,4.47 L14.65,4.95 L16.02,6.14 L16.43,6.73 L16.85,7.75 L16.97,9.29 L16.61,10.60 L15.72,12.21 L13.70,15.18 L12.09,17.27 L9.59,13.99 L7.92,11.38 L7.33,9.83 L7.27,8.34 L7.86,6.73 L8.94,5.48 L10.48,4.59 L11.32,4.35 Z M11.55,6.44 L10.66,6.79 L9.95,7.45 L9.59,8.04 L9.41,8.58 L9.41,9.65 L9.77,10.54 L10.42,11.26 L10.78,11.49 L11.73,11.79 L12.80,11.73 L13.70,11.32 L14.23,10.84 L14.53,10.42 L14.83,9.59 L14.83,8.58 L14.71,8.34 L14.71,8.16 L14.35,7.51 L13.58,6.79 L12.68,6.44 L12.33,6.44 L12.27,6.38 Z M11.67,7.27 L12.27,7.21 L12.33,7.27 L12.57,7.27 L12.62,7.33 L12.74,7.33 L12.80,7.39 L13.04,7.45 L13.16,7.57 L13.22,7.57 L13.70,8.04 L13.87,8.34 L13.87,8.46 L13.99,8.70 L13.99,9.00 L14.05,9.05 L14.05,9.17 L13.99,9.23 L13.99,9.53 L13.76,10.07 L13.28,10.60 L12.74,10.90 L12.57,10.90 L12.51,10.96 L11.73,10.96 L11.67,10.90 L11.49,10.90 L11.02,10.66 L10.48,10.13 L10.24,9.59 L10.24,9.29 L10.19,9.23 L10.19,9.05 L10.24,9.00 L10.24,8.70 L10.30,8.64 L10.30,8.52 L10.36,8.46 L10.42,8.22 L10.54,8.10 L10.54,8.04 L11.02,7.57 Z"></path></svg>`;
+  return `<span class="event-symbol-mask ${cls}" aria-hidden="true"></span>`;
 }
 function typeLabel(e){
   if(e.type==='Edzés') return 'EDZÉS';
@@ -543,23 +537,38 @@ function scrollPlannerToNearest(rows, behavior='auto'){
     const row=scroller?.querySelector(`[data-grid-event="${next.id}"]`);
     if(!scroller || !row) return;
 
-    const head=scroller.querySelector('thead');
-    const scrollerRect=scroller.getBoundingClientRect();
-    const rowRect=row.getBoundingClientRect();
-    const top=
-      scroller.scrollTop +
-      (rowRect.top-scrollerRect.top) -
-      (head?.offsetHeight || 0) -
-      2;
+    const computed=getComputedStyle(scroller);
+    const canScrollVertically=
+      scroller.scrollHeight > scroller.clientHeight + 2 &&
+      computed.overflowY !== 'visible';
 
-    const target=Math.max(0,top);
+    if(canScrollVertically){
+      const head=scroller.querySelector('thead');
+      const scrollerRect=scroller.getBoundingClientRect();
+      const rowRect=row.getBoundingClientRect();
+      const top=
+        scroller.scrollTop +
+        (rowRect.top-scrollerRect.top) -
+        (head?.offsetHeight || 0) -
+        2;
 
-    // Direct scrollTop is more reliable than smooth/object scroll on iOS
-    // immediately after a hidden view becomes visible.
+      const target=Math.max(0,top);
+      if(behavior==='auto'){
+        scroller.scrollTop=target;
+      }else{
+        scroller.scrollTo({top:target,behavior});
+      }
+      return;
+    }
+
+    // Natural-height planner (.21+): position the PAGE itself.
+    // This restores "open at today / next training" even without an inner Y scroller.
+    const rowTop=row.getBoundingClientRect().top + window.scrollY;
+    const target=Math.max(0,rowTop - 118);
     if(behavior==='auto'){
-      scroller.scrollTop=target;
+      window.scrollTo(0,target);
     }else{
-      scroller.scrollTo({top:target,behavior});
+      window.scrollTo({top:target,behavior});
     }
     return;
   }
@@ -828,10 +837,15 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
       scrollPlannerToNearest(rows,'auto');
-      plannerList.classList.remove('planner-prepositioning');
 
+      // One extra layout frame catches Safari/PWA geometry settling after tab switch.
       requestAnimationFrame(()=>{
-        plannerAutoPositioning=false;
+        scrollPlannerToNearest(rows,'auto');
+        plannerList.classList.remove('planner-prepositioning');
+
+        requestAnimationFrame(()=>{
+          plannerAutoPositioning=false;
+        });
       });
     });
   });
