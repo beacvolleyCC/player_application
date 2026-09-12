@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-22-regression-fix';
+const CACHE='club-control-player-v2-3-5-23-planner-position-header';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

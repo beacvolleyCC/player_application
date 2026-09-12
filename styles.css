@@ -3713,3 +3713,58 @@ html,body{
     height:27px !important;
   }
 }
+/* ==========================================================
+   PLAYER V2.3.5.23 — PLANNER POSITION + FOLLOWING HEADER FIX
+   BASE: V2.3.5.22
+   ========================================================== */
+
+/* Natural-height Menetrend remains unchanged.
+   This is only the following header layer for page scrolling. */
+.matrix-floating-head-shell{
+  position:fixed !important;
+  top:0 !important;
+  z-index:35 !important;
+  overflow:hidden !important;
+  background:var(--card) !important;
+  border-bottom:1px solid var(--line) !important;
+  pointer-events:none !important;
+}
+
+.matrix-floating-head-shell[hidden]{
+  display:none !important;
+}
+
+.matrix-floating-head-scroll{
+  width:100% !important;
+  overflow:hidden !important;
+  background:var(--card) !important;
+}
+
+.matrix-floating-head-table{
+  margin:0 !important;
+  border-collapse:separate !important;
+  border-spacing:0 !important;
+  background:var(--card) !important;
+}
+
+.matrix-floating-head-table thead th{
+  position:relative !important;
+  top:auto !important;
+  background:var(--card) !important;
+  border-right:1px solid var(--line) !important;
+  border-bottom:1px solid var(--line) !important;
+}
+
+.matrix-floating-head-table thead .matrix-event-side,
+.matrix-floating-head-table thead .matrix-count-head{
+  background:var(--card) !important;
+}
+
+.dark .matrix-floating-head-shell,
+.dark .matrix-floating-head-scroll,
+.dark .matrix-floating-head-table,
+.dark .matrix-floating-head-table thead th,
+.dark .matrix-floating-head-table thead .matrix-event-side,
+.dark .matrix-floating-head-table thead .matrix-count-head{
+  background:var(--card) !important;
+}

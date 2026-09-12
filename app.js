@@ -564,7 +564,9 @@ function scrollPlannerToNearest(rows, behavior='auto'){
     // Natural-height planner (.21+): position the PAGE itself.
     // This restores "open at today / next training" even without an inner Y scroller.
     const rowTop=row.getBoundingClientRect().top + window.scrollY;
-    const target=Math.max(0,rowTop - 118);
+    const headHeight=scroller.querySelector('thead')?.getBoundingClientRect().height || 0;
+    // Put the actual current/next event directly under the floating matrix header.
+    const target=Math.max(0,rowTop - headHeight - 4);
     if(behavior==='auto'){
       window.scrollTo(0,target);
     }else{
@@ -604,6 +606,116 @@ function syncPlannerGridViewport_(){
   scroller.style.removeProperty('max-height');
 }
 
+let plannerFloatingHeaderState_={
+  shell:null,
+  scroll:null,
+  table:null,
+  sourceScroller:null
+};
+
+function hidePlannerFloatingHeader_(){
+  const shell=plannerFloatingHeaderState_.shell;
+  if(shell) shell.hidden=true;
+}
+
+function syncPlannerFloatingHeaderGeometry_(){
+  const plannerView=document.getElementById('plannerView');
+  const source=document.getElementById('matrixScroll');
+  const shell=plannerFloatingHeaderState_.shell;
+  const headScroll=plannerFloatingHeaderState_.scroll;
+  const headTable=plannerFloatingHeaderState_.table;
+
+  if(!plannerView?.classList.contains('active') || plannerMode!=='grid' ||
+     !source || !shell || !headScroll || !headTable){
+    hidePlannerFloatingHeader_();
+    return;
+  }
+
+  const sourceTable=source.querySelector('.transposed-matrix');
+  const sourceHead=sourceTable?.querySelector('thead');
+  if(!sourceTable || !sourceHead){
+    hidePlannerFloatingHeader_();
+    return;
+  }
+
+  const rect=source.getBoundingClientRect();
+  const headHeight=Math.ceil(sourceHead.getBoundingClientRect().height);
+
+  // Visible only after the real header has left the viewport,
+  // and only while there are still matrix rows below it.
+  const shouldShow=rect.top < 0 && rect.bottom > headHeight + 2;
+  shell.hidden=!shouldShow;
+  if(!shouldShow) return;
+
+  shell.style.left=`${Math.round(rect.left)}px`;
+  shell.style.width=`${Math.round(rect.width)}px`;
+  shell.style.height=`${headHeight}px`;
+
+  headScroll.style.height=`${headHeight}px`;
+  headScroll.scrollLeft=source.scrollLeft;
+
+  const sourceCells=[...sourceHead.querySelectorAll('th')];
+  const cloneCells=[...headTable.querySelectorAll('th')];
+  sourceCells.forEach((cell,i)=>{
+    const clone=cloneCells[i];
+    if(!clone) return;
+    const w=Math.ceil(cell.getBoundingClientRect().width);
+    clone.style.width=`${w}px`;
+    clone.style.minWidth=`${w}px`;
+    clone.style.maxWidth=`${w}px`;
+  });
+
+  headTable.style.width=`${Math.ceil(sourceTable.scrollWidth)}px`;
+}
+
+function setupPlannerFloatingHeader_(){
+  const source=document.getElementById('matrixScroll');
+  const sourceHead=source?.querySelector('.transposed-matrix thead');
+  if(!source || !sourceHead){
+    hidePlannerFloatingHeader_();
+    return;
+  }
+
+  let shell=plannerFloatingHeaderState_.shell;
+  if(!shell){
+    shell=document.createElement('div');
+    shell.className='matrix-floating-head-shell';
+    shell.hidden=true;
+
+    const headScroll=document.createElement('div');
+    headScroll.className='matrix-floating-head-scroll';
+
+    const headTable=document.createElement('table');
+    headTable.className='season-matrix transposed-matrix matrix-floating-head-table';
+
+    headScroll.appendChild(headTable);
+    shell.appendChild(headScroll);
+    document.body.appendChild(shell);
+
+    plannerFloatingHeaderState_.shell=shell;
+    plannerFloatingHeaderState_.scroll=headScroll;
+    plannerFloatingHeaderState_.table=headTable;
+
+    window.addEventListener('scroll',()=>requestAnimationFrame(syncPlannerFloatingHeaderGeometry_),{passive:true});
+    window.addEventListener('resize',()=>requestAnimationFrame(syncPlannerFloatingHeaderGeometry_),{passive:true});
+  }
+
+  const headTable=plannerFloatingHeaderState_.table;
+  headTable.replaceChildren(sourceHead.cloneNode(true));
+  plannerFloatingHeaderState_.sourceScroller=source;
+
+  if(!source.dataset.floatingHeaderBound){
+    source.dataset.floatingHeaderBound='1';
+    source.addEventListener('scroll',()=>{
+      const headScroll=plannerFloatingHeaderState_.scroll;
+      if(headScroll) headScroll.scrollLeft=source.scrollLeft;
+      requestAnimationFrame(syncPlannerFloatingHeaderGeometry_);
+    },{passive:true});
+  }
+
+  requestAnimationFrame(syncPlannerFloatingHeaderGeometry_);
+}
+
 function renderPlanner(){
   updatePlannerFilterButton_();
   const rows=filteredPlannerEvents();
@@ -624,9 +736,11 @@ function renderPlanner(){
   bindSliderDrag();
   requestAnimationFrame(()=>{
     if(plannerMode==='calendar'){
+      hidePlannerFloatingHeader_();
       markCalendarToday();
     }else{
       syncPlannerGridViewport_();
+      setupPlannerFloatingHeader_();
     }
   });
 }
@@ -852,15 +966,26 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
 }
 
 function switchView(viewId){
+  const previousView=document.querySelector('.view.active')?.id || '';
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
   window.scrollTo({top:0,behavior:'auto'});
 
   if(viewId==='plannerView'){
-    requestAnimationFrame(syncPlannerGridViewport_);
+    // Entering Menetrend from another main view starts from today's / next event again.
+    // Manual positioning is still respected while the user remains in Menetrend.
+    if(previousView!=='plannerView') plannerUserPositioned=false;
+
+    requestAnimationFrame(()=>{
+      syncPlannerGridViewport_();
+      setupPlannerFloatingHeader_();
+    });
+
     if(!plannerUserPositioned){
       positionPlannerInitial_(filteredPlannerEvents());
     }
+  }else{
+    hidePlannerFloatingHeader_();
   }
 }
 
