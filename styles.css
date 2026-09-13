@@ -5091,3 +5091,98 @@ body.planner-grid-page-lock{
     max-width:76px !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.46 — COMPACT PAYMENT MATRIX
+   ========================================================== */
+
+/* Pull the whole payment section tighter without changing logic. */
+.profile-payments-card{
+  padding-top:14px !important;
+  padding-bottom:12px !important;
+}
+
+.profile-payments-card > h4{
+  margin-bottom:8px !important;
+}
+
+/* Less dead space below the horizontal scroller. */
+.profile-payment-matrix-scroll{
+  padding-bottom:0 !important;
+}
+
+/* Month cells: substantially tighter. */
+.profile-payment-matrix th,
+.profile-payment-matrix td{
+  min-width:88px !important;
+  height:43px !important;
+  padding:4px 5px !important;
+}
+
+.profile-payment-matrix thead th{
+  height:28px !important;
+  padding-top:3px !important;
+  padding-bottom:3px !important;
+  font-size:7.5px !important;
+  letter-spacing:0 !important;
+}
+
+/* Sticky row-name column also narrower. */
+.profile-payment-matrix .profile-payment-row-label{
+  min-width:68px !important;
+  width:68px !important;
+  max-width:68px !important;
+  padding-left:2px !important;
+  padding-right:5px !important;
+  font-size:9px !important;
+}
+
+/* Status itself should occupy only the space it needs. */
+.profile-pay-state{
+  gap:3px !important;
+  font-size:7.5px !important;
+  line-height:1.1 !important;
+}
+
+.profile-pay-state + small{
+  margin-top:2px !important;
+  font-size:7px !important;
+  line-height:1.1 !important;
+}
+
+/* Compact permission row too. */
+.profile-permission-row.detail-row{
+  min-height:36px !important;
+  margin-top:5px !important;
+  padding-top:6px !important;
+  gap:7px !important;
+}
+
+.profile-permission-label{
+  font-size:10px !important;
+}
+
+.profile-permission-status.profile-payment-status{
+  min-height:21px !important;
+  padding:0 6px !important;
+  font-size:8px !important;
+  gap:3px !important;
+}
+
+/* Phones get the tightest useful version. */
+@media(max-width:420px){
+  .profile-payment-matrix th,
+  .profile-payment-matrix td{
+    min-width:84px !important;
+    height:41px !important;
+    padding-left:4px !important;
+    padding-right:4px !important;
+  }
+
+  .profile-payment-matrix .profile-payment-row-label{
+    min-width:64px !important;
+    width:64px !important;
+    max-width:64px !important;
+  }
+}
