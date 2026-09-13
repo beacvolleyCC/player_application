@@ -293,13 +293,83 @@ function profileAttendanceRows_(){
     );
 }
 
+function profileRatio_(rows){
+  const total=rows.length;
+  const present=rows.filter(item=>item.status==='present').length;
+  return {
+    present,
+    total,
+    pct:total ? Math.round((present/total)*100) : null
+  };
+}
+
+function profileMonthName_(monthKey,short=false){
+  const m=String(monthKey||'').match(/^(\d{4})-(\d{2})$/);
+  if(!m) return String(monthKey||'');
+  const names=[
+    'január','február','március','április','május','június',
+    'július','augusztus','szeptember','október','november','december'
+  ];
+  const shortNames=[
+    'jan.','febr.','márc.','ápr.','máj.','jún.',
+    'júl.','aug.','szept.','okt.','nov.','dec.'
+  ];
+  const idx=Math.max(0,Math.min(11,Number(m[2])-1));
+  return short ? shortNames[idx] : names[idx];
+}
+
+function profileBudapestMonthKey_(){
+  const parts=new Intl.DateTimeFormat('en',{
+    timeZone:'Europe/Budapest',
+    year:'numeric',
+    month:'2-digit'
+  }).formatToParts(new Date());
+  const year=parts.find(p=>p.type==='year')?.value || String(new Date().getFullYear());
+  const month=parts.find(p=>p.type==='month')?.value || String(new Date().getMonth()+1).padStart(2,'0');
+  return `${year}-${month}`;
+}
+
+function profileEventStamp_(item){
+  const event=item?.event||{};
+  return `${event.date||''}T${event.start||event.time||'00:00'}`;
+}
+
+function profileAttendanceStreaks_(rows){
+  const sorted=[...rows].sort((a,b)=>profileEventStamp_(a).localeCompare(profileEventStamp_(b)));
+  let longest=0;
+  let run=0;
+
+  sorted.forEach(item=>{
+    if(item.status==='present'){
+      run+=1;
+      longest=Math.max(longest,run);
+    }else{
+      run=0;
+    }
+  });
+
+  let current=0;
+  for(let i=sorted.length-1;i>=0;i--){
+    if(sorted[i].status==='present') current+=1;
+    else break;
+  }
+
+  return {current,longest};
+}
+
 function renderProfileStats_(){
   const grid=document.getElementById('profileStatsGrid');
   const empty=document.getElementById('profileStatsEmpty');
+  const more=document.getElementById('profileStatsMore');
+  const monthly=document.getElementById('profileStatsMonthly');
+  const currentStreakEl=document.getElementById('profileCurrentStreak');
+  const longestStreakEl=document.getElementById('profileLongestStreak');
+
   const rows=profileAttendanceRows_();
 
   if(!rows.length){
     if(grid) grid.hidden=true;
+    if(more) more.hidden=true;
     if(empty){
       empty.hidden=false;
       empty.innerHTML='<b>Még nincs lezárt jelenléti adat.</b><small>A statisztika csak az edző vagy Manager által ténylegesen rögzített jelenlétből számolódik.</small>';
@@ -307,25 +377,71 @@ function renderProfileStats_(){
     return;
   }
 
-  const present=rows.filter(item=>item.status==='present').length;
-  const total=rows.length;
-  const pct=total ? Math.round((present/total)*100) : 0;
+  const trainingRows=rows.filter(item=>item.event.type!=='Meccs');
   const matchRows=rows.filter(item=>item.event.type==='Meccs');
-  const matchPresent=matchRows.filter(item=>item.status==='present').length;
+  const all=profileRatio_(rows);
+  const trainings=profileRatio_(trainingRows);
+  const matches=profileRatio_(matchRows);
 
-  const set=(id,value)=>{ const el=document.getElementById(id); if(el) el.textContent=value; };
-  set('profileStatAttended',present+'/'+total);
-  set('profileStatAttendanceRate',pct+'%');
-  set('profileStatMatches',matchRows.length ? matchPresent+'/'+matchRows.length : '–');
+  const set=(id,value)=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=value;
+  };
+
+  const ratioText=x=>`${x.present} / ${x.total}`;
+  const pctText=x=>x.pct===null ? '–' : `${x.pct}%`;
+
+  set('profileStatTrainingRatio',ratioText(trainings));
+  set('profileStatTrainingPct',pctText(trainings));
+  set('profileStatMatchRatio',ratioText(matches));
+  set('profileStatMatchPct',pctText(matches));
+  set('profileStatAllRatio',ratioText(all));
+  set('profileStatAllPct',pctText(all));
+
+  const monthMap=new Map();
+  rows.forEach(item=>{
+    const key=String(item.event?.date||'').slice(0,7);
+    if(!/^\d{4}-\d{2}$/.test(key)) return;
+    if(!monthMap.has(key)) monthMap.set(key,[]);
+    monthMap.get(key).push(item);
+  });
+
+  if(monthly){
+    monthly.innerHTML=[...monthMap.entries()]
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([key,monthRows])=>{
+        const ratio=profileRatio_(monthRows);
+        return `<div class="profile-stats-month-row">
+          <span>${escapeHtml_(profileMonthName_(key,false))}</span>
+          <b>${ratio.present} / ${ratio.total}</b>
+          <strong>${ratio.pct===null?'–':ratio.pct+'%'}</strong>
+        </div>`;
+      })
+      .join('');
+  }
+
+  const streaks=profileAttendanceStreaks_(rows);
+  if(currentStreakEl){
+    currentStreakEl.textContent=streaks.current
+      ? `${streaks.current} alkalom óta minden eseményen részt vett`
+      : 'Nincs aktív részvételi sorozat';
+  }
+  if(longestStreakEl){
+    longestStreakEl.textContent=streaks.longest
+      ? `${streaks.longest} egymást követő alkalom`
+      : '–';
+  }
 
   if(grid) grid.hidden=false;
+  if(more) more.hidden=false;
   if(empty) empty.hidden=true;
 }
 
 function profileFeeTypeLabel_(type){
   const map={
-    beac_pass:'BEAC bérlet',
+    beac_pass:'Tagdíj',
     coach_fee:'Edzői díj',
+    permission_fee:'Engedélyek',
     team_fee:'Csapatdíj',
     other:'Egyéb díj'
   };
@@ -333,7 +449,7 @@ function profileFeeTypeLabel_(type){
 }
 
 function profileFeeStatusLabel_(status){
-  const map={due:'Fizetendő',paid:'Fizetve',waived:'Elengedve'};
+  const map={due:'Nincs befizetve',paid:'Befizetve',waived:'Elengedve'};
   return map[String(status||'')] || String(status||'');
 }
 
@@ -348,39 +464,188 @@ function profileHuDate_(value){
   return m ? `${m[1]}.${m[2]}.${m[3]}.` : String(value||'');
 }
 
+function profileNormalizePeriodKey_(fee){
+  const raw=String(fee?.periodKey||'').trim().toLowerCase();
+
+  if(/^\d{4}-\d{2}$/.test(raw)) return raw;
+
+  const dot=raw.match(/^(\d{4})[.\-/](\d{1,2})$/);
+  if(dot) return `${dot[1]}-${String(dot[2]).padStart(2,'0')}`;
+
+  const season=String(fee?.season||currentTeamData?.season||'').trim();
+  const seasonMatch=season.match(/^(\d{4})\D+(\d{2,4})$/);
+  const seasonStart=seasonMatch ? Number(seasonMatch[1]) : null;
+
+  const monthNames={
+    januar:1,'január':1,jan:1,
+    februar:2,'február':2,febr:2,
+    marcius:3,'március':3,marc:3,'márc':3,
+    aprilis:4,'április':4,apr:4,'ápr':4,
+    majus:5,'május':5,maj:5,'máj':5,
+    junius:6,'június':6,jun:6,'jún':6,
+    julius:7,'július':7,jul:7,'júl':7,
+    augusztus:8,aug:8,
+    szeptember:9,szept:9,szep:9,
+    oktober:10,'október':10,okt:10,
+    november:11,nov:11,
+    december:12,dec:12
+  };
+
+  let monthNum=null;
+  if(/^\d{1,2}$/.test(raw)){
+    monthNum=Number(raw);
+  }else{
+    const cleaned=raw.replace(/\./g,'').trim();
+    monthNum=monthNames[cleaned] || null;
+  }
+
+  if(monthNum && seasonStart){
+    const year=monthNum>=7 ? seasonStart : seasonStart+1;
+    return `${year}-${String(monthNum).padStart(2,'0')}`;
+  }
+
+  const due=String(fee?.dueDate||'');
+  if(/^\d{4}-\d{2}/.test(due)) return due.slice(0,7);
+
+  return '';
+}
+
+function profileSeasonMonths_(){
+  const set=new Set(
+    events
+      .map(e=>String(e.date||'').slice(0,7))
+      .filter(key=>/^\d{4}-\d{2}$/.test(key))
+  );
+
+  const current=profileBudapestMonthKey_();
+  set.add(current);
+
+  if(!set.size){
+    const season=String(currentTeamData?.season||'');
+    const m=season.match(/^(\d{4})\D+(\d{2,4})$/);
+    if(m){
+      const start=Number(m[1]);
+      for(let month=9;month<=12;month++) set.add(`${start}-${String(month).padStart(2,'0')}`);
+      for(let month=1;month<=5;month++) set.add(`${start+1}-${String(month).padStart(2,'0')}`);
+    }
+  }
+
+  return [...set].sort();
+}
+
+function profilePaymentCell_(fee,monthKey,kind){
+  const current=profileBudapestMonthKey_();
+  const future=monthKey>current;
+
+  if(!fee){
+    if(future){
+      return `<span class="profile-pay-state future">–</span>`;
+    }
+    return `<span class="profile-pay-state due"><span aria-hidden="true">○</span> Nincs befizetve</span>`;
+  }
+
+  const status=String(fee.status||'due');
+  const amount=(fee.amountHuf===null || fee.amountHuf===undefined || fee.amountHuf==='')
+    ? ''
+    : `<small>${escapeHtml_(profileMoney_(fee.amountHuf))}</small>`;
+
+  if(status==='paid'){
+    return `<span class="profile-pay-state paid"><span aria-hidden="true">✓</span> Befizetve</span>${amount}`;
+  }
+  if(status==='waived'){
+    return `<span class="profile-pay-state waived"><span aria-hidden="true">–</span> Elengedve</span>${amount}`;
+  }
+  return `<span class="profile-pay-state due"><span aria-hidden="true">○</span> Nincs befizetve</span>${amount}`;
+}
+
+function profileScrollPaymentsToCurrent_(){
+  const scroller=document.getElementById('profilePaymentMatrixScroll');
+  if(!scroller) return;
+  const current=profileBudapestMonthKey_();
+  const target=scroller.querySelector(`[data-payment-month="${CSS.escape(current)}"]`);
+  const sticky=scroller.querySelector('.profile-payment-row-label');
+  if(!target) return;
+
+  requestAnimationFrame(()=>{
+    const stickyWidth=sticky ? sticky.getBoundingClientRect().width : 92;
+    scroller.scrollLeft=Math.max(0,target.offsetLeft-stickyWidth);
+  });
+}
+
 function renderProfilePayments_(){
   const box=document.getElementById('profilePaymentsContent');
   if(!box) return;
 
   const rows=Array.isArray(currentProfileData.payments) ? currentProfileData.payments : [];
-  if(!rows.length){
-    box.className='profile-empty-block';
-    box.innerHTML='<b>Nincs rögzített díj vagy befizetés.</b><small>Csak a Managerből vagy a BEAC bérletnyilvántartásból ténylegesen betöltött adat jelenik meg.</small>';
-    return;
+  const months=profileSeasonMonths_();
+
+  const monthly=new Map();
+  rows.forEach(fee=>{
+    const key=profileNormalizePeriodKey_(fee);
+    if(!key) return;
+    monthly.set(`${String(fee.feeType||'')}|${key}`,fee);
+  });
+
+  const permissionRows=rows
+    .filter(fee=>String(fee.feeType||'')==='permission_fee')
+    .sort((a,b)=>String(b.paidAt||b.dueDate||'').localeCompare(String(a.paidAt||a.dueDate||'')));
+  const permission=permissionRows[0] || null;
+
+  const monthHead=months.map(key=>
+    `<th data-payment-month="${escapeHtml_(key)}" class="${key===profileBudapestMonthKey_()?'is-current':''}">
+      <span>${escapeHtml_(profileMonthName_(key,false))}</span>
+    </th>`
+  ).join('');
+
+  const rowHtml=(label,type)=>`
+    <tr>
+      <th class="profile-payment-row-label">${escapeHtml_(label)}</th>
+      ${months.map(key=>
+        `<td class="${key===profileBudapestMonthKey_()?'is-current':''}">
+          ${profilePaymentCell_(monthly.get(`${type}|${key}`),key,type)}
+        </td>`
+      ).join('')}
+    </tr>`;
+
+  let permissionHtml='';
+  if(permission){
+    const status=String(permission.status||'due');
+    const cls=status==='paid'?'paid':status==='waived'?'waived':'due';
+    const icon=status==='paid'?'✓':status==='waived'?'–':'○';
+    permissionHtml=`<span class="profile-permission-status ${cls}">
+      <span aria-hidden="true">${icon}</span>
+      ${escapeHtml_(profileFeeStatusLabel_(status))}
+    </span>`;
+  }else{
+    permissionHtml=`<span class="profile-permission-status due"><span aria-hidden="true">○</span> Nincs befizetve</span>`;
   }
 
-  box.className='profile-payment-list';
-  box.innerHTML=rows.map(fee=>{
-    const status=String(fee.status||'due');
-    const amount=fee.amountHuf===null || fee.amountHuf===undefined || fee.amountHuf==='' ? '' : profileMoney_(fee.amountHuf);
-    const due=fee.dueDate ? profileHuDate_(fee.dueDate) : '';
-    const meta=[
-      profileFeeTypeLabel_(fee.feeType),
-      amount,
-      due ? ('Határidő: '+due) : '',
-      fee.season || ''
-    ].filter(Boolean).join(' · ');
+  box.className='profile-payments-v2';
+  box.innerHTML=`
+    <div class="profile-payment-matrix-scroll" id="profilePaymentMatrixScroll">
+      <table class="profile-payment-matrix">
+        <thead>
+          <tr>
+            <th class="profile-payment-row-label"></th>
+            ${monthHead}
+          </tr>
+        </thead>
+        <tbody>
+          ${rowHtml('Tagdíj','beac_pass')}
+          ${rowHtml('Edzői díj','coach_fee')}
+        </tbody>
+      </table>
+    </div>
 
-    return `<div class="profile-payment-row">
-      <div class="profile-payment-main">
-        <b>${escapeHtml_(fee.label || profileFeeTypeLabel_(fee.feeType))}</b>
-        <small>${escapeHtml_(meta)}</small>
-        ${fee.note ? `<small class="profile-payment-note">${escapeHtml_(fee.note)}</small>` : ''}
-      </div>
-      <span class="profile-payment-status ${escapeHtml_(status)}">${escapeHtml_(profileFeeStatusLabel_(status))}</span>
-    </div>`;
-  }).join('');
+    <div class="profile-permission-row">
+      <span>Engedélyek</span>
+      ${permissionHtml}
+    </div>
+  `;
+
+  profileScrollPaymentsToCurrent_();
 }
+
 function renderEvents(){
   updateHomeFilterUi_();
   const rows=filteredHomeEvents();

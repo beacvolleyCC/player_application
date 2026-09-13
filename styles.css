@@ -4572,3 +4572,278 @@ body.planner-grid-page-lock{
     font-size:20px !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.42 — MONTHLY PAYMENTS + EXPANDED REAL STATS
+   ========================================================== */
+
+.profile-payments-card{
+  overflow:hidden;
+}
+
+.profile-payments-v2{
+  min-width:0;
+}
+
+.profile-payment-matrix-scroll{
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  padding-bottom:3px;
+}
+
+.profile-payment-matrix{
+  border-collapse:separate;
+  border-spacing:0;
+  min-width:max-content;
+  width:max-content;
+  font-size:10px;
+}
+
+.profile-payment-matrix th,
+.profile-payment-matrix td{
+  min-width:122px;
+  height:58px;
+  padding:8px 9px;
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  vertical-align:middle;
+  text-align:left;
+  background:var(--card);
+}
+
+.profile-payment-matrix thead th{
+  height:39px;
+  font-size:9px;
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.025em;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.profile-payment-matrix thead th.is-current{
+  color:var(--text);
+  background:var(--soft);
+}
+
+.profile-payment-matrix td.is-current{
+  background:color-mix(in srgb,var(--soft) 64%,var(--card));
+}
+
+.profile-payment-matrix .profile-payment-row-label{
+  position:sticky;
+  left:0;
+  z-index:3;
+  min-width:92px;
+  width:92px;
+  max-width:92px;
+  border-left:0;
+  font-weight:900;
+  color:var(--text);
+  background:var(--card);
+  box-shadow:6px 0 10px -10px rgba(0,0,0,.65);
+}
+
+.profile-payment-matrix thead .profile-payment-row-label{
+  z-index:5;
+}
+
+.profile-pay-state{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:9px;
+  line-height:1.25;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+.profile-pay-state + small{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:8px;
+}
+
+.profile-pay-state.paid{
+  color:var(--green);
+}
+
+.profile-pay-state.due{
+  color:#8a5d00;
+}
+
+.profile-pay-state.waived,
+.profile-pay-state.future{
+  color:var(--muted);
+}
+
+.dark .profile-pay-state.due{
+  color:#e0bd55;
+}
+
+.profile-permission-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:48px;
+  margin-top:9px;
+  padding-top:9px;
+  border-top:1px solid var(--line);
+  font-size:11px;
+  font-weight:850;
+}
+
+.profile-permission-status{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:10px;
+  font-weight:850;
+}
+
+.profile-permission-status.paid{
+  color:var(--green);
+}
+
+.profile-permission-status.due{
+  color:#8a5d00;
+}
+
+.profile-permission-status.waived{
+  color:var(--muted);
+}
+
+.dark .profile-permission-status.due{
+  color:#e0bd55;
+}
+
+.real-profile-stats{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+
+.profile-ratio-card{
+  min-width:0;
+  text-align:center;
+}
+
+.profile-ratio-card .profile-stat-title{
+  display:block;
+  margin-bottom:4px;
+  color:var(--muted);
+  font-size:8px;
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.035em;
+}
+
+.profile-ratio-card strong{
+  display:block;
+  font-size:19px !important;
+  line-height:1.05;
+  white-space:nowrap;
+}
+
+.profile-ratio-card small{
+  display:block;
+  margin-top:4px;
+  color:var(--text);
+  font-size:12px;
+  font-weight:900;
+}
+
+.profile-stats-more{
+  margin-top:8px;
+}
+
+.profile-stats-more-content{
+  padding-top:2px !important;
+}
+
+.profile-stats-subtitle{
+  margin:4px 0 4px;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:850;
+  text-transform:uppercase;
+  letter-spacing:.035em;
+}
+
+.profile-stats-monthly{
+  display:grid;
+}
+
+.profile-stats-month-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:12px;
+  align-items:center;
+  min-height:35px;
+  border-bottom:1px solid var(--line);
+  font-size:10px;
+}
+
+.profile-stats-month-row span{
+  text-transform:capitalize;
+}
+
+.profile-stats-month-row b{
+  font-size:10px;
+}
+
+.profile-stats-month-row strong{
+  min-width:34px;
+  text-align:right;
+  font-size:10px;
+}
+
+.profile-stats-secondary-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);
+  gap:12px;
+  align-items:center;
+  min-height:40px;
+  border-bottom:1px solid var(--line);
+  font-size:10px;
+}
+
+.profile-stats-secondary-row:last-child{
+  border-bottom:0;
+}
+
+.profile-stats-secondary-row span{
+  color:var(--muted);
+}
+
+.profile-stats-secondary-row b{
+  text-align:right;
+  font-size:10px;
+  line-height:1.35;
+}
+
+@media(max-width:420px){
+  .profile-payment-matrix th,
+  .profile-payment-matrix td{
+    min-width:116px;
+  }
+
+  .profile-payment-matrix .profile-payment-row-label{
+    min-width:84px;
+    width:84px;
+    max-width:84px;
+  }
+
+  .profile-ratio-card strong{
+    font-size:17px !important;
+  }
+
+  .profile-ratio-card small{
+    font-size:11px;
+  }
+}

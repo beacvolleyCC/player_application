@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.41-real-profile-data">
+  <link rel="stylesheet" href="./styles.css?v=13.5.42-monthly-payments-stats">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -212,25 +212,64 @@
         </details>
       </div>
 
-      <div class="card">
+      <div class="card profile-payments-card">
         <h4>Díjak és befizetések</h4>
-        <div id="profilePaymentsContent" class="profile-empty-block">
-          <b>Nincs rögzített díj vagy befizetés.</b>
-          <small>Csak a Managerből vagy a BEAC bérletnyilvántartásból ténylegesen betöltött adat jelenik meg.</small>
+        <div id="profilePaymentsContent" class="profile-payments-v2">
+          <div class="profile-empty-block">
+            <b>Fizetési adatok betöltése…</b>
+          </div>
         </div>
       </div>
 
-      <div class="card">
+      <div class="card profile-season-card">
         <h4>Saját szezon</h4>
+
         <div id="profileStatsGrid" class="stats-grid compact-profile-stats real-profile-stats" hidden>
-          <div class="stat-card"><strong id="profileStatAttended">–</strong><span>részt vett</span></div>
-          <div class="stat-card"><strong id="profileStatAttendanceRate">–</strong><span>részvételi arány</span></div>
-          <div class="stat-card"><strong id="profileStatMatches">–</strong><span>meccs részvétel</span></div>
+          <div class="stat-card profile-ratio-card">
+            <span class="profile-stat-title">Edzések</span>
+            <strong id="profileStatTrainingRatio">–</strong>
+            <small id="profileStatTrainingPct">–</small>
+          </div>
+
+          <div class="stat-card profile-ratio-card">
+            <span class="profile-stat-title">Meccsek</span>
+            <strong id="profileStatMatchRatio">–</strong>
+            <small id="profileStatMatchPct">–</small>
+          </div>
+
+          <div class="stat-card profile-ratio-card">
+            <span class="profile-stat-title">Összesen</span>
+            <strong id="profileStatAllRatio">–</strong>
+            <small id="profileStatAllPct">–</small>
+          </div>
         </div>
+
         <div id="profileStatsEmpty" class="profile-empty-block">
           <b>Még nincs lezárt jelenléti adat.</b>
           <small>A statisztika csak az edző vagy Manager által ténylegesen rögzített jelenlétből számolódik.</small>
         </div>
+
+        <details id="profileStatsMore" class="profile-more-details profile-stats-more" hidden>
+          <summary>
+            <span>További statisztikák</span>
+            <span class="cc-outline-triangle profile-details-chevron" aria-hidden="true"></span>
+          </summary>
+
+          <div class="profile-more-content profile-stats-more-content">
+            <div class="profile-stats-subtitle">Havi bontás</div>
+            <div id="profileStatsMonthly" class="profile-stats-monthly"></div>
+
+            <div class="profile-stats-secondary-row">
+              <span>Aktuális sorozat</span>
+              <b id="profileCurrentStreak">–</b>
+            </div>
+
+            <div class="profile-stats-secondary-row">
+              <span>Leghosszabb sorozat</span>
+              <b id="profileLongestStreak">–</b>
+            </div>
+          </div>
+        </details>
       </div>
 
       <div class="card">
@@ -385,6 +424,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.41-real-profile-data"></script>
+  <script src="./app.js?v=13.5.42-monthly-payments-stats"></script>
 </body>
 </html>
