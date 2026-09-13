@@ -163,7 +163,7 @@ function eventCard(e){
           ${meetingLine}
           ${autoAbsence}
         </div>
-        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong><span>jön</span></div>
+        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length}</strong></div>
       </div>
 
       <div class="slider-wrap">
@@ -1325,7 +1325,7 @@ function eventNoteSection_(e, archived){
   return `
     <details class="event-note-details" ${hasNote?'open':''}>
       <summary>
-        <span class="event-note-summary-label"><span class="event-note-bubble" aria-hidden="true">◯</span> Megjegyzés az edzőnek</span>
+        <span class="event-note-summary-label"><svg class="event-note-bubble" viewBox="0 0 22 20" aria-hidden="true"><path d="M4 3.5h14a2.5 2.5 0 0 1 2.5 2.5v6.5A2.5 2.5 0 0 1 18 15H10l-4.8 3.2V15H4a2.5 2.5 0 0 1-2.5-2.5V6A2.5 2.5 0 0 1 4 3.5Z"/></svg> Megjegyzés az edzőnek</span>
         <span class="cc-outline-triangle event-note-triangle" aria-hidden="true"></span>
       </summary>
       <div class="event-note-content">

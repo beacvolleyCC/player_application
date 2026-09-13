@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-33-exact-filter-triangles';
+const CACHE='club-control-player-v2-3-5-37-consolidated-post-triangle';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

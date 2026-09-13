@@ -1,6 +1,6 @@
 {
-  "name": "Club Control – Versenycsapat",
-  "short_name": "Club Control",
+  "name": "Club Control Player",
+  "short_name": "CC Player",
   "description": "Club Control Player alkalmazás versenycsapatoknak.",
   "start_url": "./",
   "scope": "./",
