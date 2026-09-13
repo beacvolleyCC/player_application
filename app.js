@@ -510,28 +510,41 @@ function profileNormalizePeriodKey_(fee){
 }
 
 function profileSeasonMonths_(){
-  const set=new Set(
-    events
-      .map(e=>String(e.date||'').slice(0,7))
-      .filter(key=>/^\d{4}-\d{2}$/.test(key))
-  );
+  const season=String(currentTeamData?.season||'').trim();
+  const match=season.match(/^(\d{4})\D+(\d{2,4})$/);
 
-  const current=profileBudapestMonthKey_();
-  set.add(current);
+  if(match){
+    const startYear=Number(match[1]);
+    const months=[];
 
-  if(!set.size){
-    const season=String(currentTeamData?.season||'');
-    const m=season.match(/^(\d{4})\D+(\d{2,4})$/);
-    if(m){
-      const start=Number(m[1]);
-      for(let month=9;month<=12;month++) set.add(`${start}-${String(month).padStart(2,'0')}`);
-      for(let month=1;month<=5;month++) set.add(`${start+1}-${String(month).padStart(2,'0')}`);
+    // Club season: September -> August, all 12 months.
+    for(let month=9;month<=12;month++){
+      months.push(`${startYear}-${String(month).padStart(2,'0')}`);
     }
+    for(let month=1;month<=8;month++){
+      months.push(`${startYear+1}-${String(month).padStart(2,'0')}`);
+    }
+
+    return months;
   }
 
-  return [...set].sort();
-}
+  // Fallback: 12-month window around the current club year,
+  // still keeping all existing event months if season metadata is missing.
+  const current=profileBudapestMonthKey_();
+  const currentYear=Number(current.slice(0,4));
+  const currentMonth=Number(current.slice(5,7));
+  const startYear=currentMonth>=9 ? currentYear : currentYear-1;
+  const months=[];
 
+  for(let month=9;month<=12;month++){
+    months.push(`${startYear}-${String(month).padStart(2,'0')}`);
+  }
+  for(let month=1;month<=8;month++){
+    months.push(`${startYear+1}-${String(month).padStart(2,'0')}`);
+  }
+
+  return months;
+}
 function profilePaymentCell_(fee,monthKey,kind){
   const current=profileBudapestMonthKey_();
   const future=monthKey>current;

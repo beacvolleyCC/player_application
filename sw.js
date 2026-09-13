@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-44-compact-profile-rows';
+const CACHE='club-control-player-v2-3-5-45-settings-full-season-months';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

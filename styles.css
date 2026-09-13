@@ -5040,3 +5040,54 @@ body.planner-grid-page-lock{
   color:#e7c85d !important;
   border-color:#6f5c22 !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.45 — SETTINGS / PAYMENT MONTHS
+   ========================================================== */
+
+/* Settings row is self-evidently clickable; no disclosure triangle. */
+.settings-row-triangle{
+  display:none !important;
+}
+
+/* Payment month columns: more compact so more months fit on screen. */
+.profile-payment-matrix th,
+.profile-payment-matrix td{
+  min-width:104px !important;
+  padding-left:7px !important;
+  padding-right:7px !important;
+}
+
+.profile-payment-matrix thead th{
+  height:34px !important;
+  font-size:8px !important;
+  letter-spacing:.015em !important;
+}
+
+.profile-payment-matrix .profile-payment-row-label{
+  min-width:80px !important;
+  width:80px !important;
+  max-width:80px !important;
+}
+
+.profile-pay-state{
+  font-size:8px !important;
+}
+
+.profile-pay-state + small{
+  font-size:7.5px !important;
+}
+
+@media(max-width:420px){
+  .profile-payment-matrix th,
+  .profile-payment-matrix td{
+    min-width:98px !important;
+  }
+
+  .profile-payment-matrix .profile-payment-row-label{
+    min-width:76px !important;
+    width:76px !important;
+    max-width:76px !important;
+  }
+}
