@@ -4447,3 +4447,26 @@ body.planner-grid-page-lock{
 .transposed-matrix .matrix-event-copy small{
   margin-top:2px !important;
 }
+
+
+/* PLAYER V2.3.5.40 — Menetrend grid month labels left aligned */
+.matrix-month-divider .month-divider{
+  justify-content:flex-start !important;
+  text-align:left !important;
+}
+.matrix-month-divider .month-divider::before{
+  content:none !important;
+  display:none !important;
+}
+.matrix-month-divider .month-divider::after{
+  content:"" !important;
+  display:block !important;
+  height:1px !important;
+  background:var(--line) !important;
+  flex:1 1 auto !important;
+}
+.matrix-month-divider .month-divider span{
+  flex:0 0 auto !important;
+  text-align:left !important;
+  margin-left:0 !important;
+}
