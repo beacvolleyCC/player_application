@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-26-future-default';
+const CACHE='club-control-player-v2-3-5-27-matrix-scroll-fix';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

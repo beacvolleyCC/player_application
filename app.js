@@ -674,18 +674,20 @@ function syncPlannerGridViewport_(){
   // Synchronous sizing: autoposition runs only after this has finished.
   scroller.style.removeProperty('height');
   scroller.style.removeProperty('max-height');
-  scroller.style.overflowY='visible';
+  scroller.style.setProperty('overflow-y','visible','important');
 
   const contentHeight=scroller.scrollHeight;
 
   if(contentHeight>available){
-    scroller.style.height=`${available}px`;
-    scroller.style.maxHeight=`${available}px`;
-    scroller.style.overflowY='auto';
+    // Historical planner CSS uses !important, therefore these runtime values
+    // must also be written as important or iOS keeps overflow-y: visible.
+    scroller.style.setProperty('height',`${available}px`,'important');
+    scroller.style.setProperty('max-height',`${available}px`,'important');
+    scroller.style.setProperty('overflow-y','auto','important');
   }else{
     scroller.style.removeProperty('height');
     scroller.style.removeProperty('max-height');
-    scroller.style.overflowY='visible';
+    scroller.style.setProperty('overflow-y','visible','important');
   }
 }
 
