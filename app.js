@@ -728,7 +728,7 @@ function askCancel(event){
 }
 
 function setYes(event){
-  persist(event,'yes','');
+  persist(event,'yes',event.note||'');
   
 /* V11 FIX10 — no accidental double-tap or pinch zoom */
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
@@ -745,7 +745,7 @@ function neutralizeEvent(ev){
     const ok = confirm('Már jelezted, hogy jössz. Biztosan visszaállítod „Nincs jelzés” állapotra?');
     if(!ok) return;
   }
-  persist(ev,null,'');
+  persist(ev,null,ev.note||'');
   renderEvents();
   renderPlanner();
 }
@@ -1206,16 +1206,19 @@ function defaultSettingsPayload_(){
     language:'hu',
     detailedMode:localStorage.getItem('cc-detailed-mode')==='true',
     notifications:{
-      new_training:true,training_change:true,missing_response:true,training_reminder_minutes:120,
-      new_match:true,match_change:true,match_reminder_minutes:180,payment:true
+      new_training:true,
+      training_change:true,
+      weekly_response_reminder:true,
+      same_day_response_reminder:true,
+      new_match:true,
+      match_change:true,
+      payment:true
     }
   };
 }
 function collectSettingsUi_(){
   const notifications={};
   document.querySelectorAll('[data-notify-setting]').forEach(input=>{ notifications[input.dataset.notifySetting]=!!input.checked; });
-  notifications.training_reminder_minutes=Number(document.getElementById('trainingReminderMinutes')?.value||0);
-  notifications.match_reminder_minutes=Number(document.getElementById('matchReminderMinutes')?.value||0);
   return {
     theme:document.getElementById('settingsThemeMode')?.value||'system',
     scheduleDefaultView:document.getElementById('settingsDefaultView')?.value||'last',
@@ -1233,9 +1236,6 @@ function applySettingsUi_(value){
   Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id); if(el) el.value=val;});
   const detail=document.getElementById('settingsDetailToggle'); if(detail) detail.checked=!!settings.detailedMode;
   document.querySelectorAll('[data-notify-setting]').forEach(input=>{ input.checked=settings.notifications[input.dataset.notifySetting]!==false; });
-  const train=document.getElementById('trainingReminderMinutes'), match=document.getElementById('matchReminderMinutes');
-  if(train) train.value=String(settings.notifications.training_reminder_minutes ?? 120);
-  if(match) match.value=String(settings.notifications.match_reminder_minutes ?? 180);
 }
 async function savePlayerSettingsNow_(){
   const settings=collectSettingsUi_();
@@ -1290,7 +1290,7 @@ document.getElementById('settingsThemeMode')?.addEventListener('change',e=>{
   scheduleSettingsSave_();
 });
 document.getElementById('settingsLanguage')?.addEventListener('change',scheduleSettingsSave_);
-document.querySelectorAll('[data-notify-setting],#trainingReminderMinutes,#matchReminderMinutes').forEach(el=>el.addEventListener('change',scheduleSettingsSave_));
+document.querySelectorAll('[data-notify-setting]').forEach(el=>el.addEventListener('change',scheduleSettingsSave_));
 document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=>{
   const old=e.currentTarget.textContent;
   e.currentTarget.textContent='… Frissítés';
@@ -1308,18 +1308,78 @@ document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=
 
 
 const eventDialog=document.getElementById('eventDialog');
+function escapeHtml_(value){
+  return String(value??'')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#039;');
+}
+
 function eventDialogRoster(e){
   return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>`<span class="chip no">${rosterDisplayName_(n)}</span>`).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div></div>`;
 }
+function eventNoteSection_(e, archived){
+  const hasNote=!!String(e.note||'').trim();
+  return `
+    <details class="event-note-details" ${hasNote?'open':''}>
+      <summary>
+        <span class="event-note-summary-label"><span class="event-note-bubble" aria-hidden="true">◯</span> Megjegyzés az edzőnek</span>
+        <span class="cc-outline-triangle event-note-triangle" aria-hidden="true"></span>
+      </summary>
+      <div class="event-note-content">
+        <textarea id="eventCoachNote" ${archived?'disabled':''} maxlength="500" placeholder="Pl. Ma kb. 15 percet kések, mert órám van.">${escapeHtml_(e.note||'')}</textarea>
+        <div class="event-note-actions">
+          ${hasNote && !archived ? `<button class="ghost-btn danger-outline" type="button" data-event-note-delete="${e.id}">Megjegyzés törlése</button>` : ''}
+          ${!archived ? `<button class="ghost-btn primary-note-btn" type="button" data-event-note-save="${e.id}">Megjegyzés mentése</button>` : ''}
+        </div>
+        ${archived ? '<small class="event-note-readonly">Lezárt esemény megjegyzése már nem módosítható.</small>' : ''}
+      </div>
+    </details>`;
+}
+
 function openEventDialog(eventId){
   const e=events.find(x=>x.id===eventId); if(!e) return;
   const archived=isPast(e);
-  document.getElementById('eventDialogContent').innerHTML=`<div class="event-dialog-title"><div class="bare-icon large-symbol">${typeIcon(e)}</div><div><div class="event-type">${typeLabel(e)}</div><h3>${e.title}</h3><p>${e.date} • ${e.day} • ${e.time}</p></div><strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong></div>${detailedMode?`<div class="event-dialog-details"><p><b>Helyszín:</b> ${e.place||'–'}</p>${e.address?`<p>${e.address} ${mapLink(e)}</p>`:''}${e.meeting?`<p><b>Találkozó:</b> ${e.meeting}</p>`:''}</div>`:''}<div class="event-dialog-slider">${plannerStatusControls(e,archived)}</div>${eventDialogRoster(e)}`;
+  document.getElementById('eventDialogContent').innerHTML=
+    `<div class="event-dialog-title">
+      <div class="bare-icon large-symbol">${typeIcon(e)}</div>
+      <div>
+        <div class="event-type">${typeLabel(e)}</div>
+        <h3>${e.title}</h3>
+        <p>${e.date} • ${e.day} • ${e.time}</p>
+      </div>
+      <strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong>
+    </div>
+    ${detailedMode?`<div class="event-dialog-details"><p><b>Helyszín:</b> ${e.place||'–'}</p>${e.address?`<p>${e.address} ${mapLink(e)}</p>`:''}${e.meeting?`<p><b>Találkozó:</b> ${e.meeting}</p>`:''}</div>`:''}
+    <div class="event-dialog-slider">${plannerStatusControls(e,archived)}</div>
+    ${eventNoteSection_(e,archived)}
+    ${eventDialogRoster(e)}`;
   if(!eventDialog.open) eventDialog.showModal();
   bindSliderDrag();
 }
 document.getElementById('closeEventDialogBtn')?.addEventListener('click',()=>eventDialog.close());
 document.getElementById('eventDialogContent')?.addEventListener('click',e=>{
+  const saveBtn=e.target.closest('[data-event-note-save]');
+  if(saveBtn){
+    const ev=events.find(x=>x.id===saveBtn.dataset.eventNoteSave);
+    if(!ev || isPast(ev)) return;
+    const note=document.getElementById('eventCoachNote')?.value.trim()||'';
+    persist(ev,ev.status,note);
+    setTimeout(()=>openEventDialog(ev.id),0);
+    return;
+  }
+
+  const deleteBtn=e.target.closest('[data-event-note-delete]');
+  if(deleteBtn){
+    const ev=events.find(x=>x.id===deleteBtn.dataset.eventNoteDelete);
+    if(!ev || isPast(ev)) return;
+    persist(ev,ev.status,'');
+    setTimeout(()=>openEventDialog(ev.id),0);
+    return;
+  }
+
   const b=e.target.closest('[data-slider-action]'); if(!b) return;
   const ev=events.find(x=>x.id===b.dataset.id); if(!ev || isPast(ev)) return;
   if(b.dataset.sliderAction==='yes') setYes(ev);

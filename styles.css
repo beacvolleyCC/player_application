@@ -4009,3 +4009,193 @@ body.planner-grid-page-lock{
   background:var(--card) !important;
   border-color:var(--line) !important;
 }
+/* ==========================================================
+   PLAYER V2.3.5.32 — PROFILE / SETTINGS / EVENT NOTES
+   ========================================================== */
+
+/* Shared outline triangle, same visual language as filter control. */
+.cc-outline-triangle{
+  display:inline-block;
+  width:0;
+  height:0;
+  border-left:7px solid transparent;
+  border-right:7px solid transparent;
+  border-top:11px solid currentColor;
+  color:var(--muted);
+  transform:rotate(0deg);
+  transform-origin:center;
+  transition:transform .16s ease;
+  flex:0 0 auto;
+}
+
+/* Profile "További adatok": down when closed, flipped when open. */
+.profile-more-details > summary{
+  cursor:pointer;
+}
+.profile-more-details > summary::-webkit-details-marker{
+  display:none;
+}
+.profile-more-details[open] .profile-details-chevron{
+  transform:rotate(180deg);
+}
+
+/* Settings card row */
+.settings-row-main{
+  font-size:11px !important;
+  color:var(--muted) !important;
+  font-weight:700;
+}
+.settings-row-triangle{
+  margin-right:2px;
+}
+
+/* Modal close X */
+.dialog-card{
+  position:relative;
+}
+.dialog-x-btn{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:32px;
+  height:32px;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:var(--muted);
+  font:500 26px/28px system-ui,-apple-system,sans-serif;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  z-index:5;
+}
+.dialog-x-btn:active{
+  background:var(--soft);
+}
+
+/* Settings footer */
+.settings-footer-actions{
+  display:grid;
+  gap:8px;
+  margin-top:12px;
+}
+.settings-wide-btn{
+  width:100%;
+  min-height:42px;
+}
+.danger-outline{
+  border-color:rgba(180,40,32,.28) !important;
+}
+.settings-build-line{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:4px 2px 0;
+  color:var(--muted);
+  font-size:9px;
+}
+.settings-build-line b{
+  font-size:9px;
+  color:var(--muted);
+}
+
+/* Event note accordion */
+.event-note-details{
+  margin:10px 0 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  overflow:hidden;
+  background:var(--card);
+}
+.event-note-details > summary{
+  min-height:42px;
+  padding:10px 11px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  cursor:pointer;
+  list-style:none;
+  font-size:11px;
+  font-weight:750;
+}
+.event-note-details > summary::-webkit-details-marker{
+  display:none;
+}
+.event-note-details[open] .event-note-triangle{
+  transform:rotate(180deg);
+}
+.event-note-summary-label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.event-note-bubble{
+  width:17px;
+  height:14px;
+  border:1.2px solid currentColor;
+  border-radius:7px;
+  color:var(--muted);
+  font-size:0;
+  position:relative;
+}
+.event-note-bubble::after{
+  content:"";
+  position:absolute;
+  left:3px;
+  bottom:-4px;
+  width:5px;
+  height:5px;
+  border-left:1.2px solid currentColor;
+  border-bottom:1.2px solid currentColor;
+  transform:skew(-25deg);
+  background:var(--card);
+}
+.event-note-content{
+  border-top:1px solid var(--line);
+  padding:10px;
+}
+.event-note-content textarea{
+  width:100%;
+  min-height:82px;
+  resize:vertical;
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:9px 10px;
+  background:var(--soft);
+  color:var(--text);
+  font:inherit;
+  font-size:11px;
+  line-height:1.45;
+}
+.event-note-content textarea:focus{
+  outline:2px solid rgba(247,183,0,.28);
+  outline-offset:1px;
+}
+.event-note-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+.primary-note-btn{
+  background:var(--yellow) !important;
+  color:#171717 !important;
+  border-color:rgba(0,0,0,.12) !important;
+  font-weight:800;
+}
+.event-note-readonly{
+  display:block;
+  margin-top:7px;
+  color:var(--muted);
+  font-size:9px;
+}
+
+.dark .event-note-details,
+.dark .event-note-content textarea{
+  background:var(--card);
+}
+.dark .event-note-bubble::after{
+  background:var(--card);
+}
