@@ -494,7 +494,7 @@ function renderGridMatrix(rows){
       </tr>
     </thead>
     <tbody>${body}</tbody>
-  </table></div>`;
+  </table><div class="matrix-end-reserve" aria-hidden="true"></div></div>`;
 }
 
 function scrollGridToCurrent(behavior='auto'){
@@ -646,54 +646,31 @@ function updatePlannerFilterButton_(){
   if(resetBtn) resetBtn.hidden=isDefault;
 }
 
-function applyPlannerScrollerHeight_(scroller,height){
-  if(!scroller || !Number.isFinite(height) || height<=0) return;
-  scroller.style.setProperty('height',`${Math.round(height)}px`,'important');
-  scroller.style.setProperty('max-height',`${Math.round(height)}px`,'important');
-  scroller.style.setProperty('overflow-y','auto','important');
-}
-
 function updatePlannerBottomState_(){
   const scroller=document.getElementById('matrixScroll');
   const card=scroller?.closest('.planner-card');
   if(!scroller || !card) return;
 
-  const fullHeight=Number(scroller.dataset.plannerFullHeight || 0);
-  const scrollable=scroller.scrollHeight > scroller.clientHeight + 2;
-  const atEnd=
-    !scrollable ||
+  // IMPORTANT: visual state only.
+  // Never resize the scroller from a scroll event: that caused iOS feedback loops,
+  // slow scrolling, jumping and ghost frames near the last events.
+  const atTrueEnd=
     scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
 
-  const wasAtEnd=card.classList.contains('planner-at-end');
-
-  if(atEnd){
-    card.classList.add('planner-at-end');
-
-    // Match the visual end spacing of the final cards in the other Player views.
-    // On the reference iPhone layout this is ~84 px above the bottom nav.
-    if(fullHeight>0 && scroller.scrollHeight > fullHeight + 2){
-      const endHeight=Math.max(280,fullHeight-84);
-      if(Math.abs(scroller.clientHeight-endHeight)>1){
-        applyPlannerScrollerHeight_(scroller,endHeight);
-        requestAnimationFrame(()=>{
-          scroller.scrollTop=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
-        });
-      }
-    }
-  }else{
-    card.classList.remove('planner-at-end');
-
-    // While more events remain below, the panel reaches the bottom nav.
-    if(fullHeight>0 && Math.abs(scroller.clientHeight-fullHeight)>1){
-      const previousTop=scroller.scrollTop;
-      applyPlannerScrollerHeight_(scroller,fullHeight);
-      scroller.scrollTop=Math.min(previousTop,Math.max(0,scroller.scrollHeight-scroller.clientHeight));
-    }
-  }
+  card.classList.toggle('planner-at-end',atTrueEnd);
 
   if(!scroller.dataset.panelEndStateBound){
     scroller.dataset.panelEndStateBound='1';
-    scroller.addEventListener('scroll',updatePlannerBottomState_,{passive:true});
+
+    let ticking=false;
+    scroller.addEventListener('scroll',()=>{
+      if(ticking) return;
+      ticking=true;
+      requestAnimationFrame(()=>{
+        ticking=false;
+        updatePlannerBottomState_();
+      });
+    },{passive:true});
   }
 }
 
@@ -721,11 +698,9 @@ function syncPlannerGridViewport_(){
   const rect=scroller.getBoundingClientRect();
   const navTop=bottomNav.getBoundingClientRect().top;
 
-  // Normal scrolling state visually continues right to the fixed bottom nav.
-  const available=Math.max(280,Math.floor(navTop-rect.top+1));
-  scroller.dataset.plannerFullHeight=String(available);
+  // Stable viewport: this height NEVER changes while the user is scrolling.
+  const available=Math.max(280,Math.floor(navTop-rect.top));
 
-  // Synchronous sizing: measure from the full/non-end geometry first.
   const cardForSync=scroller.closest('.planner-card');
   if(cardForSync) cardForSync.classList.remove('planner-at-end');
 
@@ -733,15 +708,18 @@ function syncPlannerGridViewport_(){
   scroller.style.removeProperty('max-height');
   scroller.style.setProperty('overflow-y','visible','important');
 
-  const contentHeight=scroller.scrollHeight;
+  const endReserve=scroller.querySelector('.matrix-end-reserve')?.offsetHeight || 0;
+  const contentHeight=Math.max(0,scroller.scrollHeight-endReserve);
 
   if(contentHeight>available){
     // Historical planner CSS uses !important, therefore these runtime values
     // must also be written as important or iOS keeps overflow-y: visible.
+    scroller.classList.add('matrix-has-vertical-scroll');
     scroller.style.setProperty('height',`${available}px`,'important');
     scroller.style.setProperty('max-height',`${available}px`,'important');
     scroller.style.setProperty('overflow-y','auto','important');
   }else{
+    scroller.classList.remove('matrix-has-vertical-scroll');
     scroller.style.removeProperty('height');
     scroller.style.removeProperty('max-height');
     scroller.style.setProperty('overflow-y','visible','important');

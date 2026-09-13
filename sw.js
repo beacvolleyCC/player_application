@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-29-panel-geometry-final';
+const CACHE='club-control-player-v2-3-5-30-stable-panel-end';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
