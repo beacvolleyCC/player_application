@@ -3858,3 +3858,8 @@ body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix){
   border-radius:15px !important;
   overflow:hidden !important;
 }
+
+
+/* V2.3.5.26
+   Menetrend default dataset is current/ongoing + future only.
+   No visual restyling in this build. */

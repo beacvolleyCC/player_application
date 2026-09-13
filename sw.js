@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-25-final-planner-start';
+const CACHE='club-control-player-v2-3-5-26-future-default';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.25-final-planner-start">
+  <link rel="stylesheet" href="./styles.css?v=13.5.26-future-default">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -153,6 +153,11 @@
 
       <div class="planner-toolbar filter-panel is-collapsed" id="plannerFilterPanel" aria-hidden="true">
         <div class="filter-bar compact-filters">
+          <select id="plannerPeriodFilter" aria-label="Időszak">
+            <option value="upcoming" selected>Aktuális és következő</option>
+            <option value="past">Elmúlt alkalmak</option>
+            <option value="all">Teljes szezon</option>
+          </select>
           <select id="monthFilter" aria-label="Hónap">
             <option value="all">Teljes szezon</option>
             <option value="Szept">Szeptember</option>
@@ -354,6 +359,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.25-final-planner-start"></script>
+  <script src="./app.js?v=13.5.26-future-default"></script>
 </body>
 </html>

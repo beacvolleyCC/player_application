@@ -75,14 +75,40 @@ function persist(event, status, note='') {
 function eventStart(e){
   const parts=e.date.replace(/\.$/,'').split('.').filter(Boolean).map(Number);
   const [y,m,d]=parts;
-  const timePart=(e.time.match(/(\d{1,2}):(\d{2})/)||[]).slice(1);
-  const hh=Number(timePart[0]||23), mm=Number(timePart[1]||59);
+  const times=[...String(e.time||'').matchAll(/(\d{1,2}):(\d{2})/g)];
+  const start=times[0];
+  const hh=Number(start?.[1]||23), mm=Number(start?.[2]||59);
   return new Date(y,m-1,d,hh,mm,0);
 }
+
+function eventEnd(e){
+  const parts=e.date.replace(/\.$/,'').split('.').filter(Boolean).map(Number);
+  const [y,m,d]=parts;
+  const times=[...String(e.time||'').matchAll(/(\d{1,2}):(\d{2})/g)];
+
+  const start=times[0];
+  const end=times[1] || start;
+
+  const startHour=Number(start?.[1]||23);
+  const startMinute=Number(start?.[2]||59);
+  const endHour=Number(end?.[1] ?? startHour);
+  const endMinute=Number(end?.[2] ?? startMinute);
+
+  const startDate=new Date(y,m-1,d,startHour,startMinute,0);
+  const endDate=new Date(y,m-1,d,endHour,endMinute,0);
+
+  // Handles the rare case of an event that ends after midnight.
+  if(endDate < startDate) endDate.setDate(endDate.getDate()+1);
+
+  return endDate;
+}
+
 function isPast(e){
   const liveApi = ccRemoteConfigured_();
   const now = liveApi ? new Date() : DEMO_NOW;
-  return e.archived===true || eventStart(e) < now;
+
+  // An ongoing event is NOT past. It becomes past only after its scheduled end.
+  return e.archived===true || eventEnd(e) <= now;
 }
 
 function cardClass(e){
@@ -311,9 +337,17 @@ function plannerStatusControls(e, archived){
   </div>`;
 }
 function filteredPlannerEvents(){
-  const mf = document.getElementById('monthFilter').value;
-  const tf = document.getElementById('typeFilter').value;
+  const pf = document.getElementById('plannerPeriodFilter')?.value || 'upcoming';
+  const mf = document.getElementById('monthFilter')?.value || 'all';
+  const tf = document.getElementById('typeFilter')?.value || 'all';
+
   return events.filter(e => {
+    const past=isPast(e);
+
+    // Default: current/ongoing event + future events only.
+    if(pf==='upcoming' && past) return false;
+    if(pf==='past' && !past) return false;
+
     if(mf!=='all' && e.month!==mf) return false;
     if(tf!=='all' && e.type!==tf) return false;
     if(missingOnly && e.status!==null) return false;
@@ -423,7 +457,9 @@ function renderGridMatrix(rows){
     const archived=isPast(e);
     const count=(e.yes||[]).length;
     const monthKey=monthKeyFromDate(eventDateObj(e));
-    const divider=monthKey!==lastMonth
+    // Do not put a month divider above the very first visible event.
+    // The default Menetrend should start directly with the current/next event.
+    const divider=(rowIndex>0 && monthKey!==lastMonth)
       ? `<tr class="matrix-month-divider"><td colspan="${2+people.length}">${monthDividerHtml_(e)}</td></tr>`
       : '';
     lastMonth=monthKey;
@@ -597,9 +633,10 @@ function scrollPlannerToNearest(rows, behavior='auto'){
 }
 
 function plannerFilterIsDefault_(){
+  const period=document.getElementById('plannerPeriodFilter')?.value || 'upcoming';
   const month=document.getElementById('monthFilter')?.value || 'all';
   const type=document.getElementById('typeFilter')?.value || 'all';
-  return month==='all' && type==='all' && !missingOnly;
+  return period==='upcoming' && month==='all' && type==='all' && !missingOnly;
 }
 function updatePlannerFilterButton_(){
   const isDefault=plannerFilterIsDefault_();
@@ -844,10 +881,24 @@ document.getElementById('resetEventFiltersBtn')?.addEventListener('click',()=>{
 });
 
 document.getElementById('plannerFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel'));
-['monthFilter','typeFilter'].forEach(id=>{
+['plannerPeriodFilter','monthFilter','typeFilter'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change',()=>{
-    if(plannerMode==='calendar') calendarCursor=initialCalendarCursor(filteredPlannerEvents());
+    const rows=filteredPlannerEvents();
+
+    if(plannerMode==='calendar'){
+      calendarCursor=initialCalendarCursor(rows);
+    }
+
     renderPlanner();
+
+    // Default/upcoming always begins at the first visible event.
+    if(plannerMode==='grid'){
+      requestAnimationFrame(()=>{
+        const scroller=document.getElementById('matrixScroll');
+        if(scroller) scroller.scrollTop=0;
+      });
+    }
+
     toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);
   });
 });
@@ -859,10 +910,12 @@ document.getElementById('missingOnlyBtn')?.addEventListener('click',e=>{
 });
 
 document.getElementById('resetPlannerFiltersBtn')?.addEventListener('click',()=>{
+  const period=document.getElementById('plannerPeriodFilter');
   const month=document.getElementById('monthFilter');
   const type=document.getElementById('typeFilter');
   const missing=document.getElementById('missingOnlyBtn');
 
+  if(period) period.value='upcoming';
   if(month) month.value='all';
   if(type) type.value='all';
 
@@ -896,21 +949,16 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
     syncPlannerGridViewport_();
 
     requestAnimationFrame(()=>{
-      // First visible event row = current/next training.
-      scrollPlannerToNearest(rows,'auto');
+      // Default Menetrend is already filtered to current + future.
+      // Therefore its first row is the correct starting point.
+      const scroller=document.getElementById('matrixScroll');
+      if(scroller) scroller.scrollTop=0;
+
+      plannerList.classList.remove('planner-prepositioning');
 
       requestAnimationFrame(()=>{
-        // iOS/PWA sometimes settles one frame later.
         forcePlannerPageTop_();
-        syncPlannerGridViewport_();
-        scrollPlannerToNearest(rows,'auto');
-
-        plannerList.classList.remove('planner-prepositioning');
-
-        requestAnimationFrame(()=>{
-          forcePlannerPageTop_();
-          plannerAutoPositioning=false;
-        });
+        plannerAutoPositioning=false;
       });
     });
   });
