@@ -646,16 +646,50 @@ function updatePlannerFilterButton_(){
   if(resetBtn) resetBtn.hidden=isDefault;
 }
 
+function applyPlannerScrollerHeight_(scroller,height){
+  if(!scroller || !Number.isFinite(height) || height<=0) return;
+  scroller.style.setProperty('height',`${Math.round(height)}px`,'important');
+  scroller.style.setProperty('max-height',`${Math.round(height)}px`,'important');
+  scroller.style.setProperty('overflow-y','auto','important');
+}
+
 function updatePlannerBottomState_(){
   const scroller=document.getElementById('matrixScroll');
   const card=scroller?.closest('.planner-card');
   if(!scroller || !card) return;
 
+  const fullHeight=Number(scroller.dataset.plannerFullHeight || 0);
+  const scrollable=scroller.scrollHeight > scroller.clientHeight + 2;
   const atEnd=
-    scroller.scrollHeight <= scroller.clientHeight + 2 ||
+    !scrollable ||
     scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
 
-  card.classList.toggle('planner-at-end',atEnd);
+  const wasAtEnd=card.classList.contains('planner-at-end');
+
+  if(atEnd){
+    card.classList.add('planner-at-end');
+
+    // Match the visual end spacing of the final cards in the other Player views.
+    // On the reference iPhone layout this is ~84 px above the bottom nav.
+    if(fullHeight>0 && scroller.scrollHeight > fullHeight + 2){
+      const endHeight=Math.max(280,fullHeight-84);
+      if(Math.abs(scroller.clientHeight-endHeight)>1){
+        applyPlannerScrollerHeight_(scroller,endHeight);
+        requestAnimationFrame(()=>{
+          scroller.scrollTop=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+        });
+      }
+    }
+  }else{
+    card.classList.remove('planner-at-end');
+
+    // While more events remain below, the panel reaches the bottom nav.
+    if(fullHeight>0 && Math.abs(scroller.clientHeight-fullHeight)>1){
+      const previousTop=scroller.scrollTop;
+      applyPlannerScrollerHeight_(scroller,fullHeight);
+      scroller.scrollTop=Math.min(previousTop,Math.max(0,scroller.scrollHeight-scroller.clientHeight));
+    }
+  }
 
   if(!scroller.dataset.panelEndStateBound){
     scroller.dataset.panelEndStateBound='1';
@@ -686,9 +720,15 @@ function syncPlannerGridViewport_(){
 
   const rect=scroller.getBoundingClientRect();
   const navTop=bottomNav.getBoundingClientRect().top;
-  const available=Math.max(280,Math.floor(navTop-rect.top-2));
 
-  // Synchronous sizing: autoposition runs only after this has finished.
+  // Normal scrolling state visually continues right to the fixed bottom nav.
+  const available=Math.max(280,Math.floor(navTop-rect.top+1));
+  scroller.dataset.plannerFullHeight=String(available);
+
+  // Synchronous sizing: measure from the full/non-end geometry first.
+  const cardForSync=scroller.closest('.planner-card');
+  if(cardForSync) cardForSync.classList.remove('planner-at-end');
+
   scroller.style.removeProperty('height');
   scroller.style.removeProperty('max-height');
   scroller.style.setProperty('overflow-y','visible','important');
