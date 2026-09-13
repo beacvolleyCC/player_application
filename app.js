@@ -334,36 +334,11 @@ function profileEventStamp_(item){
   return `${event.date||''}T${event.start||event.time||'00:00'}`;
 }
 
-function profileAttendanceStreaks_(rows){
-  const sorted=[...rows].sort((a,b)=>profileEventStamp_(a).localeCompare(profileEventStamp_(b)));
-  let longest=0;
-  let run=0;
-
-  sorted.forEach(item=>{
-    if(item.status==='present'){
-      run+=1;
-      longest=Math.max(longest,run);
-    }else{
-      run=0;
-    }
-  });
-
-  let current=0;
-  for(let i=sorted.length-1;i>=0;i--){
-    if(sorted[i].status==='present') current+=1;
-    else break;
-  }
-
-  return {current,longest};
-}
-
 function renderProfileStats_(){
   const grid=document.getElementById('profileStatsGrid');
   const empty=document.getElementById('profileStatsEmpty');
   const more=document.getElementById('profileStatsMore');
   const monthly=document.getElementById('profileStatsMonthly');
-  const currentStreakEl=document.getElementById('profileCurrentStreak');
-  const longestStreakEl=document.getElementById('profileLongestStreak');
 
   const rows=profileAttendanceRows_();
 
@@ -417,18 +392,6 @@ function renderProfileStats_(){
         </div>`;
       })
       .join('');
-  }
-
-  const streaks=profileAttendanceStreaks_(rows);
-  if(currentStreakEl){
-    currentStreakEl.textContent=streaks.current
-      ? `${streaks.current} alkalom óta minden eseményen részt vett`
-      : 'Nincs aktív részvételi sorozat';
-  }
-  if(longestStreakEl){
-    longestStreakEl.textContent=streaks.longest
-      ? `${streaks.longest} egymást követő alkalom`
-      : '–';
   }
 
   if(grid) grid.hidden=false;
@@ -545,31 +508,57 @@ function profileSeasonMonths_(){
 
   return months;
 }
-function profilePaymentCell_(fee,monthKey,kind){
-  const current=profileBudapestMonthKey_();
-  const future=monthKey>current;
-
-  if(!fee){
-    if(future){
-      return `<span class="profile-pay-state future">–</span>`;
-    }
-    return `<span class="profile-pay-state due"><span aria-hidden="true">○</span> Nincs befizetve</span>`;
-  }
-
-  const status=String(fee.status||'due');
-  const amount=(fee.amountHuf===null || fee.amountHuf===undefined || fee.amountHuf==='')
-    ? ''
-    : `<small>${escapeHtml_(profileMoney_(fee.amountHuf))}</small>`;
-
-  if(status==='paid'){
-    return `<span class="profile-pay-state paid"><span aria-hidden="true">✓</span> Befizetve</span>${amount}`;
-  }
-  if(status==='waived'){
-    return `<span class="profile-pay-state waived"><span aria-hidden="true">–</span> Elengedve</span>${amount}`;
-  }
-  return `<span class="profile-pay-state due"><span aria-hidden="true">○</span> Nincs befizetve</span>${amount}`;
+function profilePaymentDueDate_(fee,monthKey){
+  const explicit=String(fee?.dueDate||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(explicit) return `${explicit[1]}-${explicit[2]}-${explicit[3]}`;
+  return `${monthKey}-15`;
 }
 
+function profileBudapestDateKey_(){
+  const parts=new Intl.DateTimeFormat('en',{
+    timeZone:'Europe/Budapest',
+    year:'numeric',
+    month:'2-digit',
+    day:'2-digit'
+  }).formatToParts(new Date());
+
+  const year=parts.find(p=>p.type==='year')?.value || String(new Date().getFullYear());
+  const month=parts.find(p=>p.type==='month')?.value || String(new Date().getMonth()+1).padStart(2,'0');
+  const day=parts.find(p=>p.type==='day')?.value || String(new Date().getDate()).padStart(2,'0');
+  return `${year}-${month}-${day}`;
+}
+
+function profilePaymentCellState_(fee,monthKey){
+  const status=String(fee?.status||'').toLowerCase();
+
+  if(status==='paid') return 'paid';
+  if(status==='waived') return 'waived';
+
+  const dueDate=profilePaymentDueDate_(fee,monthKey);
+  return profileBudapestDateKey_()>dueDate ? 'late' : 'pending';
+}
+
+function profilePaymentCell_(fee,monthKey){
+  const state=profilePaymentCellState_(fee,monthKey);
+
+  if(state==='paid'){
+    return `<span class="profile-pay-symbol paid" title="Befizetve" aria-label="Befizetve">✓</span>`;
+  }
+
+  if(state==='late'){
+    return `<span class="profile-pay-symbol late" title="Lejárt határidő, nincs befizetve" aria-label="Lejárt határidő, nincs befizetve">!</span>`;
+  }
+
+  if(state==='waived'){
+    return `<span class="profile-pay-symbol waived" title="Elengedve" aria-label="Elengedve">–</span>`;
+  }
+
+  return `<span class="profile-pay-symbol pending" title="Még nincs befizetve" aria-label="Még nincs befizetve">–</span>`;
+}
+
+function profilePaymentCellClass_(fee,monthKey){
+  return `payment-${profilePaymentCellState_(fee,monthKey)}`;
+}
 function profileScrollPaymentsToCurrent_(){
   const scroller=document.getElementById('profilePaymentMatrixScroll');
   if(!scroller) return;
@@ -605,31 +594,28 @@ function renderProfilePayments_(){
 
   const monthHead=months.map(key=>
     `<th data-payment-month="${escapeHtml_(key)}" class="${key===profileBudapestMonthKey_()?'is-current':''}">
-      <span>${escapeHtml_(profileMonthName_(key,false))}</span>
+      <span>${escapeHtml_(profileMonthName_(key,true))}</span>
     </th>`
   ).join('');
 
   const rowHtml=(label,type)=>`
     <tr>
       <th class="profile-payment-row-label">${escapeHtml_(label)}</th>
-      ${months.map(key=>
-        `<td class="${key===profileBudapestMonthKey_()?'is-current':''}">
-          ${profilePaymentCell_(monthly.get(`${type}|${key}`),key,type)}
-        </td>`
-      ).join('')}
+      ${months.map(key=>{
+        const fee=monthly.get(`${type}|${key}`);
+        const currentClass=key===profileBudapestMonthKey_()?'is-current':'';
+        const stateClass=profilePaymentCellClass_(fee,key);
+        return `<td class="${currentClass} ${stateClass}">
+          ${profilePaymentCell_(fee,key)}
+        </td>`;
+      }).join('')}
     </tr>`;
 
   let permissionHtml='';
-  if(permission){
-    const status=String(permission.status||'due');
-    const cls=status==='paid'?'paid':status==='waived'?'waived':'due';
-    const icon=status==='paid'?'✓':status==='waived'?'–':'○';
-    permissionHtml=`<span class="profile-payment-status profile-permission-status ${cls}">
-      <span aria-hidden="true">${icon}</span>
-      ${escapeHtml_(profileFeeStatusLabel_(status))}
-    </span>`;
+  if(permission && String(permission.status||'')==='paid'){
+    permissionHtml=`<span class="profile-permission-symbol paid" title="Befizetve" aria-label="Befizetve">✓</span>`;
   }else{
-    permissionHtml=`<span class="profile-payment-status profile-permission-status due"><span aria-hidden="true">○</span> Nincs befizetve</span>`;
+    permissionHtml=`<span class="profile-permission-symbol pending" title="Nincs befizetve" aria-label="Nincs befizetve">–</span>`;
   }
 
   box.className='profile-payments-v2';

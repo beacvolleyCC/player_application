@@ -5186,3 +5186,136 @@ body.planner-grid-page-lock{
     max-width:64px !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.47 — PAYMENT SYMBOLS + STATS CLEANUP
+   ========================================================== */
+
+.profile-payment-matrix th,
+.profile-payment-matrix td{
+  min-width:62px !important;
+  width:62px !important;
+  max-width:62px !important;
+  height:43px !important;
+  padding:4px 3px !important;
+  text-align:center !important;
+}
+
+.profile-payment-matrix thead th{
+  height:28px !important;
+  padding:3px !important;
+  font-size:7.5px !important;
+  letter-spacing:0 !important;
+  text-align:center !important;
+}
+
+.profile-payment-matrix .profile-payment-row-label{
+  min-width:58px !important;
+  width:58px !important;
+  max-width:58px !important;
+  padding-left:1px !important;
+  padding-right:4px !important;
+  font-size:8.5px !important;
+  text-align:left !important;
+}
+
+.profile-payment-matrix thead th.is-current{
+  background:var(--soft) !important;
+}
+
+.profile-payment-matrix td.is-current{
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 12%,transparent);
+}
+
+.profile-payment-matrix td.payment-paid{
+  background:#e8f5eb !important;
+}
+
+.profile-payment-matrix td.payment-late{
+  background:#fde9e7 !important;
+}
+
+.profile-payment-matrix td.payment-pending,
+.profile-payment-matrix td.payment-waived{
+  background:var(--card) !important;
+}
+
+.dark .profile-payment-matrix td.payment-paid{
+  background:#15271a !important;
+}
+
+.dark .profile-payment-matrix td.payment-late{
+  background:#311817 !important;
+}
+
+.profile-pay-symbol{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  height:24px;
+  margin:auto;
+  font-size:16px;
+  line-height:1;
+  font-weight:950;
+}
+
+.profile-pay-symbol.paid{
+  color:var(--green);
+}
+
+.profile-pay-symbol.late{
+  color:#c63a2d;
+}
+
+.profile-pay-symbol.pending,
+.profile-pay-symbol.waived{
+  color:var(--muted);
+}
+
+.profile-permission-row.detail-row{
+  min-height:34px !important;
+  margin-top:5px !important;
+  padding-top:5px !important;
+  gap:7px !important;
+}
+
+.profile-permission-symbol{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:21px;
+  height:21px;
+  font-size:16px;
+  line-height:1;
+  font-weight:950;
+}
+
+.profile-permission-symbol.paid{
+  color:var(--green);
+}
+
+.profile-permission-symbol.pending{
+  color:var(--muted);
+}
+
+.profile-permission-status,
+.profile-payment-status.profile-permission-status{
+  display:none !important;
+}
+
+@media(max-width:420px){
+  .profile-payment-matrix th,
+  .profile-payment-matrix td{
+    min-width:58px !important;
+    width:58px !important;
+    max-width:58px !important;
+  }
+
+  .profile-payment-matrix .profile-payment-row-label{
+    min-width:54px !important;
+    width:54px !important;
+    max-width:54px !important;
+  }
+}

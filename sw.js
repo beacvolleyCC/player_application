@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-46-compact-payment-matrix';
+const CACHE='club-control-player-v2-3-5-47-payment-symbols-stats-cleanup';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
