@@ -646,6 +646,23 @@ function updatePlannerFilterButton_(){
   if(resetBtn) resetBtn.hidden=isDefault;
 }
 
+function updatePlannerBottomState_(){
+  const scroller=document.getElementById('matrixScroll');
+  const card=scroller?.closest('.planner-card');
+  if(!scroller || !card) return;
+
+  const atEnd=
+    scroller.scrollHeight <= scroller.clientHeight + 2 ||
+    scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
+
+  card.classList.toggle('planner-at-end',atEnd);
+
+  if(!scroller.dataset.panelEndStateBound){
+    scroller.dataset.panelEndStateBound='1';
+    scroller.addEventListener('scroll',updatePlannerBottomState_,{passive:true});
+  }
+}
+
 function syncPlannerGridViewport_(){
   const plannerView=document.getElementById('plannerView');
   const scroller=document.getElementById('matrixScroll');
@@ -689,6 +706,8 @@ function syncPlannerGridViewport_(){
     scroller.style.removeProperty('max-height');
     scroller.style.setProperty('overflow-y','visible','important');
   }
+
+  updatePlannerBottomState_();
 }
 
 function hidePlannerFloatingHeader_(){}
@@ -720,6 +739,7 @@ function renderPlanner(){
       markCalendarToday();
     }else{
       syncPlannerGridViewport_();
+      updatePlannerBottomState_();
     }
   });
 }

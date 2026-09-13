@@ -3863,3 +3863,48 @@ body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix){
 /* V2.3.5.26
    Menetrend default dataset is current/ongoing + future only.
    No visual restyling in this build. */
+/* ==========================================================
+   PLAYER V2.3.5.28 — MENETREND PANEL END STATE
+   ONLY visual bottom-state handling.
+   ========================================================== */
+
+body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix){
+  position:relative !important;
+}
+
+/* While there are more events below:
+   - no rounded lower corners
+   - no visible gap before the fixed bottom nav
+   - visually continues beneath the nav, just like a scrolling list */
+body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix):not(.planner-at-end){
+  border-bottom-left-radius:0 !important;
+  border-bottom-right-radius:0 !important;
+  border-bottom-color:transparent !important;
+  overflow:visible !important;
+}
+
+body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix):not(.planner-at-end)::after{
+  content:"";
+  position:absolute;
+  left:-1px;
+  right:-1px;
+  bottom:-4px;
+  height:5px;
+  background:var(--card);
+  border-left:1px solid var(--line);
+  border-right:1px solid var(--line);
+  pointer-events:none;
+  z-index:1;
+}
+
+/* At the real end of the event list:
+   restore the normal card ending used elsewhere in Player. */
+body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix).planner-at-end{
+  border-radius:15px !important;
+  border-bottom-color:var(--line) !important;
+  overflow:hidden !important;
+}
+
+body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix).planner-at-end::after{
+  content:none !important;
+}
