@@ -494,7 +494,7 @@ function renderGridMatrix(rows){
       </tr>
     </thead>
     <tbody>${body}</tbody>
-  </table><div class="matrix-end-reserve" aria-hidden="true"></div></div>`;
+  </table></div>`;
 }
 
 function scrollGridToCurrent(behavior='auto'){
@@ -595,32 +595,25 @@ function scrollPlannerToNearest(rows, behavior='auto'){
   if(!next) return;
 
   if(plannerMode==='grid'){
-    const scroller=document.getElementById('matrixScroll');
-    const row=scroller?.querySelector(`[data-grid-event="${next.id}"]`);
-    if(!scroller || !row) return;
+    const viewport=document.getElementById('plannerScrollViewport');
+    const row=viewport?.querySelector(`[data-grid-event="${next.id}"]`);
+    if(!viewport || !row) return;
 
-    const head=scroller.querySelector('thead');
-
-    // Keep the page itself at the top.
     forcePlannerPageTop_();
 
-    // Use element geometry only inside the matrix scroller.
-    const scrollerRect=scroller.getBoundingClientRect();
+    const viewportRect=viewport.getBoundingClientRect();
     const rowRect=row.getBoundingClientRect();
+    const head=viewport.querySelector('thead');
     const target=Math.max(
       0,
-      scroller.scrollTop +
-      (rowRect.top-scrollerRect.top) -
+      viewport.scrollTop +
+      (rowRect.top-viewportRect.top) -
       (head?.offsetHeight || 0) -
       2
     );
 
-    if(behavior==='auto'){
-      scroller.scrollTop=target;
-    }else{
-      scroller.scrollTo({top:target,behavior});
-    }
-
+    if(behavior==='auto') viewport.scrollTop=target;
+    else viewport.scrollTo({top:target,behavior});
     return;
   }
 
@@ -647,85 +640,50 @@ function updatePlannerFilterButton_(){
 }
 
 function updatePlannerBottomState_(){
-  const scroller=document.getElementById('matrixScroll');
-  const card=scroller?.closest('.planner-card');
-  if(!scroller || !card) return;
-
-  // IMPORTANT: visual state only.
-  // Never resize the scroller from a scroll event: that caused iOS feedback loops,
-  // slow scrolling, jumping and ghost frames near the last events.
-  const atTrueEnd=
-    scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
-
-  card.classList.toggle('planner-at-end',atTrueEnd);
-
-  if(!scroller.dataset.panelEndStateBound){
-    scroller.dataset.panelEndStateBound='1';
-
-    let ticking=false;
-    scroller.addEventListener('scroll',()=>{
-      if(ticking) return;
-      ticking=true;
-      requestAnimationFrame(()=>{
-        ticking=false;
-        updatePlannerBottomState_();
-      });
-    },{passive:true});
-  }
+  // V2.3.5.31: no stateful panel-end logic.
+  // The card is always a normal card; the tail spacer reveals its real end.
 }
 
 function syncPlannerGridViewport_(){
   const plannerView=document.getElementById('plannerView');
-  const scroller=document.getElementById('matrixScroll');
+  const viewport=document.getElementById('plannerScrollViewport');
+  const matrix=document.getElementById('matrixScroll');
   const bottomNav=document.querySelector('.bottom-nav');
 
   syncPlannerPageLock_();
 
-  if(!plannerView?.classList.contains('active') || !scroller || !bottomNav) return;
+  if(!plannerView?.classList.contains('active') || !viewport || !bottomNav) return;
+
+  // Neutralize all historical matrix-scroller runtime sizing.
+  if(matrix){
+    matrix.classList.remove('matrix-has-vertical-scroll');
+    matrix.style.removeProperty('height');
+    matrix.style.removeProperty('max-height');
+    matrix.style.removeProperty('overflow-y');
+  }
 
   const portrait=window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches;
 
+  // Tail height is derived from the REAL fixed nav height.
+  const navHeight=Math.ceil(bottomNav.getBoundingClientRect().height || 72);
+  viewport.style.setProperty('--planner-nav-height',`${navHeight}px`);
+
   if(!portrait){
-    scroller.style.removeProperty('height');
-    scroller.style.removeProperty('max-height');
-    scroller.style.removeProperty('overflow-y');
+    viewport.style.removeProperty('height');
+    viewport.style.removeProperty('max-height');
     return;
   }
 
-  // Always measure from PAGE TOP, never from a restored page scroll position.
   forcePlannerPageTop_();
 
-  const rect=scroller.getBoundingClientRect();
-  const navTop=bottomNav.getBoundingClientRect().top;
+  // Viewport runs to the physical screen bottom, BEHIND the fixed nav.
+  // The tail spacer then makes the real card bottom stop 12px above the nav
+  // at maximum scroll. This geometry never changes during scrolling.
+  const rect=viewport.getBoundingClientRect();
+  const available=Math.max(280,Math.floor(window.innerHeight-rect.top));
 
-  // Stable viewport: this height NEVER changes while the user is scrolling.
-  const available=Math.max(280,Math.floor(navTop-rect.top));
-
-  const cardForSync=scroller.closest('.planner-card');
-  if(cardForSync) cardForSync.classList.remove('planner-at-end');
-
-  scroller.style.removeProperty('height');
-  scroller.style.removeProperty('max-height');
-  scroller.style.setProperty('overflow-y','visible','important');
-
-  const endReserve=scroller.querySelector('.matrix-end-reserve')?.offsetHeight || 0;
-  const contentHeight=Math.max(0,scroller.scrollHeight-endReserve);
-
-  if(contentHeight>available){
-    // Historical planner CSS uses !important, therefore these runtime values
-    // must also be written as important or iOS keeps overflow-y: visible.
-    scroller.classList.add('matrix-has-vertical-scroll');
-    scroller.style.setProperty('height',`${available}px`,'important');
-    scroller.style.setProperty('max-height',`${available}px`,'important');
-    scroller.style.setProperty('overflow-y','auto','important');
-  }else{
-    scroller.classList.remove('matrix-has-vertical-scroll');
-    scroller.style.removeProperty('height');
-    scroller.style.removeProperty('max-height');
-    scroller.style.setProperty('overflow-y','visible','important');
-  }
-
-  updatePlannerBottomState_();
+  viewport.style.setProperty('height',`${available}px`,'important');
+  viewport.style.setProperty('max-height',`${available}px`,'important');
 }
 
 function hidePlannerFloatingHeader_(){}
@@ -858,14 +816,14 @@ plannerList.addEventListener('click',e=>{
 // Programmatic scrollTop changes must NOT set plannerUserPositioned.
 plannerList.addEventListener('touchmove',event=>{
   if(plannerAutoPositioning) return;
-  if(event.target?.closest?.('.matrix-scroll')){
+  if(event.target?.closest?.('.planner-scroll-viewport')){
     plannerUserPositioned=true;
   }
 },{passive:true});
 
 plannerList.addEventListener('wheel',event=>{
   if(plannerAutoPositioning) return;
-  if(event.target?.closest?.('.matrix-scroll')){
+  if(event.target?.closest?.('.planner-scroll-viewport')){
     plannerUserPositioned=true;
   }
 },{passive:true});
@@ -934,8 +892,8 @@ document.getElementById('plannerFilterBtn')?.addEventListener('click',()=>toggle
     // Default/upcoming always begins at the first visible event.
     if(plannerMode==='grid'){
       requestAnimationFrame(()=>{
-        const scroller=document.getElementById('matrixScroll');
-        if(scroller) scroller.scrollTop=0;
+        const viewport=document.getElementById('plannerScrollViewport');
+        if(viewport) viewport.scrollTop=0;
       });
     }
 
@@ -991,8 +949,8 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
     requestAnimationFrame(()=>{
       // Default Menetrend is already filtered to current + future.
       // Therefore its first row is the correct starting point.
-      const scroller=document.getElementById('matrixScroll');
-      if(scroller) scroller.scrollTop=0;
+      const viewport=document.getElementById('plannerScrollViewport');
+      if(viewport) viewport.scrollTop=0;
 
       plannerList.classList.remove('planner-prepositioning');
 
@@ -1101,9 +1059,9 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   document.body.appendChild(indicator);
 
   document.addEventListener('touchstart',event=>{
-    const matrixScroll=
+    const plannerViewport=
       event.target && event.target.closest
-        ? event.target.closest('.matrix-scroll')
+        ? event.target.closest('.planner-scroll-viewport')
         : null;
 
     if(
@@ -1111,7 +1069,7 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
       running ||
       !event.touches ||
       !event.touches.length ||
-      (matrixScroll && matrixScroll.scrollTop>1)
+      (plannerViewport && plannerViewport.scrollTop>1)
     ){
       startY=null;
       return;

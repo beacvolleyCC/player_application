@@ -3865,72 +3865,147 @@ body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix){
    No visual restyling in this build. */
 
 /* ==========================================================
-   PLAYER V2.3.5.30 — STABLE MENETREND PANEL END
-   No dynamic height changes during scrolling.
+   PLAYER V2.3.5.31 — PLANNER CARD REFACTOR
+   One normal card + one stable scroll viewport.
+   No end-state class, pseudo-cap, or scroll-time geometry changes.
    ========================================================== */
 
-body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix){
-  position:relative !important;
-  border-radius:15px 15px 0 0 !important;
-  border-bottom-color:transparent !important;
-  overflow:hidden !important;
+/* Dedicated scroll viewport:
+   it extends behind the fixed bottom nav, exactly like normal page content. */
+#plannerView .planner-scroll-viewport{
+  width:100% !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior:contain !important;
+  scrollbar-width:none;
 }
 
-/* Fixed reserve after the final table row.
-   16px rounded cap + 84px visual gap = 100px total.
-   It is part of scroll CONTENT, not viewport geometry. */
-#plannerView .matrix-end-reserve{
+#plannerView .planner-scroll-viewport::-webkit-scrollbar{
   display:none;
-  width:1px;
-  height:100px;
-  min-height:100px;
-  pointer-events:none;
 }
 
-#plannerView .matrix-scroll.matrix-has-vertical-scroll .matrix-end-reserve{
-  display:block;
+/* This is deliberately the same visual surface as the regular Player cards. */
+#plannerView .planner-scroll-viewport > .planner-card.planner-surface{
+  display:block !important;
+  width:max-content !important;
+  min-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  background:var(--card) !important;
+  border:1px solid var(--line) !important;
+  border-radius:15px !important;
+  box-shadow:var(--shadow) !important;
+
+  /* clip keeps the real rounded corners without becoming another scroll container */
+  overflow:clip !important;
 }
 
-/* The card itself never changes height while scrolling.
-   Only at the exact scroll end do we draw the final visual ending. */
-body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix).planner-at-end{
+/* plannerList and the old matrix wrapper are no longer scroll containers. */
+#plannerView .planner-scroll-viewport #plannerList:has(.transposed-matrix){
+  display:block !important;
+  width:max-content !important;
+  min-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
   overflow:visible !important;
 }
 
-/* White rounded bottom cap: 16px high, ending 84px above bottom nav. */
-body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix).planner-at-end::before{
-  content:"";
-  position:absolute;
-  left:-1px;
-  right:-1px;
-  bottom:84px;
-  height:16px;
-  box-sizing:border-box;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-top:0;
-  border-radius:0 0 15px 15px;
-  z-index:30;
-  pointer-events:none;
+#plannerView .planner-scroll-viewport .matrix-scroll{
+  display:block !important;
+  width:max-content !important;
+  min-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:transparent !important;
+  overflow:visible !important;
+  -webkit-overflow-scrolling:auto !important;
 }
 
-/* The 84px area below the cap is the same page background as other views. */
-body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix).planner-at-end::after{
-  content:"";
-  position:absolute;
-  left:-2px;
-  right:-2px;
-  bottom:-1px;
-  height:85px;
-  background:var(--bg);
-  z-index:29;
-  pointer-events:none;
+#plannerView .planner-scroll-viewport .transposed-matrix{
+  width:max-content !important;
+  min-width:100% !important;
+  margin:0 !important;
 }
 
-/* While not at the true end there is no visual cap/gap:
-   the panel simply continues behind the fixed bottom nav. */
-body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix):not(.planner-at-end)::before,
-body.planner-grid-page-lock #plannerView .planner-card:has(.transposed-matrix):not(.planner-at-end)::after{
+/* Header and the first columns stick to the ONE real viewport. */
+#plannerView .planner-scroll-viewport .transposed-matrix thead th{
+  position:sticky !important;
+  top:0 !important;
+  z-index:12 !important;
+  background:var(--card) !important;
+}
+
+#plannerView .planner-scroll-viewport .transposed-matrix .matrix-event-side{
+  position:sticky !important;
+  left:0 !important;
+}
+
+#plannerView .planner-scroll-viewport .transposed-matrix thead .matrix-event-side{
+  z-index:14 !important;
+}
+
+#plannerView .planner-scroll-viewport .transposed-matrix .matrix-count-head,
+#plannerView .planner-scroll-viewport .transposed-matrix .matrix-count-cell{
+  position:sticky !important;
+  left:124px !important;
+}
+
+#plannerView .planner-scroll-viewport .transposed-matrix thead .matrix-count-head{
+  z-index:13 !important;
+}
+
+/* The only end treatment:
+   fixed nav height + 12px, as ordinary content spacing.
+   At max scroll the REAL rounded card bottom ends exactly 12px above the nav. */
+#plannerView .planner-scroll-tail{
+  display:block !important;
+  width:1px !important;
+  height:calc(var(--planner-nav-height,72px) + 12px) !important;
+  min-height:calc(var(--planner-nav-height,72px) + 12px) !important;
+  pointer-events:none !important;
+}
+
+/* Explicitly kill every historical special end-state mechanism. */
+#plannerView .matrix-end-reserve{
+  display:none !important;
+}
+
+#plannerView .planner-card.planner-at-end,
+#plannerView .planner-card:not(.planner-at-end){
+  border-radius:15px !important;
+}
+
+#plannerView .planner-card::before,
+#plannerView .planner-card::after{
   content:none !important;
   display:none !important;
+}
+
+/* Body remains locked in portrait grid mode; only the viewport scrolls. */
+html.planner-grid-page-lock,
+body.planner-grid-page-lock{
+  height:100% !important;
+  overflow-y:hidden !important;
+  overscroll-behavior-y:none !important;
+}
+
+.dark #plannerView .planner-scroll-viewport > .planner-card.planner-surface{
+  background:var(--card) !important;
+  border-color:var(--line) !important;
 }

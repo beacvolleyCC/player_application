@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-30-stable-panel-end';
+const CACHE='club-control-player-v2-3-5-31-planner-card-refactor';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
