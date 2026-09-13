@@ -372,7 +372,7 @@ function renderProfileStats_(){
     if(more) more.hidden=true;
     if(empty){
       empty.hidden=false;
-      empty.innerHTML='<b>Még nincs lezárt jelenléti adat.</b><small>A statisztika csak az edző vagy Manager által ténylegesen rögzített jelenlétből számolódik.</small>';
+      empty.innerHTML='<b>Még nincs lezárt jelenléti adat.</b>';
     }
     return;
   }
@@ -411,10 +411,9 @@ function renderProfileStats_(){
       .sort((a,b)=>a[0].localeCompare(b[0]))
       .map(([key,monthRows])=>{
         const ratio=profileRatio_(monthRows);
-        return `<div class="profile-stats-month-row">
+        return `<div class="profile-stats-month-row detail-row">
           <span>${escapeHtml_(profileMonthName_(key,false))}</span>
-          <b>${ratio.present} / ${ratio.total}</b>
-          <strong>${ratio.pct===null?'–':ratio.pct+'%'}</strong>
+          <b>${ratio.present} / ${ratio.total}${ratio.pct===null?'':' · '+ratio.pct+'%'}</b>
         </div>`;
       })
       .join('');
@@ -612,12 +611,12 @@ function renderProfilePayments_(){
     const status=String(permission.status||'due');
     const cls=status==='paid'?'paid':status==='waived'?'waived':'due';
     const icon=status==='paid'?'✓':status==='waived'?'–':'○';
-    permissionHtml=`<span class="profile-permission-status ${cls}">
+    permissionHtml=`<span class="profile-payment-status profile-permission-status ${cls}">
       <span aria-hidden="true">${icon}</span>
       ${escapeHtml_(profileFeeStatusLabel_(status))}
     </span>`;
   }else{
-    permissionHtml=`<span class="profile-permission-status due"><span aria-hidden="true">○</span> Nincs befizetve</span>`;
+    permissionHtml=`<span class="profile-payment-status profile-permission-status due"><span aria-hidden="true">○</span> Nincs befizetve</span>`;
   }
 
   box.className='profile-payments-v2';
@@ -637,8 +636,8 @@ function renderProfilePayments_(){
       </table>
     </div>
 
-    <div class="profile-permission-row">
-      <span>Engedélyek</span>
+    <div class="profile-permission-row detail-row">
+      <span class="profile-permission-label">Engedélyek</span>
       ${permissionHtml}
     </div>
   `;

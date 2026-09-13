@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-42-monthly-payments-stats';
+const CACHE='club-control-player-v2-3-5-44-compact-profile-rows';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

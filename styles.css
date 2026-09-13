@@ -4847,3 +4847,196 @@ body.planner-grid-page-lock{
     font-size:11px;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.43 — PROFILE STATS / PAYMENT POLISH
+   ========================================================== */
+
+/* "További statisztikák" exactly follows the existing
+   "További adatok" disclosure geometry. */
+.profile-stats-more{
+  margin-top:4px !important;
+  border-top:1px solid var(--line) !important;
+}
+
+.profile-stats-more > summary{
+  min-height:44px !important;
+  padding:0 !important;
+  margin:0 !important;
+  align-items:center !important;
+}
+
+.profile-stats-more-content{
+  padding-top:0 !important;
+  border-top:1px solid color-mix(in srgb,var(--line) 72%,transparent) !important;
+}
+
+.profile-stats-subtitle{
+  margin:0 !important;
+  min-height:35px !important;
+  display:flex !important;
+  align-items:center !important;
+  color:var(--muted) !important;
+  font-size:10px !important;
+  font-weight:850 !important;
+  text-transform:none !important;
+  letter-spacing:0 !important;
+  border-bottom:1px solid var(--line) !important;
+}
+
+/* Engedélyek status belongs to the label; it must not float
+   on the opposite edge of the card. */
+.profile-permission-row{
+  justify-content:flex-start !important;
+  gap:10px !important;
+}
+
+.profile-permission-status{
+  margin-left:0 !important;
+  flex:0 0 auto !important;
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.5.44 — COMPACT PROFILE PAYMENT / STATS ROWS
+   ========================================================== */
+
+/* További statisztikák: exactly the same disclosure rhythm
+   as Személyes adatok -> További adatok. */
+.profile-stats-more{
+  margin-top:4px !important;
+  border-top:1px solid var(--line) !important;
+}
+
+.profile-stats-more > summary{
+  min-height:44px !important;
+  padding:0 !important;
+  margin:0 !important;
+  color:var(--muted) !important;
+  font-size:11px !important;
+  font-weight:850 !important;
+}
+
+.profile-stats-more-content{
+  padding:0 !important;
+  border-top:1px solid color-mix(in srgb,var(--line) 72%,transparent) !important;
+}
+
+.profile-stats-subtitle{
+  min-height:36px !important;
+  margin:0 !important;
+  padding:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  border-bottom:1px solid var(--line) !important;
+  color:var(--muted) !important;
+  font-size:10px !important;
+  font-weight:850 !important;
+  text-transform:none !important;
+  letter-spacing:0 !important;
+}
+
+/* Monthly rows now match normal profile detail rows:
+   month left, "X / Y · Z%" right. */
+.profile-stats-month-row{
+  display:flex !important;
+  grid-template-columns:none !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  min-height:40px !important;
+  padding:0 !important;
+  border-bottom:1px solid var(--line) !important;
+  font-size:10px !important;
+}
+
+.profile-stats-month-row span{
+  min-width:0 !important;
+  text-transform:capitalize !important;
+  color:var(--muted) !important;
+}
+
+.profile-stats-month-row b{
+  flex:0 0 auto !important;
+  text-align:right !important;
+  font-size:10px !important;
+  white-space:nowrap !important;
+}
+
+.profile-stats-month-row strong{
+  display:none !important;
+}
+
+/* Secondary stats use the same simple two-column profile row. */
+.profile-stats-secondary-row{
+  min-height:40px !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.45fr) !important;
+  padding:0 !important;
+}
+
+.profile-stats-secondary-row span{
+  color:var(--muted) !important;
+}
+
+/* Engedélyek: compact old-style payment row.
+   Label and status are visually one group; no far-away floating text. */
+.profile-permission-row.detail-row{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:9px !important;
+  min-height:44px !important;
+  margin-top:9px !important;
+  padding:9px 0 0 !important;
+  border-top:1px solid var(--line) !important;
+  border-bottom:0 !important;
+}
+
+.profile-permission-label{
+  flex:0 0 auto !important;
+  color:var(--text) !important;
+  font-size:11px !important;
+  font-weight:850 !important;
+}
+
+.profile-permission-status.profile-payment-status{
+  flex:0 0 auto !important;
+  min-height:24px !important;
+  margin:0 !important;
+  padding:0 8px !important;
+  gap:4px !important;
+  border-radius:999px !important;
+  font-size:9px !important;
+  font-weight:850 !important;
+  white-space:nowrap !important;
+}
+
+/* Ensure the old payment-chip visual language wins over .42 text-only status. */
+.profile-permission-status.profile-payment-status.paid{
+  background:#e7f4e9 !important;
+  color:var(--green) !important;
+  border-color:#b9d7c0 !important;
+}
+
+.profile-permission-status.profile-payment-status.due{
+  background:#fff2d8 !important;
+  color:#805d00 !important;
+  border-color:#e4c56c !important;
+}
+
+.profile-permission-status.profile-payment-status.waived{
+  background:var(--soft) !important;
+  color:var(--muted) !important;
+  border-color:var(--line) !important;
+}
+
+.dark .profile-permission-status.profile-payment-status.paid{
+  background:#142218 !important;
+  border-color:#2e5b38 !important;
+}
+
+.dark .profile-permission-status.profile-payment-status.due{
+  background:#2e2611 !important;
+  color:#e7c85d !important;
+  border-color:#6f5c22 !important;
+}
