@@ -4415,3 +4415,35 @@ body.planner-grid-page-lock{
   width:32px !important;
   height:32px !important;
 }
+
+
+/* PLAYER V2.3.5.38 — tiny dialog X alignment fix */
+.event-dialog-card > .dialog-x-btn{
+  right:14px !important;
+}
+
+
+/* PLAYER V2.3.5.39 — Menetrend grid event text alignment */
+.transposed-matrix .matrix-event-copy{
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-start !important;
+  justify-content:center !important;
+  text-align:left !important;
+}
+.transposed-matrix .matrix-event-copy b,
+.transposed-matrix .matrix-event-copy small{
+  width:100% !important;
+  text-align:left !important;
+  margin-left:0 !important;
+  padding-left:0 !important;
+}
+.transposed-matrix .matrix-event-copy b{
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.transposed-matrix .matrix-event-copy small{
+  margin-top:2px !important;
+}

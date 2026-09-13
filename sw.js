@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-37-consolidated-post-triangle';
+const CACHE='club-control-player-v2-3-5-39-grid-date-alignment';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

@@ -163,7 +163,7 @@ function eventCard(e){
           ${meetingLine}
           ${autoAbsence}
         </div>
-        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length}</strong></div>
+        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
       </div>
 
       <div class="slider-wrap">
@@ -468,7 +468,7 @@ function renderGridMatrix(rows){
       <th class="matrix-event-side sticky-matrix-col">
         <button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
           <span class="matrix-side-icon">${typeIcon(e)}</span>
-          <span><b>${e.date}</b><small>${e.day} · ${e.time}</small></span>
+          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day} · ${e.time}</small></span>
         </button>
       </th>
       <td class="matrix-count-cell"><strong class="${attendanceCountClass(count)}">${count}</strong></td>
