@@ -5319,3 +5319,29 @@ body.planner-grid-page-lock{
     max-width:54px !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.48 — FLAT CURRENT-MONTH HIGHLIGHT
+   ========================================================== */
+
+/* Current month: one flat grey column, no shadow/outline effect. */
+.profile-payment-matrix thead th.is-current,
+.profile-payment-matrix td.is-current{
+  background:var(--soft) !important;
+  box-shadow:none !important;
+}
+
+/* Payment state still communicates with the symbol,
+   but the current-month column remains visually one grey block. */
+.profile-payment-matrix td.is-current.payment-paid,
+.profile-payment-matrix td.is-current.payment-late,
+.profile-payment-matrix td.is-current.payment-pending,
+.profile-payment-matrix td.is-current.payment-waived{
+  background:var(--soft) !important;
+}
+
+/* Avoid a double divider below the matrix / above Engedélyek. */
+.profile-permission-row.detail-row{
+  border-top:0 !important;
+}
