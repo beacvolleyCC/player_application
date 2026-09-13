@@ -4470,3 +4470,105 @@ body.planner-grid-page-lock{
   text-align:left !important;
   margin-left:0 !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.5.41 — REAL PROFILE STATS + PAYMENTS
+   ========================================================== */
+
+.real-profile-stats{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+
+.profile-payment-list{
+  display:grid;
+}
+
+.profile-payment-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 0;
+  border-top:1px solid var(--line);
+}
+
+.profile-payment-row:first-child{
+  border-top:0;
+  padding-top:2px;
+}
+
+.profile-payment-main{
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+
+.profile-payment-main b{
+  font-size:12px;
+  line-height:1.35;
+}
+
+.profile-payment-main small{
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.4;
+}
+
+.profile-payment-note{
+  margin-top:1px;
+}
+
+.profile-payment-status{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:0 8px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  font-size:9px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+.profile-payment-status.paid{
+  background:#e7f4e9;
+  color:var(--green);
+  border-color:#b9d7c0;
+}
+
+.profile-payment-status.due{
+  background:#fff2d8;
+  color:#805d00;
+  border-color:#e4c56c;
+}
+
+.profile-payment-status.waived{
+  background:var(--soft);
+  color:var(--muted);
+}
+
+.dark .profile-payment-status.paid{
+  background:#142218;
+  border-color:#2e5b38;
+}
+
+.dark .profile-payment-status.due{
+  background:#2e2611;
+  color:#e7c85d;
+  border-color:#6f5c22;
+}
+
+@media(max-width:520px){
+  .real-profile-stats{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:6px !important;
+  }
+  .real-profile-stats .stat-card{
+    padding:11px 6px !important;
+  }
+  .real-profile-stats .stat-card strong{
+    font-size:20px !important;
+  }
+}

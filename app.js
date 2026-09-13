@@ -32,6 +32,11 @@ let currentPlayerName = 'Te';
 let currentPlayerDisplayName = 'Te';
 let currentPlayerData = null;
 let teamPlayerDirectory = [];
+let currentProfileData = {
+  attendance: [],
+  payments: [],
+  loaded: false
+};
 
 let currentTeamData = null;
 
@@ -272,18 +277,109 @@ function updateHomeFilterUi_(){
     summary.textContent=labels[homeFilters.period]||'Szűrt események.';
   }
 }
+function profileAttendanceRows_(){
+  const byEventId=new Map(events.map(e=>[String(e.id),e]));
+  return (Array.isArray(currentProfileData.attendance) ? currentProfileData.attendance : [])
+    .map(row=>{
+      const event=byEventId.get(String(row?.eventId||''));
+      const status=String(row?.attendanceStatus||'').toLowerCase();
+      return {row,event,status};
+    })
+    .filter(item=>
+      item.event &&
+      !item.event.cancelled &&
+      isPast(item.event) &&
+      (item.status==='present' || item.status==='absent')
+    );
+}
+
 function renderProfileStats_(){
-  const rows=events.filter(e=>!e.cancelled);
-  const going=rows.filter(e=>e.status==='yes').length;
-  const no=rows.filter(e=>e.status==='no').length;
-  const missing=rows.filter(e=>e.status===null).length;
-  const responded=going+no;
-  const pct=rows.length ? Math.round((responded/rows.length)*100) : 0;
+  const grid=document.getElementById('profileStatsGrid');
+  const empty=document.getElementById('profileStatsEmpty');
+  const rows=profileAttendanceRows_();
+
+  if(!rows.length){
+    if(grid) grid.hidden=true;
+    if(empty){
+      empty.hidden=false;
+      empty.innerHTML='<b>Még nincs lezárt jelenléti adat.</b><small>A statisztika csak az edző vagy Manager által ténylegesen rögzített jelenlétből számolódik.</small>';
+    }
+    return;
+  }
+
+  const present=rows.filter(item=>item.status==='present').length;
+  const total=rows.length;
+  const pct=total ? Math.round((present/total)*100) : 0;
+  const matchRows=rows.filter(item=>item.event.type==='Meccs');
+  const matchPresent=matchRows.filter(item=>item.status==='present').length;
+
   const set=(id,value)=>{ const el=document.getElementById(id); if(el) el.textContent=value; };
-  set('profileStatResponseRate',rows.length ? pct+'%' : '–');
-  set('profileStatGoing',going);
-  set('profileStatNo',no);
-  set('profileStatMissing',missing);
+  set('profileStatAttended',present+'/'+total);
+  set('profileStatAttendanceRate',pct+'%');
+  set('profileStatMatches',matchRows.length ? matchPresent+'/'+matchRows.length : '–');
+
+  if(grid) grid.hidden=false;
+  if(empty) empty.hidden=true;
+}
+
+function profileFeeTypeLabel_(type){
+  const map={
+    beac_pass:'BEAC bérlet',
+    coach_fee:'Edzői díj',
+    team_fee:'Csapatdíj',
+    other:'Egyéb díj'
+  };
+  return map[String(type||'')] || 'Díj';
+}
+
+function profileFeeStatusLabel_(status){
+  const map={due:'Fizetendő',paid:'Fizetve',waived:'Elengedve'};
+  return map[String(status||'')] || String(status||'');
+}
+
+function profileMoney_(amount){
+  const n=Number(amount);
+  if(!Number.isFinite(n)) return '';
+  return new Intl.NumberFormat('hu-HU',{maximumFractionDigits:0}).format(n)+' Ft';
+}
+
+function profileHuDate_(value){
+  const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[1]}.${m[2]}.${m[3]}.` : String(value||'');
+}
+
+function renderProfilePayments_(){
+  const box=document.getElementById('profilePaymentsContent');
+  if(!box) return;
+
+  const rows=Array.isArray(currentProfileData.payments) ? currentProfileData.payments : [];
+  if(!rows.length){
+    box.className='profile-empty-block';
+    box.innerHTML='<b>Nincs rögzített díj vagy befizetés.</b><small>Csak a Managerből vagy a BEAC bérletnyilvántartásból ténylegesen betöltött adat jelenik meg.</small>';
+    return;
+  }
+
+  box.className='profile-payment-list';
+  box.innerHTML=rows.map(fee=>{
+    const status=String(fee.status||'due');
+    const amount=fee.amountHuf===null || fee.amountHuf===undefined || fee.amountHuf==='' ? '' : profileMoney_(fee.amountHuf);
+    const due=fee.dueDate ? profileHuDate_(fee.dueDate) : '';
+    const meta=[
+      profileFeeTypeLabel_(fee.feeType),
+      amount,
+      due ? ('Határidő: '+due) : '',
+      fee.season || ''
+    ].filter(Boolean).join(' · ');
+
+    return `<div class="profile-payment-row">
+      <div class="profile-payment-main">
+        <b>${escapeHtml_(fee.label || profileFeeTypeLabel_(fee.feeType))}</b>
+        <small>${escapeHtml_(meta)}</small>
+        ${fee.note ? `<small class="profile-payment-note">${escapeHtml_(fee.note)}</small>` : ''}
+      </div>
+      <span class="profile-payment-status ${escapeHtml_(status)}">${escapeHtml_(profileFeeStatusLabel_(status))}</span>
+    </div>`;
+  }).join('');
 }
 function renderEvents(){
   updateHomeFilterUi_();
@@ -1604,6 +1700,32 @@ async function ccSetupRealtime_(team){
     });
 }
 
+async function ccLoadProfileData_(){
+  if(!SUPABASE_ENABLED || !ccSupabase){
+    currentProfileData={attendance:[],payments:[],loaded:false};
+    renderProfileStats_();
+    renderProfilePayments_();
+    return;
+  }
+
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_profile_data');
+    if(error) throw error;
+    const payload=typeof data==='string' ? JSON.parse(data) : (data||{});
+    currentProfileData={
+      attendance:Array.isArray(payload.attendance) ? payload.attendance : [],
+      payments:Array.isArray(payload.payments) ? payload.payments : [],
+      loaded:true
+    };
+  }catch(error){
+    console.warn('Profil statisztika/fizetés adat még nem érhető el:',error);
+    currentProfileData={attendance:[],payments:[],loaded:false};
+  }
+
+  renderProfileStats_();
+  renderProfilePayments_();
+}
+
 async function loadBootstrap(options={}){
   if(SUPABASE_ENABLED){
     if(!ccSupabase) throw new Error('A Supabase kliens nem indult el.');
@@ -1623,6 +1745,7 @@ async function loadBootstrap(options={}){
       : (Array.isArray(displayNameData) ? displayNameData : []);
 
     applyBootstrap(payload);
+    await ccLoadProfileData_();
     if(!options.skipRealtimeSetup) await ccSetupRealtime_(payload.team);
     hideLogin();
     return true;
@@ -1631,6 +1754,9 @@ async function loadBootstrap(options={}){
   if(!currentSessionToken) throw Object.assign(new Error('Nincs aktív munkamenet.'),{code:'AUTH_REQUIRED'});
   const j=await apiPost({action:'bootstrap',sessionToken:currentSessionToken});
   applyBootstrap(j);
+  currentProfileData={attendance:[],payments:[],loaded:false};
+  renderProfileStats_();
+  renderProfilePayments_();
   hideLogin();
   return true;
 }

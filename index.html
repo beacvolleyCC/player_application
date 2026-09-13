@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.40-grid-month-left">
+  <link rel="stylesheet" href="./styles.css?v=13.5.41-real-profile-data">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -215,20 +215,22 @@
       <div class="card">
         <h4>Díjak és befizetések</h4>
         <div id="profilePaymentsContent" class="profile-empty-block">
-          <b>Nincs még betöltött fizetési adat.</b>
-          <small>A BEAC-bérlet és az edzői/csapatdíjak később a Managerből kerülnek ide. Tesztértéket nem mutatunk.</small>
+          <b>Nincs rögzített díj vagy befizetés.</b>
+          <small>Csak a Managerből vagy a BEAC bérletnyilvántartásból ténylegesen betöltött adat jelenik meg.</small>
         </div>
       </div>
 
       <div class="card">
         <h4>Saját szezon</h4>
-        <div class="stats-grid compact-profile-stats">
-          <div class="stat-card"><strong id="profileStatResponseRate">–</strong><span>jelzési arány</span></div>
-          <div class="stat-card"><strong id="profileStatGoing">0</strong><span>jövök</span></div>
-          <div class="stat-card"><strong id="profileStatNo">0</strong><span>nem jövök</span></div>
-          <div class="stat-card"><strong id="profileStatMissing">0</strong><span>nincs jelzés</span></div>
+        <div id="profileStatsGrid" class="stats-grid compact-profile-stats real-profile-stats" hidden>
+          <div class="stat-card"><strong id="profileStatAttended">–</strong><span>részt vett</span></div>
+          <div class="stat-card"><strong id="profileStatAttendanceRate">–</strong><span>részvételi arány</span></div>
+          <div class="stat-card"><strong id="profileStatMatches">–</strong><span>meccs részvétel</span></div>
         </div>
-        <div class="profile-stat-note">Csak a ténylegesen betöltött szezonadatból számoljuk; nincs demo/kamu statisztika.</div>
+        <div id="profileStatsEmpty" class="profile-empty-block">
+          <b>Még nincs lezárt jelenléti adat.</b>
+          <small>A statisztika csak az edző vagy Manager által ténylegesen rögzített jelenlétből számolódik.</small>
+        </div>
       </div>
 
       <div class="card">
@@ -383,6 +385,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.40-grid-month-left"></script>
+  <script src="./app.js?v=13.5.41-real-profile-data"></script>
 </body>
 </html>

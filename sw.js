@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-40-grid-month-left';
+const CACHE='club-control-player-v2-3-5-41-real-profile-data';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
