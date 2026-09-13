@@ -4199,3 +4199,76 @@ body.planner-grid-page-lock{
 .dark .event-note-bubble::after{
   background:var(--card);
 }
+/* ==========================================================
+   PLAYER V2.3.5.33 — EXACT FILTER TRIANGLE DISCLOSURES
+   Use the exact same ▽ outline glyph as the existing filter icon.
+   ========================================================== */
+
+.cc-outline-triangle,
+.profile-details-chevron,
+.settings-row-triangle,
+.event-note-triangle{
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+  width:24px !important;
+  height:24px !important;
+  min-width:24px !important;
+  flex:0 0 24px !important;
+
+  /* Remove the filled CSS triangle from V2.3.5.32. */
+  border:0 !important;
+  border-left:0 !important;
+  border-right:0 !important;
+  border-top:0 !important;
+  border-bottom:0 !important;
+
+  font-size:0 !important;
+  line-height:1 !important;
+  color:var(--muted) !important;
+  transform:rotate(0deg) !important;
+  transform-origin:center !important;
+  transition:transform .18s ease !important;
+}
+
+/* Same character, size and optical treatment as .filter-icon-outline. */
+.cc-outline-triangle::before,
+.profile-details-chevron::before,
+.settings-row-triangle::before,
+.event-note-triangle::before{
+  content:"▽" !important;
+  position:static !important;
+  display:block !important;
+  width:auto !important;
+  height:auto !important;
+  left:auto !important;
+  top:auto !important;
+
+  border:0 !important;
+  border-right:0 !important;
+  border-bottom:0 !important;
+
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+  font-size:24px !important;
+  font-weight:400 !important;
+  line-height:1 !important;
+  color:currentColor !important;
+
+  transform:none !important;
+  transition:none !important;
+}
+
+/* Only disclosure controls rotate. */
+.profile-more-details[open] .profile-details-chevron{
+  transform:rotate(180deg) !important;
+}
+
+.event-note-details[open] .event-note-triangle{
+  transform:rotate(180deg) !important;
+}
+
+/* Settings opens a dialog rather than an accordion, so it remains pointing down. */
+.settings-row-triangle{
+  transform:rotate(0deg) !important;
+  margin-right:2px !important;
+}

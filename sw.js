@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-32-profile-notes-settings';
+const CACHE='club-control-player-v2-3-5-33-exact-filter-triangles';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
