@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-7-1-avatar52-payments';
+const CACHE='club-control-player-v2-3-7-2-avatar52-payments';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -8,7 +8,7 @@ const CORE=[
   './icons/event-training-mask.png',
   './icons/event-home-mask.png',
   './icons/event-away-mask.png',
-  './icons/avatar-sprite.webp'
+  './icons/avatar-sprite.webp?v=2372'
 ];
 
 self.addEventListener('install', event => {
