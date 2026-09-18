@@ -2174,12 +2174,39 @@ async function ccLoadProfileData_(){
   }
 
   try{
-    const {data,error}=await ccSupabase.rpc('cc_player_profile_data');
-    if(error) throw error;
-    const payload=typeof data==='string' ? JSON.parse(data) : (data||{});
+    const [profileResult,overrideResult]=await Promise.all([
+      ccSupabase.rpc('cc_player_profile_data'),
+      ccSupabase.rpc('cc_player_payment_overrides_v2382')
+    ]);
+    if(profileResult.error) throw profileResult.error;
+    const payload=typeof profileResult.data==='string' ? JSON.parse(profileResult.data) : (profileResult.data||{});
+    let payments=Array.isArray(payload.payments) ? payload.payments.slice() : [];
+
+    // V2.3.8.2: admin cash/manual overrides are a side-car, so the canonical
+    // BEAC import can keep syncing without being mutated. The Player only sees
+    // overrides belonging to the currently authenticated email.
+    if(!overrideResult.error){
+      const rawOverrides=typeof overrideResult.data==='string' ? JSON.parse(overrideResult.data) : overrideResult.data;
+      const overrides=Array.isArray(rawOverrides) ? rawOverrides : [];
+      const periodOf=row=>{
+        const direct=String(row?.periodKey||row?.period||row?.month||'').slice(0,7);
+        if(/^\d{4}-\d{2}$/.test(direct)) return direct;
+        const due=String(row?.dueDate||'').slice(0,7);
+        return /^\d{4}-\d{2}$/.test(due) ? due : '';
+      };
+      overrides.forEach(override=>{
+        const type=String(override?.feeType||'');
+        const period=periodOf(override);
+        payments=payments.filter(row=>!(String(row?.feeType||'')===type && periodOf(row)===period));
+        payments.push(override);
+      });
+    }else{
+      console.warn('Fizetési override adatok nem érhetők el:',overrideResult.error);
+    }
+
     currentProfileData={
       attendance:Array.isArray(payload.attendance) ? payload.attendance : [],
-      payments:Array.isArray(payload.payments) ? payload.payments : [],
+      payments,
       loaded:true
     };
   }catch(error){

@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-7-5-avatar-bg-cleanup';
+const CACHE='club-control-player-v2-3-8-2-fee-overrides';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
