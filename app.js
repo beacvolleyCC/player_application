@@ -32,6 +32,28 @@ let currentPlayerName = 'Te';
 let currentPlayerDisplayName = 'Te';
 let currentPlayerData = null;
 let teamPlayerDirectory = [];
+let currentAvatarId = '';
+let teamAvatarByPlayerId = new Map();
+
+const PLAYER_AVATARS = [
+  ['alpaca','Alpaka','long','tuft'],['giraffe','Zsiráf','long','spots'],['mammoth','Mamut','elephant','mammoth'],
+  ['tiger','Tigris','feline','stripes'],['lion','Oroszlán','feline','mane'],['buffalo','Bivaly','horned','wide'],
+  ['rhino','Orrszarvú','rhino','horn'],['cat','Macska','feline','plain'],['panther','Párduc','feline','dark'],
+  ['lynx','Hiúz','feline','tufts'],['wolf','Farkas','canine','wolf'],['fox','Róka','canine','fox'],
+  ['bear','Medve','bear','plain'],['panda','Panda','bear','panda'],['rabbit','Nyúl','rabbit','plain'],
+  ['deer','Szarvas','horned','antlers'],['moose','Jávorszarvas','horned','moose'],['goat','Kecske','horned','goat'],
+  ['ram','Kos','horned','ram'],['cow','Tehén','horned','cow'],['horse','Ló','equine','plain'],
+  ['zebra','Zebra','equine','stripes'],['donkey','Szamár','equine','donkey'],['dog','Kutya','canine','dog'],
+  ['husky','Husky','canine','mask'],['otter','Vidra','bear','otter'],['raccoon','Mosómedve','bear','mask'],
+  ['monkey','Majom','primate','monkey'],['gorilla','Gorilla','primate','gorilla'],['elephant','Elefánt','elephant','plain'],
+  ['hippo','Víziló','hippo','plain'],['crocodile','Krokodil','reptile','croc'],['penguin','Pingvin','bird','penguin'],
+  ['owl','Bagoly','bird','owl'],['eagle','Sas','bird','eagle'],['shark','Cápa','aquatic','shark'],
+  ['dolphin','Delfin','aquatic','dolphin'],['turtle','Teknős','reptile','turtle'],['frog','Béka','reptile','frog'],
+  ['hedgehog','Süni','hedgehog','plain']
+].map(([id,label,kind,variant])=>({id,label,kind,variant}));
+
+const PLAYER_AVATAR_IDS = new Set(PLAYER_AVATARS.map(x=>x.id));
+
 let currentProfileData = {
   attendance: [],
   payments: [],
@@ -58,6 +80,157 @@ function ccLegacyConfigured_(){
 }
 function ccRemoteConfigured_(){
   return ccSupabaseConfigured_() || ccLegacyConfigured_();
+}
+
+
+function playerPositionLabel_(value){
+  const raw=String(value||'').trim();
+  const normalized=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  if(['negyes','4-es uto','4es uto','szelso','szelso uto','outside','outside hitter'].includes(normalized)) return 'Szélső ütő';
+  return raw;
+}
+
+function avatarDef_(id){
+  return PLAYER_AVATARS.find(x=>x.id===String(id||'')) || null;
+}
+
+function avatarSvg_(avatarId, className=''){
+  const def=avatarDef_(avatarId);
+  if(!def) return '';
+  const cls=className ? ` class="${className}"` : '';
+  const common=`fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`;
+  const eye=`<circle cx="12.5" cy="14.5" r="1" fill="currentColor" stroke="none"/><circle cx="19.5" cy="14.5" r="1" fill="currentColor" stroke="none"/>`;
+  let art='';
+
+  if(def.kind==='feline'){
+    art=`<path d="M9 10 7 5l5 3a10 10 0 0 1 8 0l5-3-2 5v8c0 5-3 8-7 8s-7-3-7-8Z"/>${eye}<path d="M14 18h4l-2 2Z"/><path d="M12 19 7 18m5 3-5 2m13-4 5-1m-5 3 5 2"/>`;
+    if(def.variant==='stripes') art+=`<path d="M13 9l1 3m5-3-1 3M16 8v4"/>`;
+    if(def.variant==='mane') art=`<path d="M16 3c7 0 12 5 12 12 0 8-5 14-12 14S4 23 4 15C4 8 9 3 16 3Z"/><path d="M10 10 8 6l5 3a9 9 0 0 1 6 0l5-3-2 4v8c0 5-2 8-6 8s-6-3-6-8Z"/>${eye}<path d="M14 18h4l-2 2Z"/>`;
+    if(def.variant==='tufts') art+=`<path d="M7 5 6 2m19 3 1-3"/>`;
+    if(def.variant==='dark') art+=`<path d="M10 12c4-3 8-3 12 0"/>`;
+  }else if(def.kind==='canine'){
+    art=`<path d="M9 11 7 4l6 5a9 9 0 0 1 6 0l6-5-2 7v7c0 5-3 8-7 8s-7-3-7-8Z"/>${eye}<path d="M13 18c2-2 4-2 6 0l-3 4Z"/>`;
+    if(def.variant==='fox') art+=`<path d="M10 12c2 2 3 4 3 7m9-7c-2 2-3 4-3 7"/>`;
+    if(def.variant==='mask') art+=`<path d="M10 12l4 5m8-5-4 5M12 11h8"/>`;
+    if(def.variant==='wolf') art+=`<path d="M16 6v4m-5-2 2 3m8-3-2 3"/>`;
+    if(def.variant==='dog') art+=`<path d="M8 7 4 10l4 5m16-8 4 3-4 5"/>`;
+  }else if(def.kind==='bear'){
+    art=`<circle cx="9" cy="9" r="3"/><circle cx="23" cy="9" r="3"/><path d="M8 14c0-6 3-9 8-9s8 3 8 9v5c0 5-3 8-8 8s-8-3-8-8Z"/>${eye}<ellipse cx="16" cy="19" rx="4" ry="3"/><path d="M15 18h2"/>`;
+    if(def.variant==='panda'||def.variant==='mask') art+=`<path d="M10 12c2-2 4-2 5 1m7-1c-2-2-4-2-5 1"/>`;
+    if(def.variant==='otter') art+=`<path d="M11 21 7 23m14-2 4 2"/>`;
+  }else if(def.kind==='rabbit'){
+    art=`<path d="M11 10C8 5 9 2 11 2c3 0 4 5 4 8m6 0c3-5 2-8 0-8-3 0-4 5-4 8"/><path d="M8 15c0-5 3-8 8-8s8 3 8 8v4c0 5-3 8-8 8s-8-3-8-8Z"/>${eye}<path d="M14 19h4l-2 2Z"/>`;
+  }else if(def.kind==='horned'){
+    art=`<path d="M9 10c1-4 4-6 7-6s6 2 7 6v9c0 5-3 8-7 8s-7-3-7-8Z"/>${eye}<path d="M14 19h4"/>`;
+    if(def.variant==='wide'||def.variant==='cow') art+=`<path d="M9 10C5 10 3 7 4 4c2 3 4 3 7 2m12 4c4 0 6-3 5-6-2 3-4 3-7 2"/>`;
+    if(def.variant==='goat') art+=`<path d="M11 8C8 4 9 2 11 1m10 7c3-4 2-6 0-7M16 27v3"/>`;
+    if(def.variant==='ram') art+=`<path d="M10 11C5 9 5 4 9 3c4 0 5 4 2 7m11 1c5-2 5-7 1-8-4 0-5 4-2 7"/>`;
+    if(def.variant==='antlers'||def.variant==='moose') art+=`<path d="M11 8 8 5 6 2m2 3 3-1m10 4 3-3 2-3m-2 3-3-1"/>`;
+    if(def.variant==='moose') art+=`<path d="M10 18h12"/>`;
+  }else if(def.kind==='long'){
+    art=`<path d="M11 7 9 2l4 4m8 1 2-5-4 4"/><path d="M12 6h8l2 15c0 4-2 7-6 7s-6-3-6-7Z"/>${eye}<path d="M14 20h4"/>`;
+    if(def.variant==='spots') art+=`<circle cx="13" cy="10" r="1.2"/><circle cx="19" cy="18" r="1.3"/><circle cx="12" cy="22" r="1"/>`;
+    if(def.variant==='tuft') art+=`<path d="M14 5 16 2l2 3"/>`;
+  }else if(def.kind==='equine'){
+    art=`<path d="M10 9 8 3l5 5a9 9 0 0 1 6 0l5-5-2 6 1 10c0 5-3 8-7 8s-7-3-7-8Z"/>${eye}<path d="M13 20h6"/>`;
+    if(def.variant==='stripes') art+=`<path d="M12 8l2 4m4-4-1 4m4-2-2 4"/>`;
+    if(def.variant==='donkey') art+=`<path d="M8 3 6 1m18 2 2-2"/>`;
+  }else if(def.kind==='elephant'){
+    art=`<path d="M8 10C3 8 2 13 4 18c1 3 4 4 7 2m13-10c5-2 6 3 4 8-1 3-4 4-7 2"/><path d="M9 11c0-5 3-8 7-8s7 3 7 8v7c0 4-2 7-5 8v4h-4v-9"/>${eye}<path d="M14 27c2 2 4 2 6 0"/>`;
+    if(def.variant==='mammoth') art+=`<path d="M9 21c-3 5 0 7 3 4m11-4c3 5 0 7-3 4"/>`;
+  }else if(def.kind==='rhino'){
+    art=`<path d="M7 15c0-6 4-10 9-10s9 4 9 10v5c0 4-4 7-9 7s-9-3-9-7Z"/>${eye}<path d="M16 5 18 0l2 7M12 20h8"/>`;
+  }else if(def.kind==='primate'){
+    art=`<circle cx="7" cy="15" r="4"/><circle cx="25" cy="15" r="4"/><path d="M8 14c0-6 3-10 8-10s8 4 8 10v6c0 5-3 8-8 8s-8-3-8-8Z"/>${eye}<ellipse cx="16" cy="20" rx="5" ry="4"/>`;
+    if(def.variant==='gorilla') art+=`<path d="M9 9c4-3 10-3 14 0M10 24h12"/>`;
+  }else if(def.kind==='hippo'){
+    art=`<path d="M7 13c0-6 3-9 9-9s9 3 9 9v7c0 5-4 8-9 8s-9-3-9-8Z"/><circle cx="10" cy="8" r="2"/><circle cx="22" cy="8" r="2"/>${eye}<ellipse cx="16" cy="20" rx="7" ry="4"/><circle cx="13" cy="20" r=".8" fill="currentColor"/><circle cx="19" cy="20" r=".8" fill="currentColor"/>`;
+  }else if(def.kind==='bird'){
+    art=`<path d="M8 16c0-7 3-11 8-11s8 4 8 11v5c0 4-3 7-8 7s-8-3-8-7Z"/>${eye}<path d="M13 18h6l-3 3Z"/>`;
+    if(def.variant==='owl') art=`<path d="M8 9 11 4l5 4 5-4 3 5v11c0 5-3 8-8 8s-8-3-8-8Z"/><circle cx="12" cy="14" r="3"/><circle cx="20" cy="14" r="3"/><circle cx="12" cy="14" r="1" fill="currentColor"/><circle cx="20" cy="14" r="1" fill="currentColor"/><path d="M14 18h4l-2 3Z"/>`;
+    if(def.variant==='eagle') art+=`<path d="M7 12c5-2 13-2 18 0m-9-7v5"/>`;
+    if(def.variant==='penguin') art+=`<path d="M11 10c3 2 7 2 10 0M12 24c2-2 6-2 8 0"/>`;
+  }else if(def.kind==='aquatic'){
+    art=`<path d="M4 17c5-7 13-9 21-5l4-4-1 7 1 7-4-4c-8 4-16 2-21-1Z"/><circle cx="10" cy="14" r="1" fill="currentColor"/>`;
+    if(def.variant==='shark') art+=`<path d="M16 10 19 4l3 7M10 18h9"/>`;
+    if(def.variant==='dolphin') art+=`<path d="M17 10c2-4 6-5 9-3M8 17c1 4 4 7 8 8"/>`;
+  }else if(def.kind==='reptile'){
+    if(def.variant==='turtle') art=`<ellipse cx="16" cy="16" rx="9" ry="7"/><path d="M12 10v12m8-12v12M7 16h18M5 13 2 10m3 9-3 3m25-9 3-3m-3 9 3 3"/>`;
+    else if(def.variant==='frog') art=`<circle cx="10" cy="9" r="4"/><circle cx="22" cy="9" r="4"/><path d="M7 13c1-4 4-6 9-6s8 2 9 6v7c0 5-4 8-9 8s-9-3-9-8Z"/><circle cx="10" cy="9" r="1" fill="currentColor"/><circle cx="22" cy="9" r="1" fill="currentColor"/><path d="M11 20c3 2 7 2 10 0"/>`;
+    else art=`<path d="M3 17c3-7 8-10 16-9l7 2 3 5-4 5-8 3C10 24 5 21 3 17Z"/><circle cx="22" cy="12" r="1" fill="currentColor"/><path d="M19 17h8M8 18l-4 4"/>`;
+  }else if(def.kind==='hedgehog'){
+    art=`<path d="M5 21 3 17l4-2-2-4 5-1 1-5 4 3 4-4 2 5 5-1-1 5 4 2-4 3 1 5-5-1c-2 4-8 6-12 2Z"/><circle cx="19" cy="16" r="1" fill="currentColor"/><path d="M22 20h4"/>`;
+  }
+
+  return `<svg${cls} viewBox="0 0 32 32" aria-hidden="true" focusable="false" ${common}>${art}</svg>`;
+}
+
+function avatarMarkup_(avatarId,className='player-avatar-icon'){
+  return PLAYER_AVATAR_IDS.has(String(avatarId||'')) ? avatarSvg_(avatarId,className) : '';
+}
+
+function playerAvatarIdByName_(name){
+  const raw=String(name||'').trim();
+  if(!raw) return '';
+  if(raw==='Te' || raw===currentPlayerName) return currentAvatarId || currentPlayerData?.avatarId || '';
+  const person=(teamPlayerDirectory||[]).find(p=>String(p?.name||'').trim()===raw);
+  return String(person?.avatarId||'');
+}
+
+function rosterChipHtml_(name,extraClass=''){
+  const avatarId=playerAvatarIdByName_(name);
+  const avatar=avatarId ? `<span class="roster-avatar">${avatarMarkup_(avatarId,'roster-avatar-svg')}</span>` : '';
+  return `<span class="chip ${extraClass}">${avatar}<span>${escapeHtml_(rosterDisplayName_(name))}</span></span>`;
+}
+
+function renderCurrentAvatar_(){
+  const target=document.getElementById('profileInitials');
+  const preview=document.getElementById('settingsAvatarPreview');
+  const initials=(currentPlayerDisplayName||'JT').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+  const html=currentAvatarId ? avatarMarkup_(currentAvatarId,'profile-avatar-svg') : escapeHtml_(initials);
+  [target,preview].forEach(el=>{
+    if(!el) return;
+    el.classList.toggle('has-animal-avatar',!!currentAvatarId);
+    el.innerHTML=html;
+  });
+}
+
+function renderAvatarPicker_(){
+  const grid=document.getElementById('avatarPickerGrid');
+  if(!grid) return;
+  grid.innerHTML=PLAYER_AVATARS.map(item=>`
+    <button type="button" class="avatar-option ${item.id===currentAvatarId?'selected':''}" data-avatar-id="${item.id}" role="option" aria-selected="${item.id===currentAvatarId?'true':'false'}" title="${escapeHtml_(item.label)}">
+      ${avatarMarkup_(item.id,'avatar-option-svg')}
+      <span>${escapeHtml_(item.label)}</span>
+    </button>
+  `).join('');
+  renderCurrentAvatar_();
+}
+
+async function ccLoadAvatarDirectory_(){
+  if(!SUPABASE_ENABLED || !ccSupabase) return;
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_avatar_directory');
+    if(error) throw error;
+    const rows=typeof data==='string' ? JSON.parse(data) : (Array.isArray(data)?data:[]);
+    teamAvatarByPlayerId=new Map(
+      rows.map(row=>[String(row?.playerId||''),String(row?.avatarId||'')])
+    );
+    if(currentPlayerData?.playerId){
+      currentAvatarId=teamAvatarByPlayerId.get(String(currentPlayerData.playerId)) || '';
+      currentPlayerData.avatarId=currentAvatarId;
+    }
+    teamPlayerDirectory=(teamPlayerDirectory||[]).map(player=>({
+      ...player,
+      avatarId:teamAvatarByPlayerId.get(String(player?.playerId||player?.id||'')) || ''
+    }));
+    renderCurrentAvatar_();
+    renderAvatarPicker_();
+    renderEvents();
+    renderPlanner();
+  }catch(error){
+    console.warn('Avatar könyvtár nem érhető el:',error);
+  }
 }
 
 
@@ -183,9 +356,9 @@ function eventCard(e){
 
     <button class="roster-toggle" data-roster="${e.id}">Névsor</button>
     <div class="roster" id="roster-${e.id}">
-      <div class="roster-group"><b>Jönnek (${e.yes.length})</b><div class="chips">${e.yes.map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div>
-      <div class="roster-group"><b>Nem jönnek (${e.no.length})</b><div class="chips">${e.no.map(n=>`<span class="chip no">${rosterDisplayName_(n)}</span>`).join('')||'<span class="muted">–</span>'}</div></div>
-      <div class="roster-group"><b>Még nem jelzett (${e.unknown.length})</b><div class="chips">${e.unknown.map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div>
+      <div class="roster-group"><b>Jönnek (${e.yes.length})</b><div class="chips">${e.yes.map(n=>rosterChipHtml_(n)).join('')}</div></div>
+      <div class="roster-group"><b>Nem jönnek (${e.no.length})</b><div class="chips">${e.no.map(n=>rosterChipHtml_(n,'no')).join('')||'<span class="muted">–</span>'}</div></div>
+      <div class="roster-group"><b>Még nem jelzett (${e.unknown.length})</b><div class="chips">${e.unknown.map(n=>rosterChipHtml_(n)).join('')}</div></div>
     </div>
   </article>`;
 }
@@ -629,7 +802,7 @@ function renderProfilePayments_(){
           </tr>
         </thead>
         <tbody>
-          ${rowHtml('Tagdíj','beac_pass')}
+          ${rowHtml('BEAC bérlet','beac_pass')}
           ${rowHtml('Edzői díj','coach_fee')}
         </tbody>
       </table>
@@ -639,6 +812,24 @@ function renderProfilePayments_(){
       <span class="profile-permission-label">Engedélyek</span>
       ${permissionHtml}
     </div>
+
+    <details class="profile-payment-info">
+      <summary>
+        <span>Díjak és fizetési módok</span>
+        <span class="cc-outline-triangle profile-details-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="profile-payment-info-body">
+        <div class="profile-payment-info-row">
+          <div><b>BEAC versenyzői röplabda bérlet</b><small>7 000 Ft / hó</small></div>
+          <a href="https://www.beac.hu/berlet/versenyzoi-roplabda-berlet-2026-osz" target="_blank" rel="noopener">Bérlet megnyitása ↗</a>
+        </div>
+        <div class="profile-payment-info-row">
+          <div><b>Edzői díj</b><small>7 000 Ft / hó</small></div>
+          <span>Revolut vagy készpénz</span>
+        </div>
+        <p>Ez a rész csak tájékoztató. A fenti havi státuszok kizárólag a rendszerben ténylegesen rögzített befizetéseket mutatják.</p>
+      </div>
+    </details>
   `;
 
   profileScrollPaymentsToCurrent_();
@@ -770,7 +961,8 @@ function gridPeople(rows){
     name:currentPlayerName || 'Én',
     displayName:currentPlayerDisplayName || '',
     firstName:currentPlayerData?.firstName || '',
-    jerseyNo:currentPlayerData?.jerseyNo ?? null
+    jerseyNo:currentPlayerData?.jerseyNo ?? null,
+    avatarId:currentAvatarId || currentPlayerData?.avatarId || ''
   };
 
   const rest=Array.from(seenNames).map(name=>{
@@ -780,7 +972,8 @@ function gridPeople(rows){
       name,
       displayName:meta.displayName || '',
       firstName:meta.firstName || '',
-      jerseyNo:meta.jerseyNo ?? null
+      jerseyNo:meta.jerseyNo ?? null,
+      avatarId:meta.avatarId || ''
     };
   });
 
@@ -848,7 +1041,7 @@ function renderGridMatrix(rows){
         <th class="matrix-count-head">Fő</th>
         ${people.map(person=>{
           const mine=person.id==='__ME__';
-          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${person.name}"><span class="grid-player-label">${gridGivenName(person)}</span></th>`;
+          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${escapeHtml_(person.name)}"><span class="grid-player-head-inner">${person.avatarId?`<span class="grid-player-avatar">${avatarMarkup_(person.avatarId,'grid-player-avatar-svg')}</span>`:''}<span class="grid-player-label">${escapeHtml_(gridGivenName(person))}</span></span></th>`;
         }).join('')}
       </tr>
     </thead>
@@ -1052,6 +1245,9 @@ function syncPlannerFloatingHeaderGeometry_(){}
 function setupPlannerFloatingHeader_(){}
 
 function renderPlanner(){
+  const jumpBtn=document.getElementById('jumpCurrentBtn');
+  if(jumpBtn) jumpBtn.hidden=plannerMode!=='grid';
+
   updatePlannerFilterButton_();
   const rows=filteredPlannerEvents();
   const settingsToggle=document.getElementById('settingsDetailToggle');
@@ -1391,6 +1587,12 @@ if('serviceWorker' in navigator){
 
 
 
+document.getElementById('jumpCurrentBtn')?.addEventListener('click',()=>{
+  if(plannerMode!=='grid') return;
+  plannerUserPositioned=true;
+  scrollGridToCurrent('smooth');
+});
+
 document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const nextMode=btn.dataset.mode;
@@ -1564,6 +1766,7 @@ function defaultSettingsPayload_(){
     scheduleDefaultView:localStorage.getItem('cc-planner-default')||'last',
     language:'hu',
     detailedMode:localStorage.getItem('cc-detailed-mode')==='true',
+    avatarId:'',
     notifications:{
       new_training:true,
       training_change:true,
@@ -1583,6 +1786,7 @@ function collectSettingsUi_(){
     scheduleDefaultView:document.getElementById('settingsDefaultView')?.value||'last',
     language:document.getElementById('settingsLanguage')?.value||'hu',
     detailedMode:!!document.getElementById('settingsDetailToggle')?.checked,
+    avatarId:currentAvatarId||'',
     notifications
   };
 }
@@ -1594,7 +1798,9 @@ function applySettingsUi_(value){
   const map={settingsThemeMode:settings.theme||'system',settingsDefaultView:settings.scheduleDefaultView||'last',settingsLanguage:settings.language||'hu'};
   Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id); if(el) el.value=val;});
   const detail=document.getElementById('settingsDetailToggle'); if(detail) detail.checked=!!settings.detailedMode;
+  if(PLAYER_AVATAR_IDS.has(String(settings.avatarId||''))) currentAvatarId=String(settings.avatarId);
   document.querySelectorAll('[data-notify-setting]').forEach(input=>{ input.checked=settings.notifications[input.dataset.notifySetting]!==false; });
+  renderAvatarPicker_();
 }
 async function savePlayerSettingsNow_(){
   const settings=collectSettingsUi_();
@@ -1612,6 +1818,7 @@ async function savePlayerSettingsNow_(){
       schedule_default_view:settings.scheduleDefaultView,
       language:settings.language,
       detailed_mode:settings.detailedMode,
+      avatar_id:settings.avatarId||null,
       notifications:settings.notifications
     },{onConflict:'player_id'});
     if(error) throw error;
@@ -1650,6 +1857,28 @@ document.getElementById('settingsThemeMode')?.addEventListener('change',e=>{
 });
 document.getElementById('settingsLanguage')?.addEventListener('change',scheduleSettingsSave_);
 document.querySelectorAll('[data-notify-setting]').forEach(el=>el.addEventListener('change',scheduleSettingsSave_));
+document.getElementById('avatarPickerGrid')?.addEventListener('click',event=>{
+  const button=event.target.closest('[data-avatar-id]');
+  if(!button) return;
+  const next=String(button.dataset.avatarId||'');
+  if(!PLAYER_AVATAR_IDS.has(next)) return;
+  currentAvatarId=next;
+  if(currentPlayerData) currentPlayerData.avatarId=next;
+  if(currentPlayerSettings) currentPlayerSettings.avatarId=next;
+  renderAvatarPicker_();
+  renderEvents();
+  renderPlanner();
+  scheduleSettingsSave_();
+});
+document.getElementById('resetAvatarBtn')?.addEventListener('click',()=>{
+  currentAvatarId='';
+  if(currentPlayerData) currentPlayerData.avatarId='';
+  if(currentPlayerSettings) currentPlayerSettings.avatarId='';
+  renderAvatarPicker_();
+  renderEvents();
+  renderPlanner();
+  scheduleSettingsSave_();
+});
 document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=>{
   const old=e.currentTarget.textContent;
   e.currentTarget.textContent='… Frissítés';
@@ -1677,7 +1906,7 @@ function escapeHtml_(value){
 }
 
 function eventDialogRoster(e){
-  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>`<span class="chip no">${rosterDisplayName_(n)}</span>`).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>`<span class="chip">${rosterDisplayName_(n)}</span>`).join('')}</div></div></div>`;
+  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>rosterChipHtml_(n)).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>rosterChipHtml_(n,'no')).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>rosterChipHtml_(n)).join('')}</div></div></div>`;
 }
 function eventNoteSection_(e, archived){
   const hasNote=!!String(e.note||'').trim();
@@ -1899,7 +2128,7 @@ function applyBootstrap(j){
     const profileFullName=document.getElementById('profileFullName');
     if(profileFullName) profileFullName.textContent=currentPlayerName;
 
-    const meta=[j.player.position, j.player.jerseyNo ? '#'+j.player.jerseyNo : ''].filter(Boolean).join(' • ');
+    const meta=[playerPositionLabel_(j.player.position), j.player.jerseyNo ? '#'+j.player.jerseyNo : ''].filter(Boolean).join(' • ');
     document.getElementById('profileMeta').textContent=meta;
     document.getElementById('profileInitials').textContent=(currentPlayerDisplayName||'JT').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
 
@@ -1910,7 +2139,7 @@ function applyBootstrap(j){
       if(el && hasValue) el.textContent=String(value);
       if(row && hideIfEmpty) row.hidden=!hasValue;
     };
-    setRow('profilePositionRow','profilePosition',j.player.position,false);
+    setRow('profilePositionRow','profilePosition',playerPositionLabel_(j.player.position),false);
     setRow('profileJerseyNoRow','profileJerseyNo',j.player.jerseyNo,true);
     setRow('profileJerseySizeRow','profileJerseySize',j.player.jerseySize,true);
     setRow('profileShortsSizeRow','profileShortsSize',j.player.shortsSize,true);
@@ -1927,7 +2156,9 @@ function applyBootstrap(j){
   teamPlayerDirectory=Array.isArray(j.teamPlayers)
     ? j.teamPlayers.map(player=>({
         ...player,
-        displayName:resolveDisplayName(player)
+        position:playerPositionLabel_(player.position),
+        displayName:resolveDisplayName(player),
+        avatarId:teamAvatarByPlayerId.get(String(player?.playerId||player?.id||'')) || ''
       }))
     : [];
   events=j.events.map(normalizeApiEvent).filter(e=>e.id && e.date);
@@ -2008,7 +2239,10 @@ async function loadBootstrap(options={}){
       : (Array.isArray(displayNameData) ? displayNameData : []);
 
     applyBootstrap(payload);
-    await ccLoadProfileData_();
+    await Promise.all([
+      ccLoadProfileData_(),
+      ccLoadAvatarDirectory_()
+    ]);
     if(!options.skipRealtimeSetup) await ccSetupRealtime_(payload.team);
     hideLogin();
     return true;

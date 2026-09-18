@@ -5345,3 +5345,201 @@ body.planner-grid-page-lock{
 .profile-permission-row.detail-row{
   border-top:0 !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.6.0 — POST-CUTOVER PATCH 1
+   Scope: avatar selector, roster avatars, fee disclosure,
+   jump-to-current restore. No routing/auth/cutover changes.
+   ========================================================== */
+
+/* Restore the requested grid-only jump control after historical hide rules. */
+.jump-current-btn{
+  display:grid !important;
+  color:var(--muted) !important;
+}
+.jump-current-btn[hidden]{display:none !important;}
+.cc-icon-jump-current{
+  width:23px;
+  height:23px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* Animal avatars are inline SVGs: no extra network fetch, no photo upload. */
+.profile-dot.has-animal-avatar{
+  padding:4px;
+  background:#fff8dc;
+  color:#171717;
+}
+.dark .profile-dot.has-animal-avatar{
+  background:#2b2618;
+  color:#f4f0e6;
+}
+.profile-avatar-svg,
+.avatar-option-svg,
+.roster-avatar-svg,
+.grid-player-avatar-svg{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+.settings-avatar-block{
+  margin:12px 0 4px;
+  padding:11px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--soft);
+}
+.settings-avatar-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:9px;
+}
+.settings-avatar-head>span:first-child{
+  display:grid;
+  gap:3px;
+}
+.settings-avatar-head b{font-size:12px}
+.settings-avatar-head small{font-size:10px;color:var(--muted);line-height:1.35}
+.settings-avatar-preview{
+  flex:0 0 38px;
+  width:38px;
+  height:38px;
+}
+.avatar-picker-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px;
+  max-height:250px;
+  overflow:auto;
+  padding:2px;
+  -webkit-overflow-scrolling:touch;
+}
+.avatar-option{
+  min-width:0;
+  min-height:62px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:3px;
+  padding:6px 3px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--card);
+  color:var(--black);
+  cursor:pointer;
+}
+.avatar-option:hover{background:#fff9df}
+.avatar-option.selected{
+  border-color:var(--yellow-dark);
+  box-shadow:0 0 0 2px rgba(247,183,0,.20);
+  background:#fff6c9;
+}
+.avatar-option-svg{width:30px;height:30px}
+.avatar-option span{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:8px;
+  font-weight:800;
+}
+.avatar-reset-btn{
+  width:100%;
+  margin-top:8px;
+  font-size:11px;
+}
+.dark .settings-avatar-block{background:#1b1a18}
+.dark .avatar-option{background:#151412}
+.dark .avatar-option:hover{background:#252117}
+.dark .avatar-option.selected{background:#332b14;border-color:#d5a72f}
+
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+.roster-avatar{
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+  display:grid;
+  place-items:center;
+  color:var(--black);
+}
+.grid-player-head-inner{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  min-width:0;
+}
+.grid-player-avatar{
+  width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  color:var(--black);
+}
+.dark .roster-avatar,
+.dark .grid-player-avatar{color:#f4f0e6}
+
+/* Static fee explanation; actual payment states above still come only from DB. */
+.profile-payment-info{
+  margin-top:10px;
+  border-top:1px solid var(--line);
+}
+.profile-payment-info summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:11px 0 5px;
+  cursor:pointer;
+  list-style:none;
+  font-size:12px;
+  font-weight:900;
+}
+.profile-payment-info summary::-webkit-details-marker{display:none}
+.profile-payment-info-body{
+  display:grid;
+  gap:8px;
+  padding:5px 0 2px;
+}
+.profile-payment-info-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--soft);
+  font-size:11px;
+}
+.profile-payment-info-row div{display:grid;gap:2px}
+.profile-payment-info-row b{font-size:11px}
+.profile-payment-info-row small,
+.profile-payment-info-body p{color:var(--muted);font-size:9px;line-height:1.4}
+.profile-payment-info-row a{
+  color:inherit;
+  font-size:10px;
+  font-weight:900;
+  text-align:right;
+}
+.profile-payment-info-body p{margin:0 2px 4px}
+.dark .profile-payment-info-row{background:#1b1a18}
+
+@media(max-width:560px){
+  .avatar-picker-grid{grid-template-columns:repeat(4,minmax(0,1fr));max-height:280px}
+  .profile-payment-info-row{align-items:flex-start;flex-direction:column}
+  .profile-payment-info-row a{text-align:left}
+}

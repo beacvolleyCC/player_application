@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=13.5.48-current-month-flat">
+  <link rel="stylesheet" href="./styles.css?v=13.6.0-post-cutover-1">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -59,7 +59,7 @@
       <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
       <button class="profile-btn" data-view-jump="profileView">
         <span class="profile-dot" id="profileInitials">JT</span>
-        <span class="profile-meta"><b id="profileName">Játékos Teszt</b><small id="profileMeta">Négyes • #12</small></span>
+        <span class="profile-meta"><b id="profileName">Játékos Teszt</b><small id="profileMeta">Szélső ütő • #12</small></span>
       </button>
     </div>
   </div>
@@ -142,6 +142,13 @@
               <path d="M8.8 4V28 M13.6 4V28 M18.4 4V28 M23.2 4V28 M4 8.8H28 M4 13.6H28 M4 18.4H28 M4 23.2H28"></path>
             </svg>
           </button>
+          <button class="view-mode-btn icon-only jump-current-btn" id="jumpCurrentBtn" title="Következő edzéshez ugrás" aria-label="Következő edzéshez ugrás">
+            <svg class="cc-icon cc-icon-jump-current" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <path d="M16 5v18"></path>
+              <path d="M10 17l6 6 6-6"></path>
+              <path d="M7 27h18"></path>
+            </svg>
+          </button>
           <button class="view-mode-btn icon-only filter-state-btn" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">
             <span class="filter-funnel" aria-hidden="true">
               <span class="filter-icon-outline">▽</span>
@@ -213,7 +220,7 @@
       </div>
 
       <div class="card profile-payments-card">
-        <h4>Díjak és befizetések</h4>
+        <h4>Díjak és fizetések</h4>
         <div id="profilePaymentsContent" class="profile-payments-v2">
           <div class="profile-empty-block">
             <b>Fizetési adatok betöltése…</b>
@@ -347,6 +354,17 @@
             <option value="dark">Sötét</option>
           </select>
         </label>
+        <div class="settings-avatar-block">
+          <div class="settings-avatar-head">
+            <span>
+              <b>Profilavatar</b>
+              <small>Opcionális. Ha nem választasz állatot, a monogram marad.</small>
+            </span>
+            <span class="settings-avatar-preview profile-dot" id="settingsAvatarPreview" aria-hidden="true">JT</span>
+          </div>
+          <div class="avatar-picker-grid" id="avatarPickerGrid" role="listbox" aria-label="Profilavatar kiválasztása"></div>
+          <button class="ghost-btn avatar-reset-btn" id="resetAvatarBtn" type="button">Monogram használata</button>
+        </div>
         <label class="switch-row">
           <span><b>Részletes eseményadatok</b><small>Helyszín, találkozó és Maps-link megjelenítése.</small></span>
           <input type="checkbox" id="settingsDetailToggle">
@@ -385,7 +403,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.5.32</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.6.0</b></div>
       </div>
     </div>
   </dialog>
@@ -412,6 +430,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=13.0-supabase-core2"></script>
-  <script src="./app.js?v=13.5.48-current-month-flat"></script>
+  <script src="./app.js?v=13.6.0-post-cutover-1"></script>
 </body>
 </html>

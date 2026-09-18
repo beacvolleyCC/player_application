@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-5-48-current-month-flat';
+const CACHE='club-control-player-v2-3-6-0-post-cutover-1';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
