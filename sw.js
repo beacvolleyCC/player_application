@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-6-2-avatar-reference';
+const CACHE='club-control-player-v2-3-7-1-avatar52-payments';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

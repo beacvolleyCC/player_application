@@ -5555,8 +5555,8 @@ body.planner-grid-page-lock{
 
 
 /* ==========================================================
-   PLAYER V2.3.6.2 — AVATAR REFERENCE / SETTINGS MODE
-   User-approved 5x8 avatar sprite, compact conditional picker.
+   PLAYER V2.3.7.1 — AVATAR 52 / PAYMENT BRIDGE
+   52-avatar monochrome sprite, compact conditional picker, hidden labels.
    ========================================================== */
 .jump-current-btn{display:none!important;}
 
@@ -5566,7 +5566,7 @@ body.planner-grid-page-lock{
   height:100%;
   background-image:url('./icons/avatar-sprite.webp');
   background-repeat:no-repeat;
-  background-size:800% 500%;
+  background-size:800% 700%;
   border-radius:50%;
 }
 .profile-avatar-svg,
@@ -5577,18 +5577,22 @@ body.planner-grid-page-lock{
   height:100%;
 }
 
-/* Header avatar is intentionally inverted; all other avatar uses keep artwork as supplied. */
+/* Header avatar keeps the same monochrome artwork as everywhere else.
+   Only the top-right profile avatar gets a clear black circular border. */
 #profileInitials.has-animal-avatar{
-  padding:2px;
+  padding:1px;
   overflow:hidden;
-  background:#171717!important;
-  color:#fff!important;
+  background:#fff!important;
+  color:#171717!important;
+  border:2px solid #111!important;
 }
 #profileInitials.has-animal-avatar .avatar-sprite{
-  filter:grayscale(1) invert(1);
+  filter:grayscale(1);
 }
 .dark #profileInitials.has-animal-avatar{
-  background:#f4f0e6!important;
+  background:#fff!important;
+  color:#171717!important;
+  border-color:#111!important;
 }
 .dark #profileInitials.has-animal-avatar .avatar-sprite{
   filter:grayscale(1);
@@ -5637,4 +5641,35 @@ body.planner-grid-page-lock{
 @media(max-width:520px){
   .avatar-picker-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
   .avatar-mode-toggle{grid-template-columns:1fr;}
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.7.1 — AVATAR 52 / PAYMENT ACCURACY
+   ========================================================== */
+.avatar-option{
+  min-height:54px !important;
+  padding:6px !important;
+  gap:0 !important;
+}
+.avatar-option > span:not(.avatar-sprite){
+  display:none !important;
+}
+.avatar-option .avatar-sprite{
+  width:40px !important;
+  height:40px !important;
+}
+.profile-payment-matrix td.payment-empty{
+  background:var(--card) !important;
+}
+.profile-pay-symbol.empty,
+.profile-permission-symbol.empty,
+.profile-permission-symbol.waived{
+  color:var(--muted) !important;
+}
+.profile-permission-symbol.late{
+  color:#c63a2d !important;
+}
+.dark .profile-payment-matrix td.payment-empty{
+  background:#151412 !important;
 }

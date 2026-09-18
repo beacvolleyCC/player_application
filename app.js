@@ -37,17 +37,21 @@ let teamAvatarByPlayerId = new Map();
 let avatarPickerMode = 'monogram';
 
 const PLAYER_AVATARS = [
-  // Stable IDs remain compatible with SQL 039. Sprite/labels follow the user-approved 5x8 artwork.
-  ['alpaca','Alpaka',0],['lion','Oroszlán',1],['tiger','Tigris',2],['panther','Leopárd',3],
-  ['lynx','Hiúz',4],['cat','Karakál',5],['husky','Macska',6],['wolf','Farkas',7],
-  ['fox','Róka',8],['rabbit','Fennek',9],['bear','Medve',10],['deer','Jegesmedve',11],
-  ['panda','Panda',12],['gorilla','Gorilla',13],['monkey','Orangután',14],['elephant','Elefánt',15],
-  ['rhino','Orrszarvú',16],['hippo','Víziló',17],['giraffe','Zsiráf',18],['buffalo','Bölény',19],
-  ['mammoth','Mamut',20],['donkey','Szamár',21],['goat','Koala',22],['raccoon','Mosómedve',23],
-  ['dog','Borz',24],['otter','Vidra',25],['cow','Hód',26],['ram','Szurikáta',27],
-  ['hedgehog','Süni',28],['horse','Tatú',29],['zebra','Tobzoska',30],['turtle','Rozmár',31],
-  ['penguin','Pingvin',32],['owl','Bagoly',33],['eagle','Páva',34],['dolphin','Flamingó',35],
-  ['crocodile','Krokodil',36],['frog','Kaméleon',37],['shark','Cápa',38],['moose','Polip',39]
+  // First 40 IDs stay untouched for backwards compatibility with saved profiles.
+  ['alpaca','',0],['lion','',1],['tiger','',2],['panther','',3],
+  ['lynx','',4],['cat','',5],['husky','',6],['wolf','',7],
+  ['fox','',8],['rabbit','',9],['bear','',10],['deer','',11],
+  ['panda','',12],['gorilla','',13],['monkey','',14],['elephant','',15],
+  ['rhino','',16],['hippo','',17],['giraffe','',18],['buffalo','',19],
+  ['mammoth','',20],['donkey','',21],['goat','',22],['raccoon','',23],
+  ['dog','',24],['otter','',25],['cow','',26],['ram','',27],
+  ['hedgehog','',28],['horse','',29],['zebra','',30],['turtle','',31],
+  ['penguin','',32],['owl','',33],['eagle','',34],['dolphin','',35],
+  ['crocodile','',36],['frog','',37],['shark','',38],['moose','',39],
+  // V2.3.7 additions. IDs are prefixed so old semantic IDs remain stable.
+  ['extra_zebra','',40],['extra_horse','',41],['extra_deer','',42],['extra_kangaroo','',43],
+  ['extra_rabbit','',44],['extra_eagle','',45],['extra_turtle','',46],['extra_dolphin','',47],
+  ['extra_boar','',48],['extra_ram','',49],['extra_frog','',50],['extra_parrot','',51]
 ].map(([id,label,spriteIndex])=>({id,label,spriteIndex}));
 
 const PLAYER_AVATAR_IDS = new Set(PLAYER_AVATARS.map(x=>x.id));
@@ -92,85 +96,14 @@ function avatarDef_(id){
   return PLAYER_AVATARS.find(x=>x.id===String(id||'')) || null;
 }
 
-function avatarSvg_(avatarId, className=''){
-  const def=avatarDef_(avatarId);
-  if(!def) return '';
-  const cls=className ? ` class="${className}"` : '';
-  const common=`fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`;
-  const eye=`<circle cx="12.5" cy="14.5" r="1" fill="currentColor" stroke="none"/><circle cx="19.5" cy="14.5" r="1" fill="currentColor" stroke="none"/>`;
-  let art='';
-
-  if(def.kind==='feline'){
-    art=`<path d="M9 10 7 5l5 3a10 10 0 0 1 8 0l5-3-2 5v8c0 5-3 8-7 8s-7-3-7-8Z"/>${eye}<path d="M14 18h4l-2 2Z"/><path d="M12 19 7 18m5 3-5 2m13-4 5-1m-5 3 5 2"/>`;
-    if(def.variant==='stripes') art+=`<path d="M13 9l1 3m5-3-1 3M16 8v4"/>`;
-    if(def.variant==='mane') art=`<path d="M16 3c7 0 12 5 12 12 0 8-5 14-12 14S4 23 4 15C4 8 9 3 16 3Z"/><path d="M10 10 8 6l5 3a9 9 0 0 1 6 0l5-3-2 4v8c0 5-2 8-6 8s-6-3-6-8Z"/>${eye}<path d="M14 18h4l-2 2Z"/>`;
-    if(def.variant==='tufts') art+=`<path d="M7 5 6 2m19 3 1-3"/>`;
-    if(def.variant==='dark') art+=`<path d="M10 12c4-3 8-3 12 0"/>`;
-  }else if(def.kind==='canine'){
-    art=`<path d="M9 11 7 4l6 5a9 9 0 0 1 6 0l6-5-2 7v7c0 5-3 8-7 8s-7-3-7-8Z"/>${eye}<path d="M13 18c2-2 4-2 6 0l-3 4Z"/>`;
-    if(def.variant==='fox') art+=`<path d="M10 12c2 2 3 4 3 7m9-7c-2 2-3 4-3 7"/>`;
-    if(def.variant==='mask') art+=`<path d="M10 12l4 5m8-5-4 5M12 11h8"/>`;
-    if(def.variant==='wolf') art+=`<path d="M16 6v4m-5-2 2 3m8-3-2 3"/>`;
-    if(def.variant==='dog') art+=`<path d="M8 7 4 10l4 5m16-8 4 3-4 5"/>`;
-  }else if(def.kind==='bear'){
-    art=`<circle cx="9" cy="9" r="3"/><circle cx="23" cy="9" r="3"/><path d="M8 14c0-6 3-9 8-9s8 3 8 9v5c0 5-3 8-8 8s-8-3-8-8Z"/>${eye}<ellipse cx="16" cy="19" rx="4" ry="3"/><path d="M15 18h2"/>`;
-    if(def.variant==='panda'||def.variant==='mask') art+=`<path d="M10 12c2-2 4-2 5 1m7-1c-2-2-4-2-5 1"/>`;
-    if(def.variant==='otter') art+=`<path d="M11 21 7 23m14-2 4 2"/>`;
-  }else if(def.kind==='rabbit'){
-    art=`<path d="M11 10C8 5 9 2 11 2c3 0 4 5 4 8m6 0c3-5 2-8 0-8-3 0-4 5-4 8"/><path d="M8 15c0-5 3-8 8-8s8 3 8 8v4c0 5-3 8-8 8s-8-3-8-8Z"/>${eye}<path d="M14 19h4l-2 2Z"/>`;
-  }else if(def.kind==='horned'){
-    art=`<path d="M9 10c1-4 4-6 7-6s6 2 7 6v9c0 5-3 8-7 8s-7-3-7-8Z"/>${eye}<path d="M14 19h4"/>`;
-    if(def.variant==='wide'||def.variant==='cow') art+=`<path d="M9 10C5 10 3 7 4 4c2 3 4 3 7 2m12 4c4 0 6-3 5-6-2 3-4 3-7 2"/>`;
-    if(def.variant==='goat') art+=`<path d="M11 8C8 4 9 2 11 1m10 7c3-4 2-6 0-7M16 27v3"/>`;
-    if(def.variant==='ram') art+=`<path d="M10 11C5 9 5 4 9 3c4 0 5 4 2 7m11 1c5-2 5-7 1-8-4 0-5 4-2 7"/>`;
-    if(def.variant==='antlers'||def.variant==='moose') art+=`<path d="M11 8 8 5 6 2m2 3 3-1m10 4 3-3 2-3m-2 3-3-1"/>`;
-    if(def.variant==='moose') art+=`<path d="M10 18h12"/>`;
-  }else if(def.kind==='long'){
-    art=`<path d="M11 7 9 2l4 4m8 1 2-5-4 4"/><path d="M12 6h8l2 15c0 4-2 7-6 7s-6-3-6-7Z"/>${eye}<path d="M14 20h4"/>`;
-    if(def.variant==='spots') art+=`<circle cx="13" cy="10" r="1.2"/><circle cx="19" cy="18" r="1.3"/><circle cx="12" cy="22" r="1"/>`;
-    if(def.variant==='tuft') art+=`<path d="M14 5 16 2l2 3"/>`;
-  }else if(def.kind==='equine'){
-    art=`<path d="M10 9 8 3l5 5a9 9 0 0 1 6 0l5-5-2 6 1 10c0 5-3 8-7 8s-7-3-7-8Z"/>${eye}<path d="M13 20h6"/>`;
-    if(def.variant==='stripes') art+=`<path d="M12 8l2 4m4-4-1 4m4-2-2 4"/>`;
-    if(def.variant==='donkey') art+=`<path d="M8 3 6 1m18 2 2-2"/>`;
-  }else if(def.kind==='elephant'){
-    art=`<path d="M8 10C3 8 2 13 4 18c1 3 4 4 7 2m13-10c5-2 6 3 4 8-1 3-4 4-7 2"/><path d="M9 11c0-5 3-8 7-8s7 3 7 8v7c0 4-2 7-5 8v4h-4v-9"/>${eye}<path d="M14 27c2 2 4 2 6 0"/>`;
-    if(def.variant==='mammoth') art+=`<path d="M9 21c-3 5 0 7 3 4m11-4c3 5 0 7-3 4"/>`;
-  }else if(def.kind==='rhino'){
-    art=`<path d="M7 15c0-6 4-10 9-10s9 4 9 10v5c0 4-4 7-9 7s-9-3-9-7Z"/>${eye}<path d="M16 5 18 0l2 7M12 20h8"/>`;
-  }else if(def.kind==='primate'){
-    art=`<circle cx="7" cy="15" r="4"/><circle cx="25" cy="15" r="4"/><path d="M8 14c0-6 3-10 8-10s8 4 8 10v6c0 5-3 8-8 8s-8-3-8-8Z"/>${eye}<ellipse cx="16" cy="20" rx="5" ry="4"/>`;
-    if(def.variant==='gorilla') art+=`<path d="M9 9c4-3 10-3 14 0M10 24h12"/>`;
-  }else if(def.kind==='hippo'){
-    art=`<path d="M7 13c0-6 3-9 9-9s9 3 9 9v7c0 5-4 8-9 8s-9-3-9-8Z"/><circle cx="10" cy="8" r="2"/><circle cx="22" cy="8" r="2"/>${eye}<ellipse cx="16" cy="20" rx="7" ry="4"/><circle cx="13" cy="20" r=".8" fill="currentColor"/><circle cx="19" cy="20" r=".8" fill="currentColor"/>`;
-  }else if(def.kind==='bird'){
-    art=`<path d="M8 16c0-7 3-11 8-11s8 4 8 11v5c0 4-3 7-8 7s-8-3-8-7Z"/>${eye}<path d="M13 18h6l-3 3Z"/>`;
-    if(def.variant==='owl') art=`<path d="M8 9 11 4l5 4 5-4 3 5v11c0 5-3 8-8 8s-8-3-8-8Z"/><circle cx="12" cy="14" r="3"/><circle cx="20" cy="14" r="3"/><circle cx="12" cy="14" r="1" fill="currentColor"/><circle cx="20" cy="14" r="1" fill="currentColor"/><path d="M14 18h4l-2 3Z"/>`;
-    if(def.variant==='eagle') art+=`<path d="M7 12c5-2 13-2 18 0m-9-7v5"/>`;
-    if(def.variant==='penguin') art+=`<path d="M11 10c3 2 7 2 10 0M12 24c2-2 6-2 8 0"/>`;
-  }else if(def.kind==='aquatic'){
-    art=`<path d="M4 17c5-7 13-9 21-5l4-4-1 7 1 7-4-4c-8 4-16 2-21-1Z"/><circle cx="10" cy="14" r="1" fill="currentColor"/>`;
-    if(def.variant==='shark') art+=`<path d="M16 10 19 4l3 7M10 18h9"/>`;
-    if(def.variant==='dolphin') art+=`<path d="M17 10c2-4 6-5 9-3M8 17c1 4 4 7 8 8"/>`;
-  }else if(def.kind==='reptile'){
-    if(def.variant==='turtle') art=`<ellipse cx="16" cy="16" rx="9" ry="7"/><path d="M12 10v12m8-12v12M7 16h18M5 13 2 10m3 9-3 3m25-9 3-3m-3 9 3 3"/>`;
-    else if(def.variant==='frog') art=`<circle cx="10" cy="9" r="4"/><circle cx="22" cy="9" r="4"/><path d="M7 13c1-4 4-6 9-6s8 2 9 6v7c0 5-4 8-9 8s-9-3-9-8Z"/><circle cx="10" cy="9" r="1" fill="currentColor"/><circle cx="22" cy="9" r="1" fill="currentColor"/><path d="M11 20c3 2 7 2 10 0"/>`;
-    else art=`<path d="M3 17c3-7 8-10 16-9l7 2 3 5-4 5-8 3C10 24 5 21 3 17Z"/><circle cx="22" cy="12" r="1" fill="currentColor"/><path d="M19 17h8M8 18l-4 4"/>`;
-  }else if(def.kind==='hedgehog'){
-    art=`<path d="M5 21 3 17l4-2-2-4 5-1 1-5 4 3 4-4 2 5 5-1-1 5 4 2-4 3 1 5-5-1c-2 4-8 6-12 2Z"/><circle cx="19" cy="16" r="1" fill="currentColor"/><path d="M22 20h4"/>`;
-  }
-
-  return `<svg${cls} viewBox="0 0 32 32" aria-hidden="true" focusable="false" ${common}>${art}</svg>`;
-}
-
 function avatarMarkup_(avatarId,className='player-avatar-icon'){
   const def=avatarDef_(avatarId);
   if(!def) return '';
   const col=def.spriteIndex%8;
   const row=Math.floor(def.spriteIndex/8);
   const x=(col*100/7).toFixed(6);
-  const y=(row*100/4).toFixed(6);
-  return `<span class="avatar-sprite ${className}" role="img" aria-label="${escapeHtml_(def.label)}" style="background-position:${x}% ${y}%"></span>`;
+  const y=(row*100/6).toFixed(6);
+  return `<span class="avatar-sprite ${className}" role="img" aria-label="Avatar" style="background-position:${x}% ${y}%"></span>`;
 }
 
 function playerAvatarIdByName_(name){
@@ -216,10 +149,9 @@ function syncAvatarModeUi_(){
 function renderAvatarPicker_(){
   const grid=document.getElementById('avatarPickerGrid');
   if(!grid) return;
-  grid.innerHTML=PLAYER_AVATARS.map(item=>`
-    <button type="button" class="avatar-option ${item.id===currentAvatarId?'selected':''}" data-avatar-id="${item.id}" role="option" aria-selected="${item.id===currentAvatarId?'true':'false'}" title="${escapeHtml_(item.label)}">
+  grid.innerHTML=PLAYER_AVATARS.map((item,index)=>`
+    <button type="button" class="avatar-option ${item.id===currentAvatarId?'selected':''}" data-avatar-id="${item.id}" role="option" aria-selected="${item.id===currentAvatarId?'true':'false'}" aria-label="Avatar ${index+1}">
       ${avatarMarkup_(item.id,'avatar-option-svg')}
-      <span>${escapeHtml_(item.label)}</span>
     </button>
   `).join('');
   renderCurrentAvatar_();
@@ -594,7 +526,7 @@ function renderProfileStats_(){
 
 function profileFeeTypeLabel_(type){
   const map={
-    beac_pass:'Tagdíj',
+    beac_pass:'BEAC bérlet',
     coach_fee:'Edzői díj',
     permission_fee:'Engedélyek',
     team_fee:'Csapatdíj',
@@ -722,6 +654,7 @@ function profileBudapestDateKey_(){
 }
 
 function profilePaymentCellState_(fee,monthKey){
+  if(!fee) return 'empty';
   const status=String(fee?.status||'').toLowerCase();
 
   if(status==='paid') return 'paid';
@@ -733,6 +666,10 @@ function profilePaymentCellState_(fee,monthKey){
 
 function profilePaymentCell_(fee,monthKey){
   const state=profilePaymentCellState_(fee,monthKey);
+
+  if(state==='empty'){
+    return `<span class="profile-pay-symbol empty" title="Nincs rögzített adat" aria-label="Nincs rögzített adat">–</span>`;
+  }
 
   if(state==='paid'){
     return `<span class="profile-pay-symbol paid" title="Befizetve" aria-label="Befizetve">✓</span>`;
@@ -770,6 +707,12 @@ function renderProfilePayments_(){
   const box=document.getElementById('profilePaymentsContent');
   if(!box) return;
 
+  if(currentProfileData.loaded===false){
+    box.className='profile-payments-v2';
+    box.innerHTML='<div class="profile-empty-block"><b>A befizetési adatok jelenleg nem érhetők el.</b></div>';
+    return;
+  }
+
   const rows=Array.isArray(currentProfileData.payments) ? currentProfileData.payments : [];
   const months=profileSeasonMonths_();
 
@@ -805,10 +748,15 @@ function renderProfilePayments_(){
     </tr>`;
 
   let permissionHtml='';
-  if(permission && String(permission.status||'')==='paid'){
+  const permissionStatus=String(permission?.status||'').toLowerCase();
+  if(permissionStatus==='paid'){
     permissionHtml=`<span class="profile-permission-symbol paid" title="Befizetve" aria-label="Befizetve">✓</span>`;
+  }else if(permissionStatus==='due'){
+    permissionHtml=`<span class="profile-permission-symbol late" title="Fizetendő" aria-label="Fizetendő">!</span>`;
+  }else if(permissionStatus==='waived'){
+    permissionHtml=`<span class="profile-permission-symbol waived" title="Elengedve" aria-label="Elengedve">–</span>`;
   }else{
-    permissionHtml=`<span class="profile-permission-symbol pending" title="Nincs befizetve" aria-label="Nincs befizetve">–</span>`;
+    permissionHtml=`<span class="profile-permission-symbol empty" title="Nincs rögzített adat" aria-label="Nincs rögzített adat">–</span>`;
   }
 
   box.className='profile-payments-v2';
