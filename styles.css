@@ -5543,3 +5543,98 @@ body.planner-grid-page-lock{
   .profile-payment-info-row{align-items:flex-start;flex-direction:column}
   .profile-payment-info-row a{text-align:left}
 }
+
+/* ==========================================================
+   PLAYER V2.3.6.1 — PAYMENT DISCLOSURE CHEVRON FIX
+   The payment disclosure is a separate <details> component,
+   so it needs the same open-state rotation as profile details.
+   ========================================================== */
+.profile-payment-info[open] .profile-details-chevron{
+  transform:rotate(180deg) !important;
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.6.2 — AVATAR REFERENCE / SETTINGS MODE
+   User-approved 5x8 avatar sprite, compact conditional picker.
+   ========================================================== */
+.jump-current-btn{display:none!important;}
+
+.avatar-sprite{
+  display:block;
+  width:100%;
+  height:100%;
+  background-image:url('./icons/avatar-sprite.webp');
+  background-repeat:no-repeat;
+  background-size:800% 500%;
+  border-radius:50%;
+}
+.profile-avatar-svg,
+.avatar-option-svg,
+.roster-avatar-svg,
+.grid-player-avatar-svg{
+  width:100%;
+  height:100%;
+}
+
+/* Header avatar is intentionally inverted; all other avatar uses keep artwork as supplied. */
+#profileInitials.has-animal-avatar{
+  padding:2px;
+  overflow:hidden;
+  background:#171717!important;
+  color:#fff!important;
+}
+#profileInitials.has-animal-avatar .avatar-sprite{
+  filter:grayscale(1) invert(1);
+}
+.dark #profileInitials.has-animal-avatar{
+  background:#f4f0e6!important;
+}
+.dark #profileInitials.has-animal-avatar .avatar-sprite{
+  filter:grayscale(1);
+}
+
+.avatar-mode-toggle{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  margin-top:8px;
+}
+.avatar-mode-btn{
+  min-height:38px;
+  padding:7px 9px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--card);
+  color:var(--black);
+  font:inherit;
+  font-size:10px;
+  font-weight:900;
+  cursor:pointer;
+}
+.avatar-mode-btn.active{
+  border-color:var(--yellow-dark);
+  background:#fff4bd;
+  box-shadow:inset 0 0 0 1px rgba(247,183,0,.15);
+}
+.dark .avatar-mode-btn{background:#151412;color:#f3eee4}
+.dark .avatar-mode-btn.active{background:#332b14;border-color:#d5a72f}
+.avatar-picker-panel{
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid var(--line);
+}
+.avatar-picker-panel[hidden]{display:none!important;}
+.avatar-option{
+  overflow:hidden;
+}
+.avatar-option .avatar-sprite{
+  width:38px;
+  height:38px;
+}
+.avatar-reset-btn{display:none!important;}
+
+@media(max-width:520px){
+  .avatar-picker-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .avatar-mode-toggle{grid-template-columns:1fr;}
+}

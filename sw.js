@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-6-0-post-cutover-1';
+const CACHE='club-control-player-v2-3-6-2-avatar-reference';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -7,7 +7,8 @@ const CORE=[
   './icons/favicon-32.png',
   './icons/event-training-mask.png',
   './icons/event-home-mask.png',
-  './icons/event-away-mask.png'
+  './icons/event-away-mask.png',
+  './icons/avatar-sprite.webp'
 ];
 
 self.addEventListener('install', event => {

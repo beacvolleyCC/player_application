@@ -2,16 +2,16 @@
 const DEMO_NOW = new Date('2026-09-05T12:00:00');
 
 let events = [
-  {id:'ev-2026-08-30',archived:true,date:'2026.08.30.',day:'Vasárnap',time:'18:00–20:00',type:'Edzés',title:'Csapatedzés',place:'Bogdánfy • 1. pálya',month:'Aug',status:'yes',yes:['Anna','Dóri','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Te'],no:['Viki'],unknown:['Emma','Zsófi'],positions:{'Feladó':2,'Átló':2,'Négyes':4,'Center':3,'Liberó':2}},
-  {id:'ev-2026-09-01',archived:true,date:'2026.09.01.',day:'Kedd',time:'20:00–22:00',type:'Edzés',title:'Csapatedzés',place:'Bogdánfy • 2. pálya',month:'Szept',status:null,yes:['Anna','Petra','Luca','Réka','Juli','Kata','Sára','Nóri','Eszter'],no:['Dóri','Viki'],unknown:['Te','Fanni','Lili','Emma','Zsófi'],positions:{'Feladó':2,'Átló':1,'Négyes':3,'Center':2,'Liberó':1}},
+  {id:'ev-2026-08-30',archived:true,date:'2026.08.30.',day:'Vasárnap',time:'18:00–20:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 1. pálya',month:'Aug',status:'yes',yes:['Anna','Dóri','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Te'],no:['Viki'],unknown:['Emma','Zsófi'],positions:{'Feladó':2,'Átló':2,'Négyes':4,'Center':3,'Liberó':2}},
+  {id:'ev-2026-09-01',archived:true,date:'2026.09.01.',day:'Kedd',time:'20:00–22:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 2. pálya',month:'Szept',status:null,yes:['Anna','Petra','Luca','Réka','Juli','Kata','Sára','Nóri','Eszter'],no:['Dóri','Viki'],unknown:['Te','Fanni','Lili','Emma','Zsófi'],positions:{'Feladó':2,'Átló':1,'Négyes':3,'Center':2,'Liberó':1}},
   {id:'ev-2026-09-04',archived:true,date:'2026.09.04.',day:'Péntek',time:'19:30',type:'Meccs',matchKind:'home',title:'BEAC – Corvinus',place:'Bogdánfy Sportcsarnok',meeting:'18:45 • Bogdánfy főbejárat',month:'Szept',status:'yes',yes:['Anna','Dóri','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Te'],no:[],unknown:['Emma','Zsófi'],positions:{'Feladó':2,'Átló':2,'Négyes':4,'Center':3,'Liberó':2}},
-  {id:'ev-2026-09-08',date:'2026.09.08.',day:'Kedd',time:'20:00–22:00',type:'Edzés',title:'Csapatedzés',place:'Bogdánfy • 2. pálya',month:'Szept',status:null,yes:['Anna','Petra','Luca','Fanni','Réka','Juli','Kata','Lili','Sára','Nóri'],no:['Dóri'],unknown:['Te','Eszter','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':2,'Négyes':3,'Center':2,'Liberó':2}},
-  {id:'ev-2026-09-10',date:'2026.09.10.',day:'Csütörtök',time:'18:00–20:00',type:'Edzés',title:'Csapatedzés',place:'Bogdánfy • 1. pálya',month:'Szept',status:null,yes:['Anna','Petra','Luca'],no:['Dóri'],unknown:['Te','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':1,'Négyes':1,'Center':0,'Liberó':0}},
-  {id:'ev-2026-10-02',date:'2026.10.02.',day:'Csütörtök',time:'18:00–20:00',type:'Edzés',title:'Csapatedzés',place:'Bogdánfy • 2. pálya',month:'Okt',status:null,yes:['Anna','Dóri'],no:[],unknown:['Te','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':0,'Négyes':1,'Center':0,'Liberó':0}},
+  {id:'ev-2026-09-08',date:'2026.09.08.',day:'Kedd',time:'20:00–22:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 2. pálya',month:'Szept',status:null,yes:['Anna','Petra','Luca','Fanni','Réka','Juli','Kata','Lili','Sára','Nóri'],no:['Dóri'],unknown:['Te','Eszter','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':2,'Négyes':3,'Center':2,'Liberó':2}},
+  {id:'ev-2026-09-10',date:'2026.09.10.',day:'Csütörtök',time:'18:00–20:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 1. pálya',month:'Szept',status:null,yes:['Anna','Petra','Luca'],no:['Dóri'],unknown:['Te','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':1,'Négyes':1,'Center':0,'Liberó':0}},
+  {id:'ev-2026-10-02',date:'2026.10.02.',day:'Csütörtök',time:'18:00–20:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 2. pálya',month:'Okt',status:null,yes:['Anna','Dóri'],no:[],unknown:['Te','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':0,'Négyes':1,'Center':0,'Liberó':0}},
   {id:'ev-2026-10-14',date:'2026.10.14.',day:'Kedd',time:'19:30',type:'Meccs',matchKind:'away',title:'TFSE – BEAC',place:'Dr. Koltai Jenő Sportközpont',address:'1123 Budapest, Alkotás u. 44.',meeting:'18:15 • helyszíni bejárat',month:'Okt',status:null,yes:['Anna','Dóri','Petra','Luca','Fanni','Réka','Nóri'],no:['Viki'],unknown:['Te','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi'],positions:{'Feladó':2,'Átló':1,'Négyes':2,'Center':1,'Liberó':1}},
   {id:'ev-2026-11-04',date:'2026.11.04.',day:'Kedd',time:'19:30',type:'Meccs',matchKind:'home',title:'BEAC – Budai IX. C',place:'Bogdánfy Sportcsarnok',meeting:'18:45 • Bogdánfy főbejárat',month:'Nov',status:null,yes:['Anna','Dóri','Petra'],no:[],unknown:['Te','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':1,'Négyes':1,'Center':0,'Liberó':0}},
   {id:'ev-2026-11-18',date:'2026.11.18.',day:'Kedd',time:'19:30',type:'Meccs',matchKind:'home',title:'BEAC – Corvinus',place:'Bogdánfy Sportcsarnok',meeting:'18:45 • Bogdánfy főbejárat',month:'Nov',status:null,yes:['Anna','Dóri'],no:[],unknown:['Te','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':1,'Négyes':0,'Center':0,'Liberó':0}},
-  {id:'ev-2026-12-03',date:'2026.12.03.',day:'Csütörtök',time:'18:00–20:00',type:'Edzés',title:'Csapatedzés',place:'Bogdánfy • 2. pálya',month:'Dec',status:null,yes:['Anna'],no:[],unknown:['Te','Dóri','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':0,'Négyes':0,'Center':0,'Liberó':0}},
+  {id:'ev-2026-12-03',date:'2026.12.03.',day:'Csütörtök',time:'18:00–20:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 2. pálya',month:'Dec',status:null,yes:['Anna'],no:[],unknown:['Te','Dóri','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':0,'Négyes':0,'Center':0,'Liberó':0}},
 ];
 
 const saved = JSON.parse(localStorage.getItem('cc-demo-state-v2')||'{}');
@@ -34,23 +34,21 @@ let currentPlayerData = null;
 let teamPlayerDirectory = [];
 let currentAvatarId = '';
 let teamAvatarByPlayerId = new Map();
+let avatarPickerMode = 'monogram';
 
 const PLAYER_AVATARS = [
-  ['alpaca','Alpaka','long','tuft'],['giraffe','Zsiráf','long','spots'],['mammoth','Mamut','elephant','mammoth'],
-  ['tiger','Tigris','feline','stripes'],['lion','Oroszlán','feline','mane'],['buffalo','Bivaly','horned','wide'],
-  ['rhino','Orrszarvú','rhino','horn'],['cat','Macska','feline','plain'],['panther','Párduc','feline','dark'],
-  ['lynx','Hiúz','feline','tufts'],['wolf','Farkas','canine','wolf'],['fox','Róka','canine','fox'],
-  ['bear','Medve','bear','plain'],['panda','Panda','bear','panda'],['rabbit','Nyúl','rabbit','plain'],
-  ['deer','Szarvas','horned','antlers'],['moose','Jávorszarvas','horned','moose'],['goat','Kecske','horned','goat'],
-  ['ram','Kos','horned','ram'],['cow','Tehén','horned','cow'],['horse','Ló','equine','plain'],
-  ['zebra','Zebra','equine','stripes'],['donkey','Szamár','equine','donkey'],['dog','Kutya','canine','dog'],
-  ['husky','Husky','canine','mask'],['otter','Vidra','bear','otter'],['raccoon','Mosómedve','bear','mask'],
-  ['monkey','Majom','primate','monkey'],['gorilla','Gorilla','primate','gorilla'],['elephant','Elefánt','elephant','plain'],
-  ['hippo','Víziló','hippo','plain'],['crocodile','Krokodil','reptile','croc'],['penguin','Pingvin','bird','penguin'],
-  ['owl','Bagoly','bird','owl'],['eagle','Sas','bird','eagle'],['shark','Cápa','aquatic','shark'],
-  ['dolphin','Delfin','aquatic','dolphin'],['turtle','Teknős','reptile','turtle'],['frog','Béka','reptile','frog'],
-  ['hedgehog','Süni','hedgehog','plain']
-].map(([id,label,kind,variant])=>({id,label,kind,variant}));
+  // Stable IDs remain compatible with SQL 039. Sprite/labels follow the user-approved 5x8 artwork.
+  ['alpaca','Alpaka',0],['lion','Oroszlán',1],['tiger','Tigris',2],['panther','Leopárd',3],
+  ['lynx','Hiúz',4],['cat','Karakál',5],['husky','Macska',6],['wolf','Farkas',7],
+  ['fox','Róka',8],['rabbit','Fennek',9],['bear','Medve',10],['deer','Jegesmedve',11],
+  ['panda','Panda',12],['gorilla','Gorilla',13],['monkey','Orangután',14],['elephant','Elefánt',15],
+  ['rhino','Orrszarvú',16],['hippo','Víziló',17],['giraffe','Zsiráf',18],['buffalo','Bölény',19],
+  ['mammoth','Mamut',20],['donkey','Szamár',21],['goat','Koala',22],['raccoon','Mosómedve',23],
+  ['dog','Borz',24],['otter','Vidra',25],['cow','Hód',26],['ram','Szurikáta',27],
+  ['hedgehog','Süni',28],['horse','Tatú',29],['zebra','Tobzoska',30],['turtle','Rozmár',31],
+  ['penguin','Pingvin',32],['owl','Bagoly',33],['eagle','Páva',34],['dolphin','Flamingó',35],
+  ['crocodile','Krokodil',36],['frog','Kaméleon',37],['shark','Cápa',38],['moose','Polip',39]
+].map(([id,label,spriteIndex])=>({id,label,spriteIndex}));
 
 const PLAYER_AVATAR_IDS = new Set(PLAYER_AVATARS.map(x=>x.id));
 
@@ -166,7 +164,13 @@ function avatarSvg_(avatarId, className=''){
 }
 
 function avatarMarkup_(avatarId,className='player-avatar-icon'){
-  return PLAYER_AVATAR_IDS.has(String(avatarId||'')) ? avatarSvg_(avatarId,className) : '';
+  const def=avatarDef_(avatarId);
+  if(!def) return '';
+  const col=def.spriteIndex%8;
+  const row=Math.floor(def.spriteIndex/8);
+  const x=(col*100/7).toFixed(6);
+  const y=(row*100/4).toFixed(6);
+  return `<span class="avatar-sprite ${className}" role="img" aria-label="${escapeHtml_(def.label)}" style="background-position:${x}% ${y}%"></span>`;
 }
 
 function playerAvatarIdByName_(name){
@@ -195,6 +199,20 @@ function renderCurrentAvatar_(){
   });
 }
 
+function syncAvatarModeUi_(){
+  const panel=document.getElementById('avatarPickerPanel');
+  const mono=document.getElementById('avatarModeMonogramBtn');
+  const avatar=document.getElementById('avatarModeAvatarBtn');
+  const isAvatar=avatarPickerMode==='avatar';
+  if(panel) panel.hidden=!isAvatar;
+  [mono,avatar].forEach(btn=>{
+    if(!btn) return;
+    const active=(btn.dataset.avatarMode==='avatar')===isAvatar;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-pressed',active?'true':'false');
+  });
+}
+
 function renderAvatarPicker_(){
   const grid=document.getElementById('avatarPickerGrid');
   if(!grid) return;
@@ -205,6 +223,7 @@ function renderAvatarPicker_(){
     </button>
   `).join('');
   renderCurrentAvatar_();
+  syncAvatarModeUi_();
 }
 
 async function ccLoadAvatarDirectory_(){
@@ -218,6 +237,7 @@ async function ccLoadAvatarDirectory_(){
     );
     if(currentPlayerData?.playerId){
       currentAvatarId=teamAvatarByPlayerId.get(String(currentPlayerData.playerId)) || '';
+      avatarPickerMode=currentAvatarId ? 'avatar' : 'monogram';
       currentPlayerData.avatarId=currentAvatarId;
     }
     teamPlayerDirectory=(teamPlayerDirectory||[]).map(player=>({
@@ -1587,11 +1607,6 @@ if('serviceWorker' in navigator){
 
 
 
-document.getElementById('jumpCurrentBtn')?.addEventListener('click',()=>{
-  if(plannerMode!=='grid') return;
-  plannerUserPositioned=true;
-  scrollGridToCurrent('smooth');
-});
 
 document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -1799,6 +1814,8 @@ function applySettingsUi_(value){
   Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id); if(el) el.value=val;});
   const detail=document.getElementById('settingsDetailToggle'); if(detail) detail.checked=!!settings.detailedMode;
   if(PLAYER_AVATAR_IDS.has(String(settings.avatarId||''))) currentAvatarId=String(settings.avatarId);
+  else currentAvatarId='';
+  avatarPickerMode=currentAvatarId ? 'avatar' : 'monogram';
   document.querySelectorAll('[data-notify-setting]').forEach(input=>{ input.checked=settings.notifications[input.dataset.notifySetting]!==false; });
   renderAvatarPicker_();
 }
@@ -1863,6 +1880,7 @@ document.getElementById('avatarPickerGrid')?.addEventListener('click',event=>{
   const next=String(button.dataset.avatarId||'');
   if(!PLAYER_AVATAR_IDS.has(next)) return;
   currentAvatarId=next;
+  avatarPickerMode='avatar';
   if(currentPlayerData) currentPlayerData.avatarId=next;
   if(currentPlayerSettings) currentPlayerSettings.avatarId=next;
   renderAvatarPicker_();
@@ -1870,7 +1888,8 @@ document.getElementById('avatarPickerGrid')?.addEventListener('click',event=>{
   renderPlanner();
   scheduleSettingsSave_();
 });
-document.getElementById('resetAvatarBtn')?.addEventListener('click',()=>{
+document.getElementById('avatarModeMonogramBtn')?.addEventListener('click',()=>{
+  avatarPickerMode='monogram';
   currentAvatarId='';
   if(currentPlayerData) currentPlayerData.avatarId='';
   if(currentPlayerSettings) currentPlayerSettings.avatarId='';
@@ -1878,6 +1897,10 @@ document.getElementById('resetAvatarBtn')?.addEventListener('click',()=>{
   renderEvents();
   renderPlanner();
   scheduleSettingsSave_();
+});
+document.getElementById('avatarModeAvatarBtn')?.addEventListener('click',()=>{
+  avatarPickerMode='avatar';
+  syncAvatarModeUi_();
 });
 document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=>{
   const old=e.currentTarget.textContent;
@@ -2075,7 +2098,7 @@ function normalizeApiEvent(x){
     time:x.timeLabel || `${x.startTime||''}${x.endTime?'–'+x.endTime:''}`,
     type:(x.type==='match'||x.type==='Meccs')?'Meccs':'Edzés',
     matchKind:x.homeAway||'',
-    title:x.title||'Csapatedzés',
+    title:String(x.title||'').trim().toLowerCase()==='csapatedzés' ? 'Edzés' : (x.title||'Edzés'),
     color:x.color||'',
     place:x.venue||'',
     address:x.address||'',
