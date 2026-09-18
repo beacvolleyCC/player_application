@@ -5564,7 +5564,7 @@ body.planner-grid-page-lock{
   display:block;
   width:100%;
   height:100%;
-  background-image:url('./icons/avatar-sprite.webp?v=2374');
+  background-image:url('./icons/avatar-sprite.webp?v=2375');
   background-repeat:no-repeat;
   background-size:800% 700%;
   border-radius:50%;
@@ -5676,7 +5676,7 @@ body.planner-grid-page-lock{
 
 
 /* ==========================================================
-   PLAYER V2.3.7.4 — AVATAR SPRITE ALIGNMENT HOTFIX
+   PLAYER V2.3.7.5 — AVATAR BACKGROUND CLEANUP HOTFIX
    Old 40 decoded sprite cells preserved; only new indices 40–51 were
    re-cropped/re-centered. No layout, payments or runtime changes.
    ========================================================== */

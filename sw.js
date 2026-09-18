@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-7-4-avatar-alignment';
+const CACHE='club-control-player-v2-3-7-5-avatar-bg-cleanup';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -8,7 +8,7 @@ const CORE=[
   './icons/event-training-mask.png',
   './icons/event-home-mask.png',
   './icons/event-away-mask.png',
-  './icons/avatar-sprite.webp?v=2374'
+  './icons/avatar-sprite.webp?v=2375'
 ];
 
 self.addEventListener('install', event => {
