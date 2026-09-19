@@ -5680,3 +5680,14 @@ body.planner-grid-page-lock{
    Old 40 decoded sprite cells preserved; only new indices 40–51 were
    re-cropped/re-centered. No layout, payments or runtime changes.
    ========================================================== */
+
+/* ==========================================================
+   PLAYER V2.3.8.3 — PAID CELL BACKGROUND CONSISTENCY
+   Paid status must win over the current-month grey highlight.
+   ========================================================== */
+.profile-payment-matrix td.is-current.payment-paid{
+  background:#e8f5eb !important;
+}
+.dark .profile-payment-matrix td.is-current.payment-paid{
+  background:#15271a !important;
+}
