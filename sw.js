@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-8-3-paid-cell-bg';
+const CACHE='club-control-player-v2-3-8-3-paid-cell-bg-full';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
