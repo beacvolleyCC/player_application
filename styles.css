@@ -5715,3 +5715,119 @@ body.dark .push-device-card[data-push-state="error"]{background:rgba(220,80,80,.
   .push-device-actions{max-width:none;width:100%;justify-content:flex-start;}
   .push-device-btn{flex:1 1 auto;}
 }
+
+/* ==========================================================
+   PLAYER V2.3.9.1 — GEOMETRIC NAV + ACCOUNT LOGOUT
+   BASE: V2.3.9.0 PUSH / live HEAD 74c724c
+   Scope only:
+   - Edzések = double triangle
+   - Menetrend = double square
+   - Profil = double circle
+   - two-stage logout dialog
+   ========================================================== */
+
+/* Final geometric icon system. These selectors intentionally override
+   historical home/grid/profile artwork without changing nav behavior. */
+.bottom-nav .cc-geo-nav-icon,
+.bottom-nav .nav-btn[data-view="homeView"] > .cc-geo-nav-icon,
+.bottom-nav .nav-btn[data-view="plannerView"] > .cc-geo-nav-icon,
+.bottom-nav .nav-btn[data-view="profileView"] > .cc-geo-nav-icon{
+  width:44px !important;
+  min-width:44px !important;
+  max-width:44px !important;
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
+  display:grid !important;
+  place-items:center !important;
+  padding:0 !important;
+  margin:0 !important;
+  transform:none !important;
+  border-radius:10px !important;
+  background:transparent;
+  font-size:0 !important;
+  line-height:0 !important;
+}
+
+.bottom-nav .cc-geo-nav-icon::before,
+.bottom-nav .cc-geo-nav-icon::after{
+  content:none !important;
+  display:none !important;
+}
+
+.bottom-nav .cc-geo-nav-icon svg{
+  width:32px !important;
+  height:32px !important;
+  display:block !important;
+  overflow:visible !important;
+}
+
+.bottom-nav .cc-geo-nav-icon .geo-outline-outer,
+.bottom-nav .cc-geo-nav-icon .geo-outline-inner{
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.25 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  vector-effect:non-scaling-stroke !important;
+  opacity:.62 !important;
+}
+
+.bottom-nav .nav-btn.active > .cc-geo-nav-icon{
+  background:#fff0a3 !important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12) !important;
+}
+
+.dark .bottom-nav .nav-btn.active > .cc-geo-nav-icon{
+  background:#d5a72f !important;
+}
+
+.bottom-nav .nav-btn.active .cc-geo-nav-icon .geo-outline-outer,
+.bottom-nav .nav-btn.active .cc-geo-nav-icon .geo-outline-inner{
+  opacity:.82 !important;
+}
+
+/* Two-stage logout dialog. */
+.account-action-dialog .account-action-card{
+  position:relative;
+  width:min(430px,calc(100vw - 28px));
+}
+.account-action-lead{
+  margin:4px 0 14px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+}
+.account-action-options{
+  display:grid;
+  gap:9px;
+}
+.account-action-options .settings-wide-btn{
+  width:100%;
+  min-height:46px;
+}
+.account-action-note{
+  margin:12px 0 0;
+  line-height:1.45;
+}
+.logout-dialog-status{
+  min-height:18px;
+  margin-top:10px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+}
+.logout-dialog-status.error{
+  color:var(--red);
+}
+.account-action-cancel{
+  margin-top:8px;
+}
+.account-action-cancel .ghost-btn{
+  min-width:96px;
+}
+.account-action-dialog button:disabled{
+  opacity:.55;
+  cursor:wait;
+}
+

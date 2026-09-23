@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-9-0-push-v1';
+const CACHE='club-control-player-v2-3-9-1-push-ui-v1';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -56,7 +56,7 @@ self.addEventListener('fetch', event => {
 });
 
 
-/* Player V2.3.9.0 – real Web Push receiver. */
+/* Player V2.3.9.1 – real Web Push receiver. */
 self.addEventListener('push', event => {
   let payload={title:'Club Control',body:'Új értesítés érkezett.',data:{url:'./'}};
   if(event.data){

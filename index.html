@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=14.0-player-push">
+  <link rel="stylesheet" href="./styles.css?v=14.1-player-push-ui">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -272,28 +272,28 @@
 
   <nav class="bottom-nav">
     <button data-view="homeView" class="nav-btn active">
-      <span class="cc-bottom-icon cc-bottom-home cc-double-contour-icon" aria-hidden="true">
+      <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-training" aria-hidden="true">
         <svg viewBox="0 0 36 36" focusable="false">
-          <path class="home-outline-outer" d="M6 17 L18 6 L30 17 V29 H6 Z"></path>
-          <path class="home-outline-inner" d="M9.5 18.54 L18 10.75 L26.5 18.54 V25.5 H9.5 Z"></path>
+          <path class="geo-outline-outer" d="M18 5 L31 29 H5 Z"></path>
+          <path class="geo-outline-inner" d="M18 11 L26.5 26 H9.5 Z"></path>
         </svg>
       </span>
       <small>Edzések</small>
     </button>
     <button data-view="plannerView" class="nav-btn">
-      <span class="cc-bottom-icon cc-bottom-planner" aria-hidden="true">
-        <svg class="cc-icon cc-icon-schedule-grid" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-              <rect x="4" y="4" width="24" height="24" rx="1"></rect>
-              <path d="M8.8 4V28 M13.6 4V28 M18.4 4V28 M23.2 4V28 M4 8.8H28 M4 13.6H28 M4 18.4H28 M4 23.2H28"></path>
-            </svg>
+      <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-schedule" aria-hidden="true">
+        <svg viewBox="0 0 36 36" focusable="false">
+          <rect class="geo-outline-outer" x="5" y="5" width="26" height="26" rx="1.5"></rect>
+          <rect class="geo-outline-inner" x="9.5" y="9.5" width="17" height="17" rx="1"></rect>
+        </svg>
       </span>
       <small>Menetrend</small>
     </button>
     <button data-view="profileView" class="nav-btn">
-      <span class="cc-bottom-icon cc-bottom-profile cc-double-contour-icon" aria-hidden="true">
+      <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-profile" aria-hidden="true">
         <svg viewBox="0 0 36 36" focusable="false">
-          <circle class="profile-outline-outer" cx="18" cy="18" r="14"></circle>
-          <circle class="profile-outline-inner" cx="18" cy="18" r="10.5"></circle>
+          <circle class="geo-outline-outer" cx="18" cy="18" r="14"></circle>
+          <circle class="geo-outline-inner" cx="18" cy="18" r="10.5"></circle>
         </svg>
       </span>
       <small>Profil</small>
@@ -413,7 +413,24 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.0</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.1</b></div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="logoutDialog" class="account-action-dialog">
+    <div class="dialog-card account-action-card">
+      <button class="dialog-x-btn" id="closeLogoutDialogBtn" type="button" aria-label="Bezárás">×</button>
+      <h3>Kijelentkezés</h3>
+      <p class="account-action-lead">Honnan szeretnél kijelentkezni?</p>
+      <div class="account-action-options">
+        <button class="ghost-btn settings-wide-btn" id="logoutLocalBtn" type="button">Csak erről az eszközről</button>
+        <button class="ghost-btn settings-wide-btn danger-outline" id="logoutAllBtn" type="button">Minden eszközről</button>
+      </div>
+      <p class="settings-note account-action-note">A „Minden eszközről” megszünteti a többi aktív Player munkamenetet és kikapcsolja a telefonos push-feliratkozásokat is.</p>
+      <div class="logout-dialog-status" id="logoutDialogStatus" role="status" aria-live="polite"></div>
+      <div class="dialog-actions account-action-cancel">
+        <button class="ghost-btn" id="logoutCancelBtn" type="button">Mégse</button>
       </div>
     </div>
   </dialog>
@@ -439,7 +456,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=14.0-player-push"></script>
-  <script src="./app.js?v=14.0-player-push"></script>
+  <script src="./config.js?v=14.1-player-push-ui"></script>
+  <script src="./app.js?v=14.1-player-push-ui"></script>
 </body>
 </html>

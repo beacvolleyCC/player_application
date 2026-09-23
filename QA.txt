@@ -1,0 +1,17 @@
+PLAYER V2.3.9.1 QA
+===================
+[ ] 048 verify: 3x TRUE
+[ ] Player belépés működik
+[ ] Edzések betöltődnek
+[ ] RSVP mentés/reload működik
+[ ] Menetrend rács/naptár működik
+[ ] Profil betöltődik
+[ ] Avatar megmarad
+[ ] Díjak megmaradnak
+[ ] Push UI látszik
+[ ] Push bekapcsolható
+[ ] Nav: háromszög / négyzet / kör, mind dupla kontúr
+[ ] Kijelentkezés dialog 3 választással
+[ ] Csak erről az eszközről: current push inactive + local signout
+[ ] Minden eszközről: all push inactive + global signout
+[ ] iOS PWA újranyitás után friss cache

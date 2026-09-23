@@ -2592,17 +2592,98 @@ if(ccRemoteConfigured_()){
   initAccountSession();
 }
 
-document.getElementById('logoutBtn')?.addEventListener('click',async()=>{
-  if(SUPABASE_ENABLED && ccSupabase){
-    try{ await ccPushDeactivateBackendOnLogout_(); }catch(_){ }
-    try{ await ccSupabase.auth.signOut(); }catch(err){ console.warn(err); }
-    if(ccRealtimeChannel){ try{ await ccSupabase.removeChannel(ccRealtimeChannel); }catch(_){ } }
-  }else{
+let ccLogoutBusy=false;
+
+function ccLogoutDialog_(){
+  return document.getElementById('logoutDialog');
+}
+
+function ccSetLogoutStatus_(message,isError=false){
+  const el=document.getElementById('logoutDialogStatus');
+  if(!el) return;
+  el.textContent=message||'';
+  el.classList.toggle('error',!!isError);
+}
+
+function ccSetLogoutBusy_(busy){
+  ccLogoutBusy=!!busy;
+  ['logoutLocalBtn','logoutAllBtn','logoutCancelBtn','closeLogoutDialogBtn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.disabled=ccLogoutBusy;
+  });
+}
+
+function ccOpenLogoutDialog_(){
+  const dialog=ccLogoutDialog_();
+  if(!dialog) return;
+  ccSetLogoutStatus_('');
+  ccSetLogoutBusy_(false);
+  if(typeof dialog.showModal==='function' && !dialog.open) dialog.showModal();
+}
+
+function ccCloseLogoutDialog_(){
+  if(ccLogoutBusy) return;
+  const dialog=ccLogoutDialog_();
+  if(dialog?.open) dialog.close();
+}
+
+async function ccLogoutSupabase_(scope){
+  if(ccLogoutBusy || !ccSupabase) return;
+  ccSetLogoutBusy_(true);
+  ccSetLogoutStatus_(scope==='global' ? 'Kijelentkezés minden eszközről…' : 'Kijelentkezés erről az eszközről…');
+  try{
+    if(scope==='global'){
+      const {data,error}=await ccSupabase.rpc('cc_player_push_unregister_all_v1');
+      if(error) throw error;
+      if(!data || data.ok!==true) throw new Error('A push-eszközök kijelentkeztetése nem sikerült.');
+      const {error:signOutError}=await ccSupabase.auth.signOut({scope:'global'});
+      if(signOutError) throw signOutError;
+    }else{
+      try{ await ccPushDeactivateBackendOnLogout_(); }catch(error){ console.warn('Push kijelentkezési takarítás:',error); }
+      const {error:signOutError}=await ccSupabase.auth.signOut({scope:'local'});
+      if(signOutError) throw signOutError;
+    }
+    if(ccRealtimeChannel){
+      try{ await ccSupabase.removeChannel(ccRealtimeChannel); }catch(_){ }
+      ccRealtimeChannel=null;
+    }
+    clearSession();
+    location.reload();
+  }catch(error){
+    console.error('Kijelentkezési hiba:',error);
+    ccSetLogoutStatus_(error?.message||'A kijelentkezés nem sikerült.',true);
+    ccSetLogoutBusy_(false);
+  }
+}
+
+async function ccLogoutLegacy_(){
+  if(ccLogoutBusy) return;
+  ccSetLogoutBusy_(true);
+  ccSetLogoutStatus_('Kijelentkezés…');
+  try{
     const token=currentSessionToken;
     clearSession();
-    try{ if(API_URL && token) await apiPost({action:'logout',sessionToken:token}); }catch(err){ console.warn(err); }
+    try{ if(API_URL && token) await apiPost({action:'logout',sessionToken:token}); }catch(error){ console.warn(error); }
+    location.reload();
+  }catch(error){
+    ccSetLogoutStatus_(error?.message||'A kijelentkezés nem sikerült.',true);
+    ccSetLogoutBusy_(false);
   }
-  location.reload();
+}
+
+document.getElementById('logoutBtn')?.addEventListener('click',ccOpenLogoutDialog_);
+document.getElementById('closeLogoutDialogBtn')?.addEventListener('click',ccCloseLogoutDialog_);
+document.getElementById('logoutCancelBtn')?.addEventListener('click',ccCloseLogoutDialog_);
+document.getElementById('logoutLocalBtn')?.addEventListener('click',()=>{
+  if(SUPABASE_ENABLED && ccSupabase) ccLogoutSupabase_('local');
+  else ccLogoutLegacy_();
+});
+document.getElementById('logoutAllBtn')?.addEventListener('click',()=>{
+  if(SUPABASE_ENABLED && ccSupabase) ccLogoutSupabase_('global');
+  else ccLogoutLegacy_();
+});
+ccLogoutDialog_()?.addEventListener('cancel',event=>{
+  if(ccLogoutBusy) event.preventDefault();
 });
 
 async function ccSaveAvailabilitySupabase_(event,status,note=''){
