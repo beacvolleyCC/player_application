@@ -5691,3 +5691,27 @@ body.planner-grid-page-lock{
 .dark .profile-payment-matrix td.is-current.payment-paid{
   background:#15271a !important;
 }
+
+
+/* Player V2.3.9.0 – push notification device status */
+.push-device-card{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+  padding:14px;margin:8px 0 12px;border:1px solid var(--line,#dedede);border-radius:16px;
+  background:var(--card,#fff);
+}
+.push-device-copy{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.push-device-copy b{font-size:14px;}
+.push-device-copy small{font-size:12px;line-height:1.4;opacity:.72;}
+.push-device-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;max-width:52%;}
+.push-device-btn{min-height:34px;padding:7px 10px;font-size:12px;white-space:nowrap;}
+.push-device-card[data-push-state="active"]{border-color:rgba(46,125,50,.35);background:rgba(46,125,50,.055);}
+.push-device-card[data-push-state="error"]{border-color:rgba(180,38,38,.38);background:rgba(180,38,38,.05);}
+.push-device-card[data-push-state="info"]{background:rgba(120,120,120,.045);}
+body.dark .push-device-card{background:rgba(255,255,255,.035);}
+body.dark .push-device-card[data-push-state="active"]{background:rgba(80,180,90,.08);}
+body.dark .push-device-card[data-push-state="error"]{background:rgba(220,80,80,.08);}
+@media(max-width:620px){
+  .push-device-card{flex-direction:column;}
+  .push-device-actions{max-width:none;width:100%;justify-content:flex-start;}
+  .push-device-btn{flex:1 1 auto;}
+}

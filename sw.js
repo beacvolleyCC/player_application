@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-8-3-paid-cell-bg-full';
+const CACHE='club-control-player-v2-3-9-0-push-v1';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -56,24 +56,37 @@ self.addEventListener('fetch', event => {
 });
 
 
-/* V2 push receiver shell. No notification is generated until a real push backend exists. */
+/* Player V2.3.9.0 – real Web Push receiver. */
 self.addEventListener('push', event => {
-  if(!event.data) return;
-  let payload={};
-  try{ payload=event.data.json(); }catch(_){ payload={title:'Club Control',body:event.data.text()}; }
-  event.waitUntil(self.registration.showNotification(payload.title||'Club Control',{
+  let payload={title:'Club Control',body:'Új értesítés érkezett.',data:{url:'./'}};
+  if(event.data){
+    try{ payload={...payload,...event.data.json()}; }
+    catch(_){ payload={...payload,body:event.data.text()||payload.body}; }
+  }
+  const options={
     body:payload.body||'',
     icon:payload.icon||'./icons/icon-192.png',
     badge:payload.badge||'./icons/icon-192.png',
-    data:payload.data||{}
-  }));
+    tag:payload.tag||undefined,
+    renotify:!!payload.tag,
+    data:{...(payload.data||{}),url:payload.url||payload.data?.url||'./'},
+    timestamp:Date.now()
+  };
+  event.waitUntil(self.registration.showNotification(payload.title||'Club Control',options));
 });
+
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const target=event.notification?.data?.url||'./';
-  event.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{
-    const existing=list.find(client=>'focus' in client);
-    if(existing){ existing.navigate?.(target); return existing.focus(); }
+  const raw=event.notification?.data?.url||'./';
+  const target=new URL(raw,self.registration.scope).href;
+  event.waitUntil((async()=>{
+    const list=await clients.matchAll({type:'window',includeUncontrolled:true});
+    for(const client of list){
+      try{
+        if('navigate' in client) await client.navigate(target);
+        if('focus' in client) return client.focus();
+      }catch(_){ }
+    }
     return clients.openWindow ? clients.openWindow(target) : undefined;
-  }));
+  })());
 });

@@ -6,4 +6,8 @@ window.CLUB_CONTROL_CONFIG = {
   SUPABASE_URL: 'https://snqsxlyhontaepembaic.supabase.co',
 
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_k1tiZDFFUHGu4aO8DbfIiw_YvBH-qPx'
+,
+
+  PUSH_ENABLED: true,
+  VAPID_PUBLIC_KEY: 'BJxasxc_dJz4kPAUOiE_-oDQ9mCBUI-E5V9fMTZXi4sTXzzm7oPxvfsriW5M49U2HxeLg9d8WLn79ASh4SCSvio'
 };

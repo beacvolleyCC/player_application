@@ -1548,7 +1548,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=2390').catch(()=>{}));
 }
 
 
@@ -1719,6 +1719,197 @@ function bindSliderDrag(){
 }
 
 
+
+
+// ---------------------------------------------------------------------------
+// Player V2.3.9.0 – Web Push / PWA notification subscription.
+// Permission is requested only after an explicit user button press.
+// ---------------------------------------------------------------------------
+let ccPushBusy=false;
+let ccPushLastRegisteredEndpoint='';
+
+function ccPushConfigured_(){
+  const c=ccConfig_();
+  return c.PUSH_ENABLED===true && !!String(c.VAPID_PUBLIC_KEY||'').trim();
+}
+function ccPushSupported_(){
+  return ccPushConfigured_() && window.isSecureContext && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+function ccPushIsIos_(){ return /iphone|ipad|ipod/i.test(navigator.userAgent||''); }
+function ccPushStandalone_(){ return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true; }
+function ccPushBase64ToUint8_(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=window.atob(base64);
+  return Uint8Array.from([...raw].map(ch=>ch.charCodeAt(0)));
+}
+function ccPushPlatform_(){
+  if(ccPushIsIos_()) return 'ios-pwa';
+  if(/android/i.test(navigator.userAgent||'')) return 'android';
+  return 'desktop-web';
+}
+function ccPushDeviceLabel_(){
+  if(ccPushIsIos_()) return 'iPhone / iPad';
+  if(/android/i.test(navigator.userAgent||'')) return 'Android';
+  return 'Böngésző';
+}
+async function ccPushRegistration_(){
+  if(!('serviceWorker' in navigator)) return null;
+  try{
+    const existing=await navigator.serviceWorker.getRegistration('./');
+    if(existing) return existing;
+    return await navigator.serviceWorker.register('./sw.js?v=2390');
+  }catch(err){ console.warn('Push service worker hiba:',err); return null; }
+}
+async function ccPushBrowserSubscription_(){
+  const reg=await ccPushRegistration_();
+  return reg ? await reg.pushManager.getSubscription() : null;
+}
+function ccPushSetStatus_(message,state='neutral'){
+  const text=document.getElementById('pushDeviceStatus');
+  const card=document.getElementById('pushDeviceCard');
+  if(text) text.textContent=message;
+  if(card){ card.dataset.pushState=state; }
+}
+async function ccPushSyncUi_(){
+  const enable=document.getElementById('pushEnableBtn');
+  const disable=document.getElementById('pushDisableBtn');
+  const test=document.getElementById('pushTestBtn');
+  if(!enable || !disable || !test) return;
+  enable.hidden=false; disable.hidden=true; test.hidden=true;
+
+  if(!ccPushConfigured_()){
+    enable.hidden=true; ccPushSetStatus_('Az értesítési szolgáltatás még nincs aktiválva.','off'); return;
+  }
+  if(!window.isSecureContext){ enable.hidden=true; ccPushSetStatus_('Az értesítésekhez HTTPS kapcsolat szükséges.','error'); return; }
+  if(ccPushIsIos_() && !ccPushStandalone_()){
+    ccPushSetStatus_('iPhone-on előbb add a Club Controlt a Főképernyőhöz, majd az appból kapcsold be az értesítéseket.','info');
+    enable.textContent='Értesítések bekapcsolása';
+    return;
+  }
+  if(!ccPushSupported_()){
+    enable.hidden=true; ccPushSetStatus_('Ez a böngésző nem támogatja a telefonos push értesítéseket.','off'); return;
+  }
+  if(Notification.permission==='denied'){
+    enable.hidden=true; ccPushSetStatus_('Az értesítések le vannak tiltva a rendszer/böngésző beállításaiban.','error'); return;
+  }
+  try{
+    const sub=await ccPushBrowserSubscription_();
+    if(sub && Notification.permission==='granted'){
+      enable.hidden=true; disable.hidden=false; test.hidden=false;
+      ccPushSetStatus_('Aktív ezen az eszközön.','active');
+      return;
+    }
+  }catch(err){ console.warn(err); }
+  enable.textContent='Értesítések bekapcsolása';
+  ccPushSetStatus_(Notification.permission==='granted'?'Engedélyezve, de ez az eszköz még nincs feliratkoztatva.':'Engedély szükséges ezen az eszközön.','info');
+}
+async function ccPushRegisterBackend_(subscription){
+  if(!SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession || !subscription) return;
+  const raw=subscription.toJSON();
+  raw.userAgent=navigator.userAgent||'';
+  raw.platform=ccPushPlatform_();
+  const {error}=await ccSupabase.rpc('cc_player_push_register_v1',{
+    p_subscription:raw,
+    p_device_label:ccPushDeviceLabel_()
+  });
+  if(error) throw error;
+  ccPushLastRegisteredEndpoint=String(raw.endpoint||'');
+}
+async function ccPushSyncExistingSubscription_(){
+  if(!ccPushSupported_() || !SUPABASE_ENABLED || !ccSupabaseSession || Notification.permission!=='granted') return;
+  try{
+    const sub=await ccPushBrowserSubscription_();
+    if(sub && sub.endpoint!==ccPushLastRegisteredEndpoint) await ccPushRegisterBackend_(sub);
+  }catch(err){ console.warn('Push subscription szinkron hiba:',err); }
+  await ccPushSyncUi_();
+}
+async function ccPushSubscribeCurrentDevice_(){
+  if(ccPushBusy) return;
+  ccPushBusy=true;
+  const button=document.getElementById('pushEnableBtn');
+  if(button) button.disabled=true;
+  try{
+    if(ccPushIsIos_() && !ccPushStandalone_()){
+      ccPushSetStatus_('iPhone-on a Főképernyőre telepített Club Control appból engedélyezhető a push.','info');
+      return;
+    }
+    if(!ccPushSupported_()) throw new Error('A készülék vagy böngésző nem támogatja a Web Push értesítéseket.');
+    let permission=Notification.permission;
+    if(permission!=='granted') permission=await Notification.requestPermission();
+    if(permission!=='granted'){
+      ccPushSetStatus_(permission==='denied'?'Az értesítéseket letiltottad. A rendszerbeállításokban engedélyezheted újra.':'Az értesítési engedély nem lett megadva.','error');
+      return;
+    }
+    const reg=await ccPushRegistration_();
+    if(!reg) throw new Error('A service worker nem érhető el.');
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:ccPushBase64ToUint8_(String(ccConfig_().VAPID_PUBLIC_KEY||''))
+      });
+    }
+    await ccPushRegisterBackend_(sub);
+    ccPushSetStatus_('Aktív ezen az eszközön.','active');
+  }catch(err){
+    console.error('Push bekapcsolási hiba:',err);
+    ccPushSetStatus_(err?.message||'Nem sikerült bekapcsolni az értesítéseket.','error');
+  }finally{
+    ccPushBusy=false; if(button) button.disabled=false; await ccPushSyncUi_();
+  }
+}
+async function ccPushDisableCurrentDevice_(){
+  if(ccPushBusy) return;
+  ccPushBusy=true;
+  try{
+    const sub=await ccPushBrowserSubscription_();
+    if(sub && SUPABASE_ENABLED && ccSupabase && ccSupabaseSession){
+      const {error}=await ccSupabase.rpc('cc_player_push_unregister_v1',{p_endpoint:sub.endpoint});
+      if(error) throw error;
+    }
+    if(sub) await sub.unsubscribe();
+    ccPushLastRegisteredEndpoint='';
+    ccPushSetStatus_('Kikapcsolva ezen az eszközön.','off');
+  }catch(err){ console.error(err); ccPushSetStatus_(err?.message||'Nem sikerült kikapcsolni.','error'); }
+  finally{ ccPushBusy=false; await ccPushSyncUi_(); }
+}
+async function ccPushQueueTest_(){
+  if(!SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession) return;
+  const btn=document.getElementById('pushTestBtn'); if(btn) btn.disabled=true;
+  try{
+    const {error}=await ccSupabase.rpc('cc_player_push_test_v1');
+    if(error) throw error;
+    ccPushSetStatus_('Teszt értesítés sorba állítva.','active');
+  }catch(err){ ccPushSetStatus_(err?.message||'A teszt értesítés nem indítható.','error'); }
+  finally{ if(btn) btn.disabled=false; }
+}
+async function ccPushDeactivateBackendOnLogout_(){
+  if(!ccPushSupported_() || !SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession) return;
+  try{
+    const sub=await ccPushBrowserSubscription_();
+    if(sub) await ccSupabase.rpc('cc_player_push_unregister_v1',{p_endpoint:sub.endpoint});
+  }catch(err){ console.warn('Push kijelentkezési takarítás hiba:',err); }
+}
+function ccPushOpenRequestedTarget_(){
+  try{
+    const url=new URL(location.href);
+    const eventId=url.searchParams.get('ccEvent');
+    const view=url.searchParams.get('ccView');
+    if(view==='profile') document.querySelector('[data-view="profileView"]')?.click();
+    else if(view==='schedule') document.querySelector('[data-view="plannerView"]')?.click();
+    if(eventId && events.some(e=>String(e.id)===String(eventId))) window.setTimeout(()=>openEventDialog(eventId),120);
+    if(eventId || view || url.searchParams.has('ccPush')){
+      url.searchParams.delete('ccEvent'); url.searchParams.delete('ccView'); url.searchParams.delete('ccPush');
+      history.replaceState({},'',url.pathname+url.search+url.hash);
+    }
+  }catch(_){ }
+}
+
+document.getElementById('pushEnableBtn')?.addEventListener('click',ccPushSubscribeCurrentDevice_);
+document.getElementById('pushDisableBtn')?.addEventListener('click',ccPushDisableCurrentDevice_);
+document.getElementById('pushTestBtn')?.addEventListener('click',ccPushQueueTest_);
+
 const settingsDialog=document.getElementById('settingsDialog');
 let currentPlayerSettings=null;
 let ccSettingsSaveTimer=null;
@@ -1795,6 +1986,7 @@ function scheduleSettingsSave_(){
 }
 
 document.getElementById('openSettingsBtn')?.addEventListener('click',()=>{
+  ccPushSyncUi_().catch(()=>{});
   // Local theme preference is the current visual truth.
   // Merge it over any older remote settings before the dialog opens.
   const source=currentPlayerSettings||defaultSettingsPayload_();
@@ -2243,6 +2435,8 @@ async function loadBootstrap(options={}){
     ]);
     if(!options.skipRealtimeSetup) await ccSetupRealtime_(payload.team);
     hideLogin();
+    ccPushSyncExistingSubscription_().catch(()=>{});
+    ccPushOpenRequestedTarget_();
     return true;
   }
 
@@ -2400,6 +2594,7 @@ if(ccRemoteConfigured_()){
 
 document.getElementById('logoutBtn')?.addEventListener('click',async()=>{
   if(SUPABASE_ENABLED && ccSupabase){
+    try{ await ccPushDeactivateBackendOnLogout_(); }catch(_){ }
     try{ await ccSupabase.auth.signOut(); }catch(err){ console.warn(err); }
     if(ccRealtimeChannel){ try{ await ccSupabase.removeChannel(ccRealtimeChannel); }catch(_){ } }
   }else{
