@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-9-9-profile-notifications-first';
+const CACHE='club-control-player-v2-3-10-0-hidden-self-test';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

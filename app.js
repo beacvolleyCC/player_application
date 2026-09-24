@@ -1758,7 +1758,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=2395').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=23100').catch(()=>{}));
 }
 
 
@@ -1968,7 +1968,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=2395');
+    return await navigator.serviceWorker.register('./sw.js?v=23100');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -2083,15 +2083,59 @@ async function ccPushDisableCurrentDevice_(){
   }catch(err){ console.error(err); ccPushSetStatus_(err?.message||'Nem sikerült kikapcsolni.','error'); }
   finally{ ccPushBusy=false; await ccPushSyncUi_(); }
 }
+let ccPushQaTapCount=0;
+let ccPushQaFirstTapAt=0;
+let ccPushQaHideTimer=null;
+
+function ccPushQaHide_(){
+  const row=document.getElementById('pushSelfTestRow');
+  if(row) row.hidden=true;
+  ccPushQaTapCount=0;
+  ccPushQaFirstTapAt=0;
+  if(ccPushQaHideTimer){ clearTimeout(ccPushQaHideTimer); ccPushQaHideTimer=null; }
+}
+function ccPushQaReveal_(){
+  const row=document.getElementById('pushSelfTestRow');
+  if(!row) return;
+  row.hidden=false;
+  if(ccPushQaHideTimer) clearTimeout(ccPushQaHideTimer);
+  ccPushQaHideTimer=setTimeout(ccPushQaHide_,90_000);
+}
+function ccPushQaTap_(){
+  const card=document.getElementById('pushDeviceCard');
+  if(card?.dataset.pushState!=='active') return;
+  const now=Date.now();
+  if(!ccPushQaFirstTapAt || now-ccPushQaFirstTapAt>2400){
+    ccPushQaFirstTapAt=now;
+    ccPushQaTapCount=1;
+    return;
+  }
+  ccPushQaTapCount+=1;
+  if(ccPushQaTapCount>=5){
+    ccPushQaReveal_();
+    ccPushQaTapCount=0;
+    ccPushQaFirstTapAt=0;
+  }
+}
 async function ccPushQueueTest_(){
   if(!SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession) return;
-  const btn=document.getElementById('pushTestBtn'); if(btn) btn.disabled=true;
+  const btn=document.getElementById('pushSelfTestBtn');
+  if(btn) btn.disabled=true;
   try{
-    const {error}=await ccSupabase.rpc('cc_player_push_test_v1');
+    const sub=await ccPushBrowserSubscription_();
+    if(!sub || Notification.permission!=='granted'){
+      throw new Error('Ezen az eszközön előbb kapcsold be a telefonos értesítéseket.');
+    }
+    const {data,error}=await ccSupabase.rpc('cc_player_push_test_v1');
     if(error) throw error;
-    ccPushSetStatus_('Teszt értesítés sorba állítva.','active');
-  }catch(err){ ccPushSetStatus_(err?.message||'A teszt értesítés nem indítható.','error'); }
-  finally{ if(btn) btn.disabled=false; }
+    if(data && data.ok===false) throw new Error(data.error||'A teszt értesítés nem indítható.');
+    await ccLoadNotifications_({force:true});
+    ccPushSetStatus_('Saját teszt létrehozva. Az appban már látszik; a push a következő automatikus küldési körben érkezik.','active');
+    ccPushQaHide_();
+  }catch(err){
+    console.error('Saját push teszt hiba:',err);
+    ccPushSetStatus_(err?.message||'A teszt értesítés nem indítható.','error');
+  }finally{ if(btn) btn.disabled=false; }
 }
 async function ccPushDeactivateBackendOnLogout_(){
   if(!ccPushSupported_() || !SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession) return;
@@ -2119,6 +2163,8 @@ function ccPushOpenRequestedTarget_(){
 
 document.getElementById('pushEnableBtn')?.addEventListener('click',ccPushSubscribeCurrentDevice_);
 document.getElementById('pushDisableBtn')?.addEventListener('click',ccPushDisableCurrentDevice_);
+document.getElementById('pushDeviceStatus')?.addEventListener('click',ccPushQaTap_);
+document.getElementById('pushSelfTestBtn')?.addEventListener('click',ccPushQueueTest_);
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.addEventListener('message',event=>{

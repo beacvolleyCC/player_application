@@ -1,0 +1,23 @@
+PLAYER V2.3.10.0 — HIDDEN SELF TEST AUDIT
+
+Scope audit:
+- index.html: hidden QA row + cache-bust only.
+- app.js: hidden unlock gesture, self-test invocation, notification refresh, SW query version bump.
+- styles.css: hidden QA presentation + mobile/touch hardening.
+- sw.js: cache key bump only.
+- config.js: byte-identical to V2.3.9.9.
+
+Checks performed:
+- node --check app.js: PASS
+- node --check sw.js: PASS
+- node --check config.js: PASS
+- HTML duplicate IDs: none
+- CSS parser errors: 0
+- private secret/service-role/VAPID-private/cron-secret scan: clean
+- existing push enable/disable handlers preserved
+- existing in-app notification RPC names preserved
+- no SQL/database migration required
+- QA control hidden by default
+- QA unlock only responds while pushDeviceCard state is active
+- QA control auto-hides after 90s and immediately after test creation
+- notification inbox refresh is requested immediately after test RPC success

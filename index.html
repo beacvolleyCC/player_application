@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=14.9-profile-notifications-first">
+  <link rel="stylesheet" href="./styles.css?v=15.0-hidden-self-test">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -357,6 +357,13 @@
             <button class="ghost-btn push-device-btn" id="pushEnableBtn" type="button">Értesítések bekapcsolása</button>
             <button class="ghost-btn push-device-btn danger-outline" id="pushDisableBtn" type="button" hidden>Kikapcsolás ezen az eszközön</button>
           </div>
+          <div class="push-self-test-row" id="pushSelfTestRow" hidden>
+            <div class="push-self-test-copy">
+              <b>QA · saját értesítés</b>
+              <small>Csak a saját fiókodnak készít tesztet. Az appban azonnal, pushként a következő automatikus küldési körben jelenik meg.</small>
+            </div>
+            <button class="ghost-btn push-device-btn" id="pushSelfTestBtn" type="button">Saját tesztértesítés</button>
+          </div>
         </div>
 
         <details class="notification-types-details" id="notificationTypesDetails">
@@ -507,7 +514,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=14.9-profile-notifications-first"></script>
-  <script src="./app.js?v=14.9-profile-notifications-first"></script>
+  <script src="./config.js?v=15.0-hidden-self-test"></script>
+  <script src="./app.js?v=15.0-hidden-self-test"></script>
 </body>
 </html>
