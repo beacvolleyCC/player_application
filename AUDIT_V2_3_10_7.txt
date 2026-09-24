@@ -1,0 +1,35 @@
+PLAYER V2.3.10.7 — AUDIT
+Date: 2026-09-24
+
+SCOPE
+- Carries forward V2.3.10.6 header Settings button, smart avatar routing, and disclosure labels.
+- Edzések + Menetrend filter controls use the same neutral text color.
+- Edzések attendance labels: Jövök / Névsor neutral, Nem jövök red.
+- Only attending roster chips receive a subtle position gradient using real teamPlayers.position data.
+- Position mapping: Feladó, Átló, Szélső ütő/Négyes, Center, Liberó.
+- PWA cache + service worker registration version bumped.
+
+NOT CHANGED
+- Supabase schema/RPCs
+- Auth/RLS
+- Push/outbox/cron/Edge Function behavior
+- RSVP persistence semantics
+- Profile/payment business logic
+- Notification inbox business logic
+
+CHECKS
+- node --check app.js: PASS
+- node --check sw.js: PASS
+- node --check config.js: PASS
+- CSS parser: 0 errors
+- HTML duplicate IDs: none
+- frontend secret scan: clean for service-role/private-key/cron-secret patterns
+- quick account menu IDs absent from HTML
+- position tint limited to .chip.yes + recognized position class
+- non-attending and unanswered chips stay outside position-gradient selector
+- service worker cache id bumped to V2.3.10.7
+- SW registration query bumped to 23107
+
+VISUAL QA NOTE
+- An attempted local headless Chromium screenshot did not complete in the container environment, so it is not counted as a successful runtime visual test.
+- Static CSS/DOM/syntax/diff checks passed. Final iPhone visual smoke test remains the authoritative device check.

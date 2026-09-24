@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=15.5-notification-menu-icons">
+  <link rel="stylesheet" href="./styles.css?v=15.7-ui-consistency-position-gradient">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -55,42 +55,20 @@
       <h1 class="team-heading"><span id="teamTitle">BEAC Női I.</span></h1>
       <div class="eyebrow player-season-label" id="teamSeason">2026/27</div>
     </div>
-    <div class="header-actions account-menu-anchor">
-      <button class="profile-btn" id="accountMenuBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="accountQuickMenu">
+    <div class="header-actions">
+      <button class="round-btn header-settings-btn" id="headerSettingsBtn" type="button" aria-label="Beállítások" title="Beállítások">
+        <svg class="header-settings-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.73v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.73l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </button>
+      <button class="profile-btn" id="accountMenuBtn" type="button" aria-label="Profil megnyitása">
         <span class="profile-avatar-wrap">
           <span class="profile-dot" id="profileInitials">JT</span>
           <span class="profile-notification-badge" id="profileNotificationBadge" hidden aria-label="0 új értesítés">0</span>
         </span>
         <span class="profile-meta"><b id="profileName">Játékos Teszt</b><small id="profileMeta">Szélső ütő • #12</small></span>
       </button>
-      <div class="account-quick-menu" id="accountQuickMenu" role="menu" hidden>
-        <button class="account-quick-item" id="quickNotificationsBtn" type="button" role="menuitem">
-          <span class="account-quick-icon" aria-hidden="true">
-            <svg class="account-quick-svg" viewBox="0 0 24 24" focusable="false">
-              <circle class="account-icon-notification-ring" cx="12" cy="12" r="8.2"></circle>
-            </svg>
-          </span>
-          <span class="account-quick-copy"><b>Értesítések</b><small id="quickNotificationsStatus">Nincs új értesítés</small></span>
-          <span class="account-quick-count" id="quickNotificationsCount" hidden>0</span>
-        </button>
-        <button class="account-quick-item" id="quickSettingsBtn" type="button" role="menuitem">
-          <span class="account-quick-icon" aria-hidden="true">
-            <svg class="account-quick-svg account-settings-svg" viewBox="0 0 24 24" focusable="false">
-              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.73v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.73l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </span>
-          <span class="account-quick-copy"><b>Beállítások</b><small>Megjelenés, értesítések, menetrend</small></span>
-        </button>
-        <button class="account-quick-item" id="quickProfileBtn" type="button" role="menuitem">
-          <span class="account-quick-icon" aria-hidden="true">
-            <svg class="account-quick-svg account-profile-svg" viewBox="0 0 24 24" focusable="false">
-              <circle cx="12" cy="12" r="7.8"></circle>
-            </svg>
-          </span>
-          <span class="account-quick-copy"><b>Profil</b><small>Személyes adatok és statisztikák</small></span>
-        </button>
-      </div>
     </div>
   </div>
 </header>
@@ -238,7 +216,10 @@
 
         <details class="profile-more-details">
           <summary>
-            <span>További adatok</span>
+            <span class="profile-disclosure-label">
+              <span class="profile-disclosure-closed">További adatok</span>
+              <span class="profile-disclosure-open">Kevesebb adat</span>
+            </span>
             <span class="cc-outline-triangle profile-details-chevron" aria-hidden="true"></span>
           </summary>
           <div class="profile-more-content">
@@ -288,7 +269,10 @@
 
         <details id="profileStatsMore" class="profile-more-details profile-stats-more" hidden>
           <summary>
-            <span>További statisztikák</span>
+            <span class="profile-disclosure-label">
+              <span class="profile-disclosure-closed">További statisztikák</span>
+              <span class="profile-disclosure-open">Kevesebb statisztika</span>
+            </span>
             <span class="cc-outline-triangle profile-details-chevron" aria-hidden="true"></span>
           </summary>
 
@@ -485,7 +469,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.4</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.7</b></div>
       </div>
     </div>
   </dialog>
@@ -528,7 +512,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=15.5-notification-menu-icons"></script>
-  <script src="./app.js?v=15.5-notification-menu-icons"></script>
+  <script src="./config.js?v=15.7-ui-consistency-position-gradient"></script>
+  <script src="./app.js?v=15.7-ui-consistency-position-gradient"></script>
 </body>
 </html>

@@ -6495,3 +6495,87 @@ body.dark .account-quick-menu{box-shadow:0 18px 46px rgba(0,0,0,.42);}
     padding:5px !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.6 — HEADER SETTINGS + SMART AVATAR + DISCLOSURE LABELS
+   Scope only:
+   - settings is a dedicated header action next to the avatar
+   - avatar routes to Notifications when unread exists, otherwise Profile
+   - quick account menu removed
+   - disclosure copy mirrors open/closed state
+   ========================================================== */
+.header-settings-btn{
+  display:grid !important;
+  place-items:center !important;
+  padding:0 !important;
+  color:#171717 !important;
+  flex:0 0 auto !important;
+}
+.header-settings-svg{
+  width:20px;
+  height:20px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+@media(max-width:760px){
+  .compact-topbar .header-settings-btn{
+    width:38px !important;
+    min-width:38px !important;
+    height:38px !important;
+  }
+}
+.profile-disclosure-open{display:none;}
+.profile-more-details[open] .profile-disclosure-closed{display:none;}
+.profile-more-details[open] .profile-disclosure-open{display:inline;}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.7 — UI CONSISTENCY + POSITION GRADIENTS
+   Scope only:
+   - Edzések / Menetrend filter controls use the same neutral text color
+   - Jövök + Névsor are neutral; Nem jövök remains red
+   - only attending roster chips receive a subtle position gradient
+   ========================================================== */
+
+/* Safari/iOS must not inject link-blue into native selects or buttons. */
+#eventFilterPanel select,
+#eventFilterPanel button,
+#plannerFilterPanel select,
+#plannerFilterPanel button,
+#eventFilterBtn,
+#plannerFilterBtn{
+  color:var(--black) !important;
+  -webkit-text-fill-color:currentColor !important;
+}
+
+/* Attendance controls: neutral YES/roster, semantic red NO. */
+.event-card .slider-zone,
+.event-card .roster-toggle{
+  color:var(--black) !important;
+  -webkit-text-fill-color:currentColor !important;
+}
+.event-card .slider-zone.right{
+  color:var(--red) !important;
+  -webkit-text-fill-color:currentColor !important;
+}
+
+/* Attending players only: very light role tint, fading back to the card. */
+.chip.yes[class*="position-"]{
+  background:linear-gradient(90deg, rgba(var(--position-rgb),.14) 0%, rgba(var(--position-rgb),.07) 58%, rgba(var(--position-rgb),.018) 100%) !important;
+  border-color:rgba(var(--position-rgb),.20) !important;
+}
+.chip.yes.position-setter{--position-rgb:72,132,210;}
+.chip.yes.position-opposite{--position-rgb:219,139,63;}
+.chip.yes.position-outside{--position-rgb:184,92,148;}
+.chip.yes.position-middle{--position-rgb:71,157,101;}
+.chip.yes.position-libero{--position-rgb:119,101,190;}
+
+body.dark .chip.yes[class*="position-"]{
+  background:linear-gradient(90deg, rgba(var(--position-rgb),.18) 0%, rgba(var(--position-rgb),.09) 58%, rgba(var(--position-rgb),.025) 100%) !important;
+  border-color:rgba(var(--position-rgb),.28) !important;
+}

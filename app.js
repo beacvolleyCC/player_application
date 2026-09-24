@@ -114,10 +114,32 @@ function playerAvatarIdByName_(name){
   return String(person?.avatarId||'');
 }
 
+function playerPositionForName_(name){
+  const raw=String(name||'').trim();
+  if(!raw) return '';
+  if(raw==='Te' || raw===currentPlayerName) return playerPositionLabel_(currentPlayerData?.position||'');
+  const person=(teamPlayerDirectory||[]).find(p=>String(p?.name||'').trim()===raw);
+  return playerPositionLabel_(person?.position||'');
+}
+
+function playerPositionClass_(position){
+  const normalized=String(position||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  if(['felado','setter'].includes(normalized)) return 'position-setter';
+  if(['atlo','opposite','opposite hitter'].includes(normalized)) return 'position-opposite';
+  if(['szelso uto','negyes','4-es uto','4es uto','outside','outside hitter'].includes(normalized)) return 'position-outside';
+  if(['center','middle','middle blocker','kozepso','kozepso tamado'].includes(normalized)) return 'position-middle';
+  if(['libero'].includes(normalized)) return 'position-libero';
+  return '';
+}
+
 function rosterChipHtml_(name,extraClass=''){
   const avatarId=playerAvatarIdByName_(name);
   const avatar=avatarId ? `<span class="roster-avatar">${avatarMarkup_(avatarId,'roster-avatar-svg')}</span>` : '';
-  return `<span class="chip ${extraClass}">${avatar}<span>${escapeHtml_(rosterDisplayName_(name))}</span></span>`;
+  const positionClass=String(extraClass||'').split(/\s+/).includes('yes')
+    ? playerPositionClass_(playerPositionForName_(name))
+    : '';
+  const classes=['chip',extraClass,positionClass].filter(Boolean).join(' ');
+  return `<span class="${classes}">${avatar}<span>${escapeHtml_(rosterDisplayName_(name))}</span></span>`;
 }
 
 function renderCurrentAvatar_(){
@@ -308,7 +330,7 @@ function eventCard(e){
 
     <button class="roster-toggle" data-roster="${e.id}">Névsor</button>
     <div class="roster" id="roster-${e.id}">
-      <div class="roster-group"><b>Jönnek (${e.yes.length})</b><div class="chips">${e.yes.map(n=>rosterChipHtml_(n)).join('')}</div></div>
+      <div class="roster-group"><b>Jönnek (${e.yes.length})</b><div class="chips">${e.yes.map(n=>rosterChipHtml_(n,'yes')).join('')}</div></div>
       <div class="roster-group"><b>Nem jönnek (${e.no.length})</b><div class="chips">${e.no.map(n=>rosterChipHtml_(n,'no')).join('')||'<span class="muted">–</span>'}</div></div>
       <div class="roster-group"><b>Még nem jelzett (${e.unknown.length})</b><div class="chips">${e.unknown.map(n=>rosterChipHtml_(n)).join('')}</div></div>
     </div>
@@ -1506,6 +1528,11 @@ function renderNotificationShell_(count=ccUnreadNotificationCount){
     badge.textContent=compact;
     badge.setAttribute('aria-label',value===0?'Nincs új értesítés':`${value} új értesítés`);
   }
+  const accountBtn=document.getElementById('accountMenuBtn');
+  if(accountBtn){
+    accountBtn.setAttribute('aria-label',value>0 ? `${value} új értesítés. Értesítések megnyitása` : 'Profil megnyitása');
+    accountBtn.setAttribute('title',value>0 ? 'Értesítések' : 'Profil');
+  }
   const quickStatus=document.getElementById('quickNotificationsStatus');
   if(quickStatus) quickStatus.textContent=shortSummary;
   const quickCount=document.getElementById('quickNotificationsCount');
@@ -1768,28 +1795,6 @@ function ccBindNotificationSwipes_(){
   });
 }
 
-function closeAccountQuickMenu_(){
-  const menu=document.getElementById('accountQuickMenu');
-  const btn=document.getElementById('accountMenuBtn');
-  if(menu) menu.hidden=true;
-  if(btn) btn.setAttribute('aria-expanded','false');
-}
-function toggleAccountQuickMenu_(){
-  const menu=document.getElementById('accountQuickMenu');
-  const btn=document.getElementById('accountMenuBtn');
-  if(!menu || !btn) return;
-  const opening=menu.hidden;
-  menu.hidden=!opening;
-  btn.setAttribute('aria-expanded',opening?'true':'false');
-}
-
-document.getElementById('accountMenuBtn')?.addEventListener('click',event=>{
-  event.stopPropagation();
-  toggleAccountQuickMenu_();
-});
-document.getElementById('accountQuickMenu')?.addEventListener('click',event=>event.stopPropagation());
-document.addEventListener('click',closeAccountQuickMenu_);
-document.addEventListener('keydown',event=>{ if(event.key==='Escape') closeAccountQuickMenu_(); });
 const notificationsDialog=document.getElementById('notificationsDialog');
 function ccFocusPanelTitle_(dialog,titleId){
   if(!dialog?.open) return;
@@ -1802,14 +1807,15 @@ function ccFocusPanelTitle_(dialog,titleId){
 }
 
 async function openNotificationsDialog_(){
-  closeAccountQuickMenu_();
   if(notificationsDialog && !notificationsDialog.open) notificationsDialog.showModal();
   ccFocusPanelTitle_(notificationsDialog,'notificationsDialogTitle');
   await ccLoadNotifications_({force:true});
 }
-document.getElementById('quickNotificationsBtn')?.addEventListener('click',openNotificationsDialog_);
-document.getElementById('quickSettingsBtn')?.addEventListener('click',()=>{ closeAccountQuickMenu_(); document.getElementById('openSettingsBtn')?.click(); });
-document.getElementById('quickProfileBtn')?.addEventListener('click',()=>switchView('profileView'));
+document.getElementById('accountMenuBtn')?.addEventListener('click',()=>{
+  if(ccUnreadNotificationCount>0) openNotificationsDialog_();
+  else switchView('profileView');
+});
+document.getElementById('headerSettingsBtn')?.addEventListener('click',()=>document.getElementById('openSettingsBtn')?.click());
 document.getElementById('openNotificationsBtn')?.addEventListener('click',openNotificationsDialog_);
 document.getElementById('closeNotificationsBtn')?.addEventListener('click',()=>notificationsDialog?.close());
 renderNotificationShell_(0);
@@ -1818,7 +1824,6 @@ function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
   const navView=viewId;
 
-  closeAccountQuickMenu_();
   forcePlannerPageTop_();
 
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===navView));
@@ -1864,7 +1869,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=23101').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=23107').catch(()=>{}));
 }
 
 
@@ -2074,7 +2079,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=23101');
+    return await navigator.serviceWorker.register('./sw.js?v=23107');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -2450,7 +2455,7 @@ function escapeHtml_(value){
 }
 
 function eventDialogRoster(e){
-  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>rosterChipHtml_(n)).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>rosterChipHtml_(n,'no')).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>rosterChipHtml_(n)).join('')}</div></div></div>`;
+  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>rosterChipHtml_(n,'yes')).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>rosterChipHtml_(n,'no')).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>rosterChipHtml_(n)).join('')}</div></div></div>`;
 }
 function eventNoteSection_(e, archived){
   const hasNote=!!String(e.note||'').trim();

@@ -1,11 +1,17 @@
-PLAYER V2.3.10.5 — Notification compact empty + quick-menu icons
+PLAYER V2.3.10.7 — UI consistency + position gradients
 
-Replace these five files in the Player app:
+FULL REPLACEMENT: replace these 5 files in the Player app:
 - index.html
 - app.js
 - styles.css
 - sw.js
 - config.js
 
-No SQL/database migration is required.
-After deployment, fully close and reopen the installed PWA so the new service-worker cache version is picked up.
+No SQL migration is required.
+
+Scope:
+- header Settings button next to avatar; avatar opens Notifications when unread, otherwise Profile
+- További/Kevesebb disclosure labels
+- Edzések and Menetrend filter controls use neutral text color
+- Jövök + Névsor black/neutral; Nem jövök red
+- attending roster chips get very subtle position gradients based on real player position data
