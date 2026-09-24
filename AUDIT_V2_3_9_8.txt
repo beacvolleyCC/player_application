@@ -1,0 +1,29 @@
+CLUB CONTROL PLAYER V2.3.9.8 — PANEL INITIAL FOCUS AUDIT
+
+BASE
+- V2.3.9.7 audited shared panel system.
+
+SCOPE
+- Only initial modal focus behavior + cache bust/build identifiers.
+- Notifications and Settings titles get tabindex=-1.
+- After showModal(), focus is moved programmatically to the title with preventScroll.
+- Close button keeps :focus-visible styling for real keyboard navigation.
+
+CHECKS
+- app.js syntax: PASS
+- sw.js syntax: PASS
+- config.js syntax: PASS
+- CSS parser: 0 parse errors
+- duplicate HTML ids: none
+- 7 notification preference inputs preserved
+- both panel openers invoke the same focus helper
+- close-button keyboard focus-visible style preserved
+- no private VAPID key / cron secret / service-role key in frontend
+- cache id bumped to v2.3.9.8
+- index asset query version bumped to 14.8-panel-focus
+- checksums generated
+
+RUNTIME NOTE
+- Local Chromium runtime automation was attempted, but this execution environment blocks localhost/file navigation with ERR_BLOCKED_BY_ADMINISTRATOR. No claim of automated browser runtime verification is made for this build. The change is deliberately narrow and follows native dialog accessibility guidance: focus a static heading with tabindex=-1 rather than auto-focusing the close control.
+
+NO SQL REQUIRED.

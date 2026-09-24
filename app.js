@@ -1685,9 +1685,20 @@ document.getElementById('accountQuickMenu')?.addEventListener('click',event=>eve
 document.addEventListener('click',closeAccountQuickMenu_);
 document.addEventListener('keydown',event=>{ if(event.key==='Escape') closeAccountQuickMenu_(); });
 const notificationsDialog=document.getElementById('notificationsDialog');
+function ccFocusPanelTitle_(dialog,titleId){
+  if(!dialog?.open) return;
+  const title=document.getElementById(titleId);
+  if(!title) return;
+  requestAnimationFrame(()=>{
+    try{ title.focus({preventScroll:true}); }
+    catch(_){ title.focus(); }
+  });
+}
+
 async function openNotificationsDialog_(){
   closeAccountQuickMenu_();
   if(notificationsDialog && !notificationsDialog.open) notificationsDialog.showModal();
+  ccFocusPanelTitle_(notificationsDialog,'notificationsDialogTitle');
   await ccLoadNotifications_({force:true});
 }
 document.getElementById('quickNotificationsBtn')?.addEventListener('click',openNotificationsDialog_);
@@ -2208,6 +2219,7 @@ document.getElementById('openSettingsBtn')?.addEventListener('click',()=>{
   const source=currentPlayerSettings||defaultSettingsPayload_();
   applySettingsUi_({...source,theme:currentThemePreference_()});
   settingsDialog.showModal();
+  ccFocusPanelTitle_(settingsDialog,'settingsDialogTitle');
 });
 document.getElementById('closeSettingsBtn')?.addEventListener('click',async()=>{
   try{ await savePlayerSettingsNow_(); }catch(err){ console.warn(err); }

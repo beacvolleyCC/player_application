@@ -1,12 +1,5 @@
-CLUB CONTROL PLAYER V2.3.9.7 — PANEL SYSTEM AUDITED
-
-BASE: V2.3.9.6
-SCOPE:
-- Settings and Notifications now use one canonical modal geometry.
-- Same top position, width, close-button coordinates and scroll model.
-- Settings visual hierarchy normalized.
-- No Player business logic changes.
-- No Supabase / push / inbox / RSVP / payment / avatar logic changes.
+CLUB CONTROL PLAYER V2.3.9.8 — PANEL INITIAL FOCUS
+Base: V2.3.9.7 PANEL SYSTEM AUDITED
 
 FULL REPLACEMENT FILES:
 - index.html
@@ -15,8 +8,11 @@ FULL REPLACEMENT FILES:
 - sw.js
 - config.js
 
-NO SQL REQUIRED.
+Scope only:
+- Settings and Notifications dialogs initially focus their static title instead of the close X button.
+- The title uses tabindex=-1, so it is not added to normal Tab navigation.
+- Close-button focus-visible styling remains available for keyboard navigation.
+- PWA cache version bumped.
 
-IMPORTANT:
-Replace the five files completely. Do not manually patch snippets.
-After deploy, fully close and reopen the installed PWA so the new service worker/cache can activate.
+No SQL required.
+No push/inbox/RSVP/profile/settings persistence logic changed.
