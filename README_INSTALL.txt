@@ -1,34 +1,18 @@
-CLUB CONTROL PLAYER V2.3.9.2
-ACCOUNT QUICK MENU + NOTIFICATION SHELL
+CLUB CONTROL PLAYER V2.3.9.3 — FULL REPLACEMENT
 
-BASE:
-- Player V2.3.9.1 push + UI
-- live lineage: HEAD 74c724c / pipa2
+BASE: Player V2.3.9.2
+SCOPE ONLY:
+- Értesítések külön, bezárható dialog/panel (X + backdrop close).
+- Beállítások > Értesítéstípusok összecsukható rész.
+- Ugyanaz a Player háromszög-indikátor; nyitáskor 180 fok.
+- Dinamikus N/7 bekapcsolva összegzés.
+- Push backend/cron és Player adatlogika változatlan.
 
-SCOPE:
-- top-right avatar opens quick menu
-- menu order: Ertesitesek -> Beallitasok -> Profil
-- dark/theme quick button removed from header
-- theme remains in Settings > Megjelenes
-- Profile keeps its Settings entry
-- Profile gains an Ertesitesek entry
-- notification inbox empty-state shell added
-- unread badge shell added; hidden when count = 0
-- production "Teszt ertesites" button removed
-- push subscription/send receiver logic preserved
-- cache bust bumped to V2.3.9.2
+CSERÉLD TELJESEN EZT AZ 5 FÁJLT:
+index.html
+app.js
+styles.css
+sw.js
+config.js
 
-IMPORTANT:
-This build does NOT yet add player_notifications backend persistence.
-The notification center intentionally shows the real zero/empty state until the backend is added.
-No database migration is required for V2.3.9.2.
-
-FULL REPLACEMENT FILES:
-- index.html
-- app.js
-- styles.css
-- sw.js
-- config.js
-
-DEPLOY:
-Replace the five files completely in the Player GitHub repository, then commit/push.
+SQL NEM KELL EHHEZ A BUILDHEZ.

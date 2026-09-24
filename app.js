@@ -1507,8 +1507,8 @@ function renderNotificationShell_(count=ccUnreadNotificationCount){
   if(profileStatus) profileStatus.textContent=label;
   const profileCount=document.getElementById('profileNotificationsCount');
   if(profileCount){ profileCount.hidden=value===0; profileCount.textContent=compact; }
-  const viewSummary=document.getElementById('notificationsViewSummary');
-  if(viewSummary) viewSummary.textContent=value===0?'Nincs új értesítés.':`${value} új értesítés.`;
+  const dialogSummary=document.getElementById('notificationsDialogSummary');
+  if(dialogSummary) dialogSummary.textContent=value===0?'Nincs új értesítés.':`${value} új értesítés.`;
 }
 
 function closeAccountQuickMenu_(){
@@ -1533,15 +1533,22 @@ document.getElementById('accountMenuBtn')?.addEventListener('click',event=>{
 document.getElementById('accountQuickMenu')?.addEventListener('click',event=>event.stopPropagation());
 document.addEventListener('click',closeAccountQuickMenu_);
 document.addEventListener('keydown',event=>{ if(event.key==='Escape') closeAccountQuickMenu_(); });
-document.getElementById('quickNotificationsBtn')?.addEventListener('click',()=>switchView('notificationsView'));
+const notificationsDialog=document.getElementById('notificationsDialog');
+function openNotificationsDialog_(){
+  closeAccountQuickMenu_();
+  renderNotificationShell_(ccUnreadNotificationCount);
+  if(notificationsDialog && !notificationsDialog.open) notificationsDialog.showModal();
+}
+document.getElementById('quickNotificationsBtn')?.addEventListener('click',openNotificationsDialog_);
 document.getElementById('quickSettingsBtn')?.addEventListener('click',()=>{ closeAccountQuickMenu_(); document.getElementById('openSettingsBtn')?.click(); });
 document.getElementById('quickProfileBtn')?.addEventListener('click',()=>switchView('profileView'));
-document.getElementById('openNotificationsBtn')?.addEventListener('click',()=>switchView('notificationsView'));
+document.getElementById('openNotificationsBtn')?.addEventListener('click',openNotificationsDialog_);
+document.getElementById('closeNotificationsBtn')?.addEventListener('click',()=>notificationsDialog?.close());
 renderNotificationShell_(0);
 
 function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
-  const navView=viewId==='notificationsView' ? 'profileView' : viewId;
+  const navView=viewId;
 
   closeAccountQuickMenu_();
   forcePlannerPageTop_();
@@ -1983,6 +1990,12 @@ function collectSettingsUi_(){
     notifications
   };
 }
+function updateNotificationTypesSummary_(){
+  const inputs=[...document.querySelectorAll('[data-notify-setting]')];
+  const enabled=inputs.filter(input=>input.checked).length;
+  const summary=document.getElementById('notificationTypesSummary');
+  if(summary) summary.textContent=`${enabled}/${inputs.length} bekapcsolva`;
+}
 function applySettingsUi_(value){
   const defaults=defaultSettingsPayload_();
   const settings={...defaults,...(value||{})};
@@ -1995,6 +2008,7 @@ function applySettingsUi_(value){
   else currentAvatarId='';
   avatarPickerMode=currentAvatarId ? 'avatar' : 'monogram';
   document.querySelectorAll('[data-notify-setting]').forEach(input=>{ input.checked=settings.notifications[input.dataset.notifySetting]!==false; });
+  updateNotificationTypesSummary_();
   renderAvatarPicker_();
 }
 async function savePlayerSettingsNow_(){
@@ -2052,7 +2066,7 @@ document.getElementById('settingsThemeMode')?.addEventListener('change',e=>{
   scheduleSettingsSave_();
 });
 document.getElementById('settingsLanguage')?.addEventListener('change',scheduleSettingsSave_);
-document.querySelectorAll('[data-notify-setting]').forEach(el=>el.addEventListener('change',scheduleSettingsSave_));
+document.querySelectorAll('[data-notify-setting]').forEach(el=>el.addEventListener('change',()=>{ updateNotificationTypesSummary_(); scheduleSettingsSave_(); }));
 document.getElementById('avatarPickerGrid')?.addEventListener('click',event=>{
   const button=event.target.closest('[data-avatar-id]');
   if(!button) return;
@@ -2188,6 +2202,7 @@ function enableBackdropDismiss(dialog, onClose){
   });
 }
 
+enableBackdropDismiss(document.getElementById('notificationsDialog'));
 enableBackdropDismiss(document.getElementById('settingsDialog'));
 enableBackdropDismiss(document.getElementById('eventDialog'));
 enableBackdropDismiss(document.getElementById('cancelDialog'),()=>{

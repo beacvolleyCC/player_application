@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-9-2-account-menu-v1';
+const CACHE='club-control-player-v2-3-9-3-notification-panel';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

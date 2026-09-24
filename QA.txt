@@ -1,33 +1,14 @@
-PLAYER V2.3.9.2 QA
-
-ROUND 1 - STRUCTURE / SYNTAX
-PASS: app.js node --check
-PASS: sw.js node --check
-PASS: config.js node --check
-PASS: no duplicate HTML IDs
-PASS: required quick-menu / notification IDs present
-PASS: old themeBtn absent
-PASS: pushTestBtn absent from HTML
-PASS: CSS brace balance
-
-ROUND 2 - REGRESSION / SCOPE
-PASS: config.js byte-identical to V2.3.9.1
-PASS: Web Push receiver preserved
-PASS: notificationclick handling preserved
-PASS: core event/bootstrap/planner functions present
-PASS: push subscribe / unregister functions present
-PASS: settings persistence present
-PASS: two-scope logout controls present
-PASS: push UI no longer depends on pushTestBtn
-PASS: notification shell / quick-menu navigation present
-
-ROUND 3 - SECURITY / CACHE
-PASS: no VAPID private key
-PASS: no push cron secret
-PASS: no Supabase service-role / sb_secret_ key
-PASS: index resource cache-bust = 14.2-account-menu
-PASS: service worker cache = v2-3-9-2-account-menu-v1
-PASS: service worker registration query = 2392
-
-BROWSER NOTE
-A local headless-Chromium runtime smoke test was attempted, but this container policy blocks both localhost and file:// navigation. Therefore no claim of rendered-browser QA is made here. Final visual/runtime smoke should be performed on the deployed Player PWA.
+V2.3.9.3 QA
+- JS syntax: PASS
+- SW syntax: PASS
+- config syntax: PASS
+- duplicate HTML ids: 0
+- notification switches: 7
+- notification view removed; dialog present
+- notification types default collapsed
+- N/7 summary update wired
+- push subscribe/unsubscribe markers preserved
+- service worker push/click handlers preserved
+- cache bumped
+- config.js byte-identical to V2.3.9.2
+- frontend secret scan: PASS

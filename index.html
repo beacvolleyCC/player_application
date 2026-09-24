@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=14.2-account-menu">
+  <link rel="stylesheet" href="./styles.css?v=14.3-notification-panel">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -201,23 +201,6 @@
         <div class="planner-scroll-tail" aria-hidden="true"></div>
       </div>
     </section>
-<section id="notificationsView" class="view">
-      <div class="home-panel-head notification-view-head">
-        <div>
-          <h3>Értesítések</h3>
-          <p id="notificationsViewSummary">Nincs új értesítés.</p>
-        </div>
-      </div>
-      <div class="card notification-inbox-card">
-        <div class="notification-empty-state" id="notificationEmptyState">
-          <span class="notification-empty-icon" aria-hidden="true">✓</span>
-          <b>Minden rendben.</b>
-          <small>Nincs új értesítésed.</small>
-        </div>
-        <div id="notificationInboxList" class="notification-inbox-list" hidden></div>
-      </div>
-    </section>
-
 <section id="profileView" class="view">
       <div class="section-head">
         <div>
@@ -342,6 +325,22 @@
     </button>
   </nav>
 
+  <dialog id="notificationsDialog" class="notifications-dialog">
+    <div class="dialog-card notifications-dialog-card">
+      <button class="dialog-x-btn" id="closeNotificationsBtn" type="button" aria-label="Bezárás">×</button>
+      <h3>Értesítések</h3>
+      <p class="notifications-dialog-summary" id="notificationsDialogSummary">Nincs új értesítés.</p>
+      <div class="notification-inbox-card">
+        <div class="notification-empty-state" id="notificationEmptyState">
+          <span class="notification-empty-icon" aria-hidden="true">✓</span>
+          <b>Minden rendben.</b>
+          <small>Nincs új értesítésed.</small>
+        </div>
+        <div id="notificationInboxList" class="notification-inbox-list" hidden></div>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="settingsDialog">
     <div class="dialog-card settings-dialog-card">
       <button class="dialog-x-btn" id="closeSettingsBtn" type="button" aria-label="Bezárás">×</button>
@@ -360,34 +359,45 @@
           </div>
         </div>
 
-        <label class="switch-row">
-          <span><b>Új edzés</b><small>Ha új edzés kerül a csapat menetrendjébe.</small></span>
-          <input type="checkbox" data-notify-setting="new_training" checked>
-        </label>
-        <label class="switch-row">
-          <span><b>Edzés módosult vagy törlődött</b><small>Időpont, helyszín vagy törlés esetén.</small></span>
-          <input type="checkbox" data-notify-setting="training_change" checked>
-        </label>
-        <label class="switch-row">
-          <span><b>Heti visszajelzés emlékeztető</b><small>Hétfő reggel, ha az adott hét valamelyik edzésére még nem jeleztél.</small></span>
-          <input type="checkbox" data-notify-setting="weekly_response_reminder" checked>
-        </label>
-        <label class="switch-row">
-          <span><b>Edzésnapi emlékeztető</b><small>Az edzés napján reggel, ha arra az alkalomra még nincs Jövök / Nem jövök jelzésed.</small></span>
-          <input type="checkbox" data-notify-setting="same_day_response_reminder" checked>
-        </label>
-        <label class="switch-row">
-          <span><b>Új meccs</b><small>Új bajnoki vagy felkészülési mérkőzés.</small></span>
-          <input type="checkbox" data-notify-setting="new_match" checked>
-        </label>
-        <label class="switch-row">
-          <span><b>Meccs módosult</b><small>Időpont, helyszín vagy találkozó változása.</small></span>
-          <input type="checkbox" data-notify-setting="match_change" checked>
-        </label>
-        <label class="switch-row">
-          <span><b>Fizetési emlékeztető</b><small>Minden hónapban 14-én este és 15-én dél körül, ha a rendszerben az aktuális díj fizetendőként szerepel.</small></span>
-          <input type="checkbox" data-notify-setting="payment" checked>
-        </label>
+        <details class="notification-types-details" id="notificationTypesDetails">
+          <summary>
+            <span class="notification-types-copy">
+              <b>Értesítéstípusok</b>
+              <small id="notificationTypesSummary">7/7 bekapcsolva</small>
+            </span>
+            <span class="cc-outline-triangle notification-types-triangle" aria-hidden="true"></span>
+          </summary>
+          <div class="notification-types-content">
+            <label class="switch-row">
+              <span><b>Új edzés</b><small>Ha új edzés kerül a csapat menetrendjébe.</small></span>
+              <input type="checkbox" data-notify-setting="new_training" checked>
+            </label>
+            <label class="switch-row">
+              <span><b>Edzés módosult vagy törlődött</b><small>Időpont, helyszín vagy törlés esetén.</small></span>
+              <input type="checkbox" data-notify-setting="training_change" checked>
+            </label>
+            <label class="switch-row">
+              <span><b>Heti visszajelzés emlékeztető</b><small>Hétfő reggel, ha az adott hét valamelyik edzésére még nem jeleztél.</small></span>
+              <input type="checkbox" data-notify-setting="weekly_response_reminder" checked>
+            </label>
+            <label class="switch-row">
+              <span><b>Edzésnapi emlékeztető</b><small>Az edzés napján reggel, ha arra az alkalomra még nincs Jövök / Nem jövök jelzésed.</small></span>
+              <input type="checkbox" data-notify-setting="same_day_response_reminder" checked>
+            </label>
+            <label class="switch-row">
+              <span><b>Új meccs</b><small>Új bajnoki vagy felkészülési mérkőzés.</small></span>
+              <input type="checkbox" data-notify-setting="new_match" checked>
+            </label>
+            <label class="switch-row">
+              <span><b>Meccs módosult</b><small>Időpont, helyszín vagy találkozó változása.</small></span>
+              <input type="checkbox" data-notify-setting="match_change" checked>
+            </label>
+            <label class="switch-row">
+              <span><b>Fizetési emlékeztető</b><small>Minden hónapban 14-én este és 15-én dél körül, ha a rendszerben az aktuális díj fizetendőként szerepel.</small></span>
+              <input type="checkbox" data-notify-setting="payment" checked>
+            </label>
+          </div>
+        </details>
       </div>
 
       <div class="settings-section">
@@ -454,7 +464,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.2</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.3</b></div>
       </div>
     </div>
   </dialog>
@@ -497,7 +507,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=14.2-account-menu"></script>
-  <script src="./app.js?v=14.2-account-menu"></script>
+  <script src="./config.js?v=14.3-notification-panel"></script>
+  <script src="./app.js?v=14.3-notification-panel"></script>
 </body>
 </html>
