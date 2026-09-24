@@ -5955,3 +5955,34 @@ body.dark .account-quick-menu{box-shadow:0 18px 46px rgba(0,0,0,.42);}
   .notifications-dialog-card{width:calc(100vw - 16px);max-height:calc(100dvh - 28px);}
   .notification-item-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;}
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.9.5 — NOTIFICATION READ STYLE + MOBILE PANEL ALIGN
+   Targeted UI-only fix:
+   - read notifications never reveal the red swipe background
+   - notification modal starts at the same top rhythm as Settings on mobile
+   - close button uses the shared dialog position unchanged
+   ========================================================== */
+.notification-swipe-row.is-read .notification-item-card{
+  opacity:1 !important;
+  background:var(--card) !important;
+}
+.notification-swipe-row.is-read .notification-item-content{
+  opacity:.64;
+}
+.notification-swipe-row.is-read .notification-item-dot{
+  opacity:.55;
+  background:var(--line) !important;
+}
+
+@media(max-width:760px){
+  #notificationsDialog{
+    inset:calc(env(safe-area-inset-top) + 10px) 0 auto 0 !important;
+    margin:0 auto !important;
+    max-height:calc(100dvh - env(safe-area-inset-top) - 20px) !important;
+  }
+  #notificationsDialog .notifications-dialog-card{
+    max-height:calc(100dvh - env(safe-area-inset-top) - 28px) !important;
+  }
+}
