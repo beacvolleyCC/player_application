@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-3-notification-swipe-polish';
+const CACHE='club-control-player-v2-3-10-4-notification-inbox-polish';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

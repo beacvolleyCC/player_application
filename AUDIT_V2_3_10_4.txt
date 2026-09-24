@@ -1,0 +1,17 @@
+Scope audit — Player V2.3.10.4
+
+TARGETED CHANGES ONLY
+1. Notification dialog summary wording/counting.
+2. Notification inbox spacing / width utilization.
+3. Swipe-action red layer hidden at rest to remove corner bleed.
+4. PWA asset/cache/build version bump.
+
+UNCHANGED
+- Supabase configuration
+- push subscription/sender logic
+- notification RPC names and arguments
+- notification read/dismiss backend calls
+- self-test trigger and RPC
+- RSVP/event/profile/payment logic
+
+No SQL migration required.

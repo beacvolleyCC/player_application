@@ -6328,3 +6328,69 @@ body.dark .account-quick-menu{box-shadow:0 18px 46px rgba(0,0,0,.42);}
     transition-duration:.01ms !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.4 — NOTIFICATION INBOX VISUAL + SUMMARY POLISH
+   - swipe action is invisible at rest, preventing red corner bleed
+   - list state uses the available width and hugs its content
+   - empty success/error state keeps a comfortable dedicated surface
+   ========================================================== */
+.notification-swipe-row{
+  background:transparent !important;
+}
+.notification-swipe-action{
+  top:2px !important;
+  right:2px !important;
+  bottom:2px !important;
+  height:auto !important;
+  border-radius:10px !important;
+  background:#b3261e !important;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .10s ease;
+}
+.notification-swipe-row.swiping .notification-swipe-action,
+.notification-swipe-row.is-dismissing .notification-swipe-action{
+  opacity:1;
+}
+.dark .notification-swipe-row{
+  background:transparent !important;
+}
+.dark .notification-swipe-action{
+  background:#8f2d27 !important;
+}
+
+#notificationsDialog .notification-inbox-card{
+  min-height:0 !important;
+  padding:7px !important;
+}
+#notificationsDialog .notification-inbox-card:has(.notification-empty-state:not([hidden])){
+  min-height:180px !important;
+  padding:14px !important;
+}
+#notificationsDialog .notification-inbox-list{
+  gap:8px !important;
+}
+#notificationsDialog .notification-item-card{
+  min-height:72px;
+  padding:11px 10px;
+}
+
+@media(max-width:520px){
+  #notificationsDialog .notification-inbox-card{
+    padding:5px !important;
+  }
+  #notificationsDialog .notification-inbox-card:has(.notification-empty-state:not([hidden])){
+    padding:12px !important;
+  }
+  #notificationsDialog .notification-item-card{
+    padding:10px 9px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .notification-swipe-action{
+    transition-duration:.01ms !important;
+  }
+}

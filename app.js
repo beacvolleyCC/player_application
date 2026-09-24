@@ -1512,9 +1512,20 @@ function renderNotificationShell_(count=ccUnreadNotificationCount){
   if(profileCount){ profileCount.hidden=value===0; profileCount.textContent=compact; }
   const dialogSummary=document.getElementById('notificationsDialogSummary');
   if(dialogSummary){
-    if(!ccNotificationsBackendReady) dialogSummary.textContent='Az értesítési központ jelenleg nem érhető el.';
-    else if(ccNotificationsLoading) dialogSummary.textContent='Értesítések betöltése…';
-    else dialogSummary.textContent=value===0?'Nincs új értesítés.':`${value} új értesítés.`;
+    if(!ccNotificationsBackendReady){
+      dialogSummary.textContent='Az értesítési központ jelenleg nem érhető el.';
+    }else if(ccNotificationsLoading){
+      dialogSummary.textContent='Értesítések betöltése…';
+    }else{
+      const visibleCount=Array.isArray(ccPlayerNotifications)?ccPlayerNotifications.length:0;
+      const previousCount=Math.max(0,visibleCount-value);
+      const newPart=value===1?'1 új értesítés':`${value} új értesítés`;
+      const previousPart=previousCount===1?'1 korábbi':`${previousCount} korábbi`;
+      if(value>0 && previousCount>0) dialogSummary.textContent=`${newPart} · ${previousPart}`;
+      else if(value>0) dialogSummary.textContent=newPart;
+      else if(previousCount>0) dialogSummary.textContent=`Nincs új értesítés · ${previousPart}`;
+      else dialogSummary.textContent='Nincs új értesítés.';
+    }
   }
 }
 
