@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=14.8-panel-focus">
+  <link rel="stylesheet" href="./styles.css?v=14.9-profile-notifications-first">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -205,8 +205,16 @@
       <div class="section-head">
         <div>
           <h3 id="profilePageTitle">Profil</h3>
-          <p>Saját adatok, díjak, szezon és beállítások.</p>
+          <p>Értesítések, saját adatok, díjak, szezon és beállítások.</p>
         </div>
+      </div>
+
+      <div class="card">
+        <h4>Értesítések</h4>
+        <button class="settings-row profile-notifications-row" id="openNotificationsBtn" type="button">
+          <span><small class="settings-row-main" id="profileNotificationsStatus">Nincs új értesítés</small></span>
+          <span class="profile-notifications-count" id="profileNotificationsCount" hidden>0</span>
+        </button>
       </div>
 
       <div class="card profile-personal-card">
@@ -276,14 +284,6 @@
             <div id="profileStatsMonthly" class="profile-stats-monthly"></div>
           </div>
         </details>
-      </div>
-
-      <div class="card">
-        <h4>Értesítések</h4>
-        <button class="settings-row profile-notifications-row" id="openNotificationsBtn" type="button">
-          <span><small class="settings-row-main" id="profileNotificationsStatus">Nincs új értesítés</small></span>
-          <span class="profile-notifications-count" id="profileNotificationsCount" hidden>0</span>
-        </button>
       </div>
 
       <div class="card">
@@ -507,7 +507,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=14.8-panel-focus"></script>
-  <script src="./app.js?v=14.8-panel-focus"></script>
+  <script src="./config.js?v=14.9-profile-notifications-first"></script>
+  <script src="./app.js?v=14.9-profile-notifications-first"></script>
 </body>
 </html>

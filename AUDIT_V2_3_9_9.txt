@@ -1,0 +1,14 @@
+V2.3.9.9 AUDIT
+
+Scope: profile block reorder only + cache/version bump.
+
+Checks:
+- app.js syntax: PASS
+- sw.js syntax: PASS
+- config.js syntax: PASS
+- duplicate HTML ids: NONE
+- Profile order: Notifications -> Personal data -> Payments -> Season -> Settings: PASS
+- app.js unchanged vs V2.3.9.8: PASS
+- styles.css unchanged vs V2.3.9.8: PASS
+- config.js unchanged vs V2.3.9.8: PASS
+- SQL changes: NONE

@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-9-8-panel-initial-focus';
+const CACHE='club-control-player-v2-3-9-9-profile-notifications-first';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
