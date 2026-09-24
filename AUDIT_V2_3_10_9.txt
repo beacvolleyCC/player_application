@@ -1,0 +1,39 @@
+PLAYER V2.3.10.9 AUDIT
+
+Scope
+- Notification swipe interaction only, plus build/cache version bump.
+- Built on V2.3.10.8, which already contains the V2.3.10.7 Player UI consistency changes.
+
+Gesture design
+- Full-size rounded red action layer under the entire notification card.
+- Action layer hidden at rest; revealed only by the card moving left over it.
+- No finite 112px red strip in the effective final rule.
+- No progressive action opacity animation.
+- No row-height collapse animation after dismissal.
+- Pointer capture starts only after horizontal intent is established.
+- Forgiving horizontal direction lock for diagonal thumb movement.
+- Card follows horizontal finger movement directly and is clamped to its own width.
+- Distance threshold: 23% of card width, clamped to 66–92px.
+- Flick: minimum 22px plus leftward velocity <= -0.38 px/ms.
+- Snap-back: 155ms.
+- Dismiss exit: 165ms.
+- Optional light haptic via navigator.vibrate where supported.
+- Dismiss re-renders synchronously at the end of card exit, preventing a red-only tail.
+
+Regression checks
+- app.js syntax: PASS
+- sw.js syntax: PASS
+- config.js syntax: PASS
+- CSS parser errors: 0
+- Duplicate HTML IDs: 0
+- Frontend secret markers: 0
+- Smart avatar behavior retained: unread -> Notifications, zero unread -> Profile
+- Header Settings button retained
+- További/Kevesebb disclosure labels retained
+- Position gradients retained
+- config.js unchanged from V2.3.10.8
+- No SQL/database changes
+
+Browser note
+- Source/static and gesture-math QA passed.
+- Final tactile feel still requires the real iPhone/PWA smoke test because this environment cannot emulate iOS touch physics exactly.

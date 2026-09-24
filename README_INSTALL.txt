@@ -1,18 +1,11 @@
-PLAYER V2.3.10.8 — Native-feel notification swipe
+PLAYER V2.3.10.9 — TRAVEL-STYLE NOTIFICATION SWIPE
 
-FULL REPLACEMENT FILES:
+Replace the full files in the Player deployment:
 - index.html
 - app.js
 - styles.css
 - sw.js
 - config.js
 
-No SQL migration is required.
-
-Scope:
-- notification swipe gesture only
-- pointer-event based 1:1 tracking
-- velocity-aware fast flick dismiss
-- faster snap-back and dismiss timing
-- exit and row collapse run together so the red action does not linger
-- all V2.3.10.7 Player UI changes remain
+No SQL/database migration is required.
+After deployment, fully close and reopen the installed PWA so the new service-worker cache is active.

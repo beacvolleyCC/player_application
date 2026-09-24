@@ -6635,3 +6635,89 @@ body.dark .chip.yes[class*="position-"]{
     transition-duration:.01ms !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.9 — TRAVEL-COMPANION STYLE NOTIFICATION SWIPE
+   - full-size rounded action layer under the entire card
+   - action is revealed by card movement, never by a finite red strip
+   - delayed horizontal intent lock for forgiving iPhone pickup
+   - no row-height collapse animation; re-render happens at card exit end
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-x:0px;
+  --cc-swipe-snap-ms:155ms;
+  --cc-swipe-exit-ms:165ms;
+  position:relative !important;
+  overflow:hidden !important;
+  border-radius:12px !important;
+  background:transparent !important;
+  touch-action:pan-y pinch-zoom !important;
+  overscroll-behavior-x:contain;
+  -webkit-user-select:none;
+  user-select:none;
+  contain:paint;
+  isolation:isolate;
+}
+.notification-swipe-action{
+  position:absolute !important;
+  inset:0 !important;
+  width:auto !important;
+  height:auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  padding:0 18px !important;
+  box-sizing:border-box !important;
+  border-radius:inherit !important;
+  background:#b3261e !important;
+  color:#fff !important;
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  transform:none !important;
+  transition:none !important;
+  z-index:0 !important;
+}
+.notification-swipe-row.swipe-engaged .notification-swipe-action{
+  opacity:1 !important;
+  visibility:visible !important;
+}
+.notification-item-card{
+  position:relative !important;
+  z-index:1 !important;
+  transform:translate3d(var(--cc-swipe-x),0,0) !important;
+  transition:transform var(--cc-swipe-snap-ms) cubic-bezier(.22,.82,.22,1),background .12s ease !important;
+  will-change:transform;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+.notification-swipe-row.swiping .notification-item-card{
+  transition:none !important;
+}
+.notification-swipe-row.is-snapping .notification-item-card{
+  transition:transform var(--cc-swipe-snap-ms) cubic-bezier(.22,.82,.22,1) !important;
+}
+.notification-swipe-row.is-dismissing{
+  height:auto !important;
+  min-height:0 !important;
+  margin-top:0;
+  margin-bottom:0;
+  transition:none !important;
+}
+.notification-swipe-row.is-dismissing .notification-item-card{
+  pointer-events:none !important;
+  transition:transform var(--cc-swipe-exit-ms) cubic-bezier(.18,.78,.22,1) !important;
+}
+.notification-swipe-row.is-dismissing .notification-swipe-action{
+  opacity:1 !important;
+  visibility:visible !important;
+}
+.dark .notification-swipe-action{
+  background:#8f2d27 !important;
+}
+@media (prefers-reduced-motion:reduce){
+  .notification-item-card{
+    transition-duration:.01ms !important;
+  }
+}
