@@ -6284,3 +6284,47 @@ body.dark .account-quick-menu{box-shadow:0 18px 46px rgba(0,0,0,.42);}
 .push-device-card[data-push-state="active"] .push-device-state-dot{opacity:.72;}
 .push-device-card[data-push-state="error"] .push-device-state-dot{opacity:.58;}
 .push-device-qa-trigger:focus{outline:none;}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.3 — NOTIFICATION SWIPE + RENDER POLISH
+   - GPU-only swipe tracking via translate3d + rAF
+   - complete dismiss animation before list re-render
+   - smooth row collapse, including the final notification
+   - empty success state appears only after a completed zero-item load
+   ========================================================== */
+.notification-swipe-row{
+  contain:layout paint;
+  transform:translateZ(0);
+}
+.notification-item-card{
+  transform:translate3d(0,0,0);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  will-change:transform;
+  transition:
+    transform .22s cubic-bezier(.22,.61,.36,1),
+    background .16s ease;
+}
+.notification-swipe-row.swiping .notification-item-card{
+  transition:none !important;
+}
+.notification-swipe-row.is-dismissing .notification-item-card{
+  pointer-events:none;
+  transition:transform .22s cubic-bezier(.22,.61,.36,1) !important;
+}
+.notification-row-collapsing{
+  overflow:hidden !important;
+  min-height:0 !important;
+  transition:height .16s cubic-bezier(.4,0,.2,1),opacity .14s ease !important;
+}
+.notification-empty-state[hidden],
+.notification-inbox-list[hidden]{
+  display:none !important;
+}
+@media (prefers-reduced-motion:reduce){
+  .notification-item-card,
+  .notification-row-collapsing{
+    transition-duration:.01ms !important;
+  }
+}

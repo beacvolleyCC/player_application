@@ -1553,9 +1553,20 @@ function renderNotificationInbox_(){
   const list=document.getElementById('notificationInboxList');
   const empty=document.getElementById('notificationEmptyState');
   if(!list || !empty) return;
+
+  // Refresh silently when we already have items. Never flash the empty/success
+  // state while the real notification list is still loading.
   if(ccNotificationsLoading){
-    empty.hidden=false; list.hidden=true;
-    empty.innerHTML='<span class="notification-empty-icon" aria-hidden="true">…</span><b>Betöltés…</b><small>Értesítések frissítése.</small>';
+    empty.hidden=true;
+    if(ccPlayerNotifications.length){
+      list.hidden=false;
+      if(!list.childElementCount){
+        list.innerHTML=ccPlayerNotifications.map(ccNotificationItemHtml_).join('');
+        ccBindNotificationSwipes_();
+      }
+    }else{
+      list.hidden=true;
+    }
     return;
   }
   if(!ccNotificationsBackendReady){
@@ -1564,7 +1575,9 @@ function renderNotificationInbox_(){
     return;
   }
   if(!ccPlayerNotifications.length){
-    empty.hidden=false; list.hidden=true;
+    list.hidden=true;
+    list.innerHTML='';
+    empty.hidden=false;
     empty.innerHTML='<span class="notification-empty-icon" aria-hidden="true">✓</span><b>Minden rendben.</b><small>Nincs megjelenítendő értesítésed.</small>';
     return;
   }
@@ -1639,26 +1652,106 @@ function ccBindNotificationSwipes_(){
     row.dataset.swipeBound='1';
     const card=row.querySelector('.notification-item-card');
     const id=row.dataset.notificationId;
-    let startX=0,startY=0,dx=0,tracking=false,moved=false;
-    const reset=()=>{ if(card) card.style.transform=''; row.classList.remove('swiping'); };
+    if(!card || !id) return;
+
+    const MAX_REVEAL=112;
+    const DISMISS_THRESHOLD=64;
+    let startX=0,startY=0,currentX=0;
+    let tracking=false,axis='',moved=false,dismissing=false;
+    let rafId=0,suppressClickUntil=0;
+
+    const paint=()=>{
+      rafId=0;
+      card.style.transform=`translate3d(${Math.max(-MAX_REVEAL,Math.min(0,currentX))}px,0,0)`;
+    };
+    const schedulePaint=()=>{
+      if(!rafId) rafId=requestAnimationFrame(paint);
+    };
+    const reset=()=>{
+      tracking=false; axis=''; currentX=0;
+      if(rafId){ cancelAnimationFrame(rafId); rafId=0; }
+      row.classList.remove('swiping');
+      card.style.transform='translate3d(0,0,0)';
+    };
+    const collapseAndDismiss=()=>{
+      if(row.dataset.dismissFinalizing==='1') return;
+      row.dataset.dismissFinalizing='1';
+      const height=Math.ceil(row.getBoundingClientRect().height);
+      row.style.height=`${height}px`;
+      row.style.opacity='1';
+      row.classList.add('notification-row-collapsing');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        row.style.height='0px';
+        row.style.opacity='0';
+      }));
+      window.setTimeout(()=>ccDismissNotification_(id),170);
+    };
+    const animateDismiss=()=>{
+      if(dismissing) return;
+      dismissing=true; tracking=false;
+      suppressClickUntil=performance.now()+500;
+      if(rafId){ cancelAnimationFrame(rafId); rafId=0; }
+      row.classList.remove('swiping');
+      row.classList.add('is-dismissing');
+      card.style.transform='translate3d(-105%,0,0)';
+
+      let finished=false;
+      const finish=event=>{
+        if(event && event.target!==card) return;
+        if(finished) return;
+        finished=true;
+        card.removeEventListener('transitionend',finish);
+        collapseAndDismiss();
+      };
+      card.addEventListener('transitionend',finish);
+      window.setTimeout(()=>finish(),280);
+    };
+
     row.addEventListener('touchstart',event=>{
-      const t=event.touches?.[0]; if(!t) return;
-      startX=t.clientX; startY=t.clientY; dx=0; tracking=true; moved=false; row.classList.add('swiping');
+      if(dismissing || event.touches?.length!==1) return;
+      const t=event.touches[0];
+      startX=t.clientX; startY=t.clientY; currentX=0;
+      tracking=true; axis=''; moved=false;
+      row.classList.add('swiping');
     },{passive:true});
+
     row.addEventListener('touchmove',event=>{
-      if(!tracking || !card) return;
+      if(!tracking || dismissing) return;
       const t=event.touches?.[0]; if(!t) return;
-      const dy=t.clientY-startY; dx=t.clientX-startX;
-      if(Math.abs(dy)>Math.abs(dx)+8){ tracking=false; reset(); return; }
-      if(dx<0){ moved=Math.abs(dx)>8; card.style.transform=`translateX(${Math.max(-112,dx)}px)`; }
+      const dx=t.clientX-startX;
+      const dy=t.clientY-startY;
+      if(!axis){
+        if(Math.max(Math.abs(dx),Math.abs(dy))<7) return;
+        axis=Math.abs(dx)>Math.abs(dy)?'x':'y';
+        if(axis==='y'){ reset(); return; }
+      }
+      if(axis!=='x') return;
+      moved=moved || Math.abs(dx)>8;
+      currentX=Math.max(-MAX_REVEAL,Math.min(0,dx));
+      schedulePaint();
     },{passive:true});
+
     row.addEventListener('touchend',()=>{
-      if(!tracking){ reset(); return; }
+      if(dismissing) return;
+      if(!tracking || axis!=='x'){ reset(); return; }
       tracking=false;
-      if(dx<-72){ if(card) card.style.transform='translateX(-100%)'; window.setTimeout(()=>ccDismissNotification_(id),100); }
+      suppressClickUntil=moved?performance.now()+350:0;
+      if(currentX<=-DISMISS_THRESHOLD) animateDismiss();
       else reset();
     },{passive:true});
-    card?.addEventListener('click',event=>{ if(moved){ event.preventDefault(); moved=false; return; } ccOpenNotification_(id); });
+
+    row.addEventListener('touchcancel',()=>{
+      if(!dismissing) reset();
+    },{passive:true});
+
+    card.addEventListener('click',event=>{
+      if(dismissing || moved || performance.now()<suppressClickUntil){
+        event.preventDefault();
+        moved=false;
+        return;
+      }
+      ccOpenNotification_(id);
+    });
   });
 }
 

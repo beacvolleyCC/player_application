@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=15.2-hidden-self-test-triple-tap">
+  <link rel="stylesheet" href="./styles.css?v=15.3-notification-swipe-polish">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -331,11 +331,7 @@
       <h3 id="notificationsDialogTitle" tabindex="-1">Értesítések</h3>
       <p class="notifications-dialog-summary" id="notificationsDialogSummary">Nincs új értesítés.</p>
       <div class="notification-inbox-card">
-        <div class="notification-empty-state" id="notificationEmptyState">
-          <span class="notification-empty-icon" aria-hidden="true">✓</span>
-          <b>Minden rendben.</b>
-          <small>Nincs új értesítésed.</small>
-        </div>
+        <div class="notification-empty-state" id="notificationEmptyState" hidden></div>
         <div id="notificationInboxList" class="notification-inbox-list" hidden aria-live="polite"></div>
       </div>
     </div>
@@ -476,7 +472,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.7</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.3</b></div>
       </div>
     </div>
   </dialog>
@@ -519,7 +515,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=15.2-hidden-self-test-triple-tap"></script>
-  <script src="./app.js?v=15.2-hidden-self-test-triple-tap"></script>
+  <script src="./config.js?v=15.3-notification-swipe-polish"></script>
+  <script src="./app.js?v=15.3-notification-swipe-polish"></script>
 </body>
 </html>

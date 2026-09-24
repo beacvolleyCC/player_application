@@ -1,0 +1,36 @@
+PLAYER V2.3.10.3 — NOTIFICATION SWIPE + RENDER POLISH
+
+Scope
+- Fix final notification swipe/dismiss leaving a stale row.
+- Make swipe animation smoother on mobile/iOS.
+- Do not show the "Minden rendben" empty state during loading or while any notification exists.
+- No SQL / schema / RPC changes.
+
+Implementation
+- Swipe movement is transform-only (translate3d) and scheduled through requestAnimationFrame.
+- Horizontal/vertical gesture direction locks after initial movement.
+- Dismiss waits for the card transition, then smoothly collapses the row, then updates the list.
+- transitionend has a timeout fallback so the final row cannot remain stuck if the browser drops the event.
+- touchcancel resets the row safely.
+- Existing notification list remains visible during a background refresh.
+- Initial static empty-state content is hidden; "Minden rendben" is rendered only after a completed zero-item result.
+- prefers-reduced-motion is respected.
+
+Checks
+- app.js: node --check PASS
+- sw.js: node --check PASS
+- config.js: node --check PASS
+- CSS parser: 0 parse errors
+- duplicate HTML IDs: 0
+- notification preference switches: 7 preserved
+- config.js: byte-identical to V2.3.10.2
+- no service-role / cron / private VAPID secret in frontend
+- hidden QA self-test trigger preserved
+
+Isolated mobile browser harness (390x844, touch enabled)
+- Start: 3 notification rows, empty state hidden
+- Swipe #1: 2 rows, empty state hidden
+- Swipe #2: 1 row, empty state hidden
+- Swipe #3: 0 rows, "Minden rendben" visible
+- Loading with existing notification: list visible, empty state hidden
+- Loading with zero notification: both list and empty state hidden until load completes
