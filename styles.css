@@ -6247,13 +6247,40 @@ body.dark .account-quick-menu{box-shadow:0 18px 46px rgba(0,0,0,.42);}
   .push-self-test-row .push-device-btn{width:100%;}
 }
 
-#pushDeviceQaTrigger{
+/* PLAYER V2.3.10.2 — hidden QA trigger: fixed non-text triple-tap target */
+.push-device-title-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+.push-device-qa-trigger{
+  appearance:none;
+  -webkit-appearance:none;
+  width:30px;
+  height:30px;
+  margin:-8px -8px -8px 0;
+  padding:0;
+  border:0;
+  border-radius:999px;
+  background:transparent;
+  display:inline-grid;
+  place-items:center;
+  flex:0 0 30px;
+  touch-action:manipulation;
   -webkit-user-select:none;
   user-select:none;
-  touch-action:manipulation;
   -webkit-touch-callout:none;
+  cursor:default;
 }
-
-
-/* PLAYER V2.3.10.1 — hidden QA trigger: stable long-press target */
-#pushDeviceQaTrigger{ cursor:default; }
+.push-device-state-dot{
+  width:7px;
+  height:7px;
+  border-radius:999px;
+  background:currentColor;
+  opacity:.28;
+  pointer-events:none;
+}
+.push-device-card[data-push-state="active"] .push-device-state-dot{opacity:.72;}
+.push-device-card[data-push-state="error"] .push-device-state-dot{opacity:.58;}
+.push-device-qa-trigger:focus{outline:none;}

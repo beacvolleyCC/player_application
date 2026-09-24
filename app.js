@@ -2084,15 +2084,18 @@ async function ccPushDisableCurrentDevice_(){
   finally{ ccPushBusy=false; await ccPushSyncUi_(); }
 }
 let ccPushQaHideTimer=null;
-let ccPushQaHoldTimer=null;
-let ccPushQaHoldPointerId=null;
+let ccPushQaTapTimer=null;
+let ccPushQaTapCount=0;
 
+function ccPushQaResetTap_(){
+  ccPushQaTapCount=0;
+  if(ccPushQaTapTimer){ clearTimeout(ccPushQaTapTimer); ccPushQaTapTimer=null; }
+}
 function ccPushQaHide_(){
   const row=document.getElementById('pushSelfTestRow');
   if(row) row.hidden=true;
   if(ccPushQaHideTimer){ clearTimeout(ccPushQaHideTimer); ccPushQaHideTimer=null; }
-  if(ccPushQaHoldTimer){ clearTimeout(ccPushQaHoldTimer); ccPushQaHoldTimer=null; }
-  ccPushQaHoldPointerId=null;
+  ccPushQaResetTap_();
 }
 function ccPushQaReveal_(){
   const row=document.getElementById('pushSelfTestRow');
@@ -2101,23 +2104,18 @@ function ccPushQaReveal_(){
   if(ccPushQaHideTimer) clearTimeout(ccPushQaHideTimer);
   ccPushQaHideTimer=setTimeout(ccPushQaHide_,90_000);
 }
-function ccPushQaHoldStart_(event){
+function ccPushQaTap_(event){
+  event?.preventDefault?.();
   const card=document.getElementById('pushDeviceCard');
-  if(card?.dataset.pushState!=='active') return;
-  if(event && event.pointerType==='mouse' && event.button!==0) return;
-  if(ccPushQaHoldTimer) clearTimeout(ccPushQaHoldTimer);
-  ccPushQaHoldPointerId=event?.pointerId ?? null;
-  event?.currentTarget?.setPointerCapture?.(event.pointerId);
-  ccPushQaHoldTimer=setTimeout(()=>{
-    ccPushQaHoldTimer=null;
-    ccPushQaHoldPointerId=null;
+  if(card?.dataset.pushState!=='active'){ ccPushQaResetTap_(); return; }
+  ccPushQaTapCount+=1;
+  if(ccPushQaTapTimer) clearTimeout(ccPushQaTapTimer);
+  if(ccPushQaTapCount>=3){
+    ccPushQaResetTap_();
     ccPushQaReveal_();
-  },1600);
-}
-function ccPushQaHoldCancel_(event){
-  if(ccPushQaHoldPointerId!==null && event?.pointerId!==undefined && event.pointerId!==ccPushQaHoldPointerId) return;
-  if(ccPushQaHoldTimer){ clearTimeout(ccPushQaHoldTimer); ccPushQaHoldTimer=null; }
-  ccPushQaHoldPointerId=null;
+    return;
+  }
+  ccPushQaTapTimer=setTimeout(ccPushQaResetTap_,900);
 }
 async function ccPushQueueTest_(){
   if(!SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession) return;
@@ -2166,10 +2164,7 @@ function ccPushOpenRequestedTarget_(){
 document.getElementById('pushEnableBtn')?.addEventListener('click',ccPushSubscribeCurrentDevice_);
 document.getElementById('pushDisableBtn')?.addEventListener('click',ccPushDisableCurrentDevice_);
 const ccPushQaTrigger=document.getElementById('pushDeviceQaTrigger');
-ccPushQaTrigger?.addEventListener('pointerdown',ccPushQaHoldStart_);
-ccPushQaTrigger?.addEventListener('pointerup',ccPushQaHoldCancel_);
-ccPushQaTrigger?.addEventListener('pointercancel',ccPushQaHoldCancel_);
-ccPushQaTrigger?.addEventListener('pointerleave',ccPushQaHoldCancel_);
+ccPushQaTrigger?.addEventListener('click',ccPushQaTap_);
 document.getElementById('pushSelfTestBtn')?.addEventListener('click',ccPushQueueTest_);
 
 if('serviceWorker' in navigator){

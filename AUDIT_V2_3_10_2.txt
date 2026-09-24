@@ -1,0 +1,14 @@
+PLAYER V2.3.10.2 — HIDDEN SELF TEST TRIPLE TAP
+
+Scope:
+- Replaces the iOS-unfriendly long-press QA unlock.
+- Adds a fixed, non-text status-dot hit target next to "Telefonos értesítések".
+- Three taps on that dot within the short gesture window reveal the existing self-test row.
+- QA reveal remains available only while the current device push state is active.
+- Existing self-test RPC, inbox logic, push sender, preferences, profile, RSVP and notification behavior are unchanged.
+- No SQL migration.
+
+iOS UX rationale:
+- No long press -> no Safari/iOS text-selection or touch-callout behavior.
+- The hit target is a button surface with touch-action: manipulation and user-select/touch-callout disabled.
+- The visible title/status text remains normal and does not move during the gesture.
