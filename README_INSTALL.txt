@@ -1,30 +1,34 @@
-CLUB CONTROL PLAYER V2.3.9.1
-============================
+CLUB CONTROL PLAYER V2.3.9.2
+ACCOUNT QUICK MENU + NOTIFICATION SHELL
 
-BASE: live Player HEAD 74c724c + működő V2.3.9.0 push.
+BASE:
+- Player V2.3.9.1 push + UI
+- live lineage: HEAD 74c724c / pipa2
 
-ÚJ:
-- alsó nav: dupla háromszög / dupla négyzet / dupla kör
-- kétlépcsős kijelentkezés
-  - Csak erről az eszközről
-  - Minden eszközről
-  - Mégse
-- global logout előtt minden Player push subscription deaktiválása
+SCOPE:
+- top-right avatar opens quick menu
+- menu order: Ertesitesek -> Beallitasok -> Profil
+- dark/theme quick button removed from header
+- theme remains in Settings > Megjelenes
+- Profile keeps its Settings entry
+- Profile gains an Ertesitesek entry
+- notification inbox empty-state shell added
+- unread badge shell added; hidden when count = 0
+- production "Teszt ertesites" button removed
+- push subscription/send receiver logic preserved
+- cache bust bumped to V2.3.9.2
 
-NEM VÁLTOZIK:
-- RSVP / availability
-- profil avatar
-- díjak / fizetések
-- statisztika
-- menetrend / naptár logika
-- push Edge Function
-- Supabase core táblák
+IMPORTANT:
+This build does NOT yet add player_notifications backend persistence.
+The notification center intentionally shows the real zero/empty state until the backend is added.
+No database migration is required for V2.3.9.2.
 
-TELEPÍTÉSI SORREND:
-1. 048_PLAYER_LOGOUT_ALL_PUSH_SAFE.sql
-2. verify: mindhárom TRUE
-3. teljes Player fájlcsere: index.html, app.js, styles.css, sw.js, config.js
-4. GitHub commit/push
-5. PWA bezár/újranyit
-6. push subscription teszt
-7. csak ezután logout teszt
+FULL REPLACEMENT FILES:
+- index.html
+- app.js
+- styles.css
+- sw.js
+- config.js
+
+DEPLOY:
+Replace the five files completely in the Player GitHub repository, then commit/push.

@@ -1485,12 +1485,68 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
   });
 }
 
+let ccUnreadNotificationCount=0;
+
+function renderNotificationShell_(count=ccUnreadNotificationCount){
+  const value=Math.max(0,Number(count)||0);
+  ccUnreadNotificationCount=value;
+  const compact=value>9?'9+':String(value);
+  const label=value===0?'Nincs új értesítés':`${value} új`;
+
+  const badge=document.getElementById('profileNotificationBadge');
+  if(badge){
+    badge.hidden=value===0;
+    badge.textContent=compact;
+    badge.setAttribute('aria-label',value===0?'Nincs új értesítés':`${value} új értesítés`);
+  }
+  const quickStatus=document.getElementById('quickNotificationsStatus');
+  if(quickStatus) quickStatus.textContent=label;
+  const quickCount=document.getElementById('quickNotificationsCount');
+  if(quickCount){ quickCount.hidden=value===0; quickCount.textContent=compact; }
+  const profileStatus=document.getElementById('profileNotificationsStatus');
+  if(profileStatus) profileStatus.textContent=label;
+  const profileCount=document.getElementById('profileNotificationsCount');
+  if(profileCount){ profileCount.hidden=value===0; profileCount.textContent=compact; }
+  const viewSummary=document.getElementById('notificationsViewSummary');
+  if(viewSummary) viewSummary.textContent=value===0?'Nincs új értesítés.':`${value} új értesítés.`;
+}
+
+function closeAccountQuickMenu_(){
+  const menu=document.getElementById('accountQuickMenu');
+  const btn=document.getElementById('accountMenuBtn');
+  if(menu) menu.hidden=true;
+  if(btn) btn.setAttribute('aria-expanded','false');
+}
+function toggleAccountQuickMenu_(){
+  const menu=document.getElementById('accountQuickMenu');
+  const btn=document.getElementById('accountMenuBtn');
+  if(!menu || !btn) return;
+  const opening=menu.hidden;
+  menu.hidden=!opening;
+  btn.setAttribute('aria-expanded',opening?'true':'false');
+}
+
+document.getElementById('accountMenuBtn')?.addEventListener('click',event=>{
+  event.stopPropagation();
+  toggleAccountQuickMenu_();
+});
+document.getElementById('accountQuickMenu')?.addEventListener('click',event=>event.stopPropagation());
+document.addEventListener('click',closeAccountQuickMenu_);
+document.addEventListener('keydown',event=>{ if(event.key==='Escape') closeAccountQuickMenu_(); });
+document.getElementById('quickNotificationsBtn')?.addEventListener('click',()=>switchView('notificationsView'));
+document.getElementById('quickSettingsBtn')?.addEventListener('click',()=>{ closeAccountQuickMenu_(); document.getElementById('openSettingsBtn')?.click(); });
+document.getElementById('quickProfileBtn')?.addEventListener('click',()=>switchView('profileView'));
+document.getElementById('openNotificationsBtn')?.addEventListener('click',()=>switchView('notificationsView'));
+renderNotificationShell_(0);
+
 function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
+  const navView=viewId==='notificationsView' ? 'profileView' : viewId;
 
+  closeAccountQuickMenu_();
   forcePlannerPageTop_();
 
-  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===navView));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
 
   if(viewId==='plannerView'){
@@ -1520,7 +1576,6 @@ document.querySelectorAll('[data-view-jump]').forEach(btn=>btn.addEventListener(
 window.addEventListener('resize',()=>requestAnimationFrame(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();}));
 window.addEventListener('orientationchange',()=>setTimeout(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();},80));
 
-const themeBtn=document.getElementById('themeBtn');
 function currentThemePreference_(){ return localStorage.getItem('cc-theme-mode') || localStorage.getItem('cc-theme') || 'system'; }
 function applyThemePreference_(pref=currentThemePreference_()){
   const isDark=pref==='dark' || (pref==='system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
@@ -1530,25 +1585,11 @@ function applyThemePreference_(pref=currentThemePreference_()){
 }
 applyThemePreference_();
 window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{ if(currentThemePreference_()==='system') applyThemePreference_('system'); });
-themeBtn.addEventListener('click',()=>{
-  const next=document.body.classList.contains('dark') ? 'light' : 'dark';
-  localStorage.setItem('cc-theme-mode',next);
-
-  // Keep the quick header theme button and the Settings state in sync.
-  // Without this, Settings could reopen with an older remote value and
-  // the Close button would appear to switch the app back to that theme.
-  if(currentPlayerSettings) currentPlayerSettings.theme=next;
-  applyThemePreference_(next);
-
-  // Persist the quick theme change as well when the player is available.
-  scheduleSettingsSave_();
-});
-
 renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=2390').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=2392').catch(()=>{}));
 }
 
 
@@ -1722,7 +1763,7 @@ function bindSliderDrag(){
 
 
 // ---------------------------------------------------------------------------
-// Player V2.3.9.0 – Web Push / PWA notification subscription.
+// Player V2.3.9.2 – Web Push / PWA notification subscription.
 // Permission is requested only after an explicit user button press.
 // ---------------------------------------------------------------------------
 let ccPushBusy=false;
@@ -1758,7 +1799,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=2390');
+    return await navigator.serviceWorker.register('./sw.js?v=2392');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -1774,9 +1815,8 @@ function ccPushSetStatus_(message,state='neutral'){
 async function ccPushSyncUi_(){
   const enable=document.getElementById('pushEnableBtn');
   const disable=document.getElementById('pushDisableBtn');
-  const test=document.getElementById('pushTestBtn');
-  if(!enable || !disable || !test) return;
-  enable.hidden=false; disable.hidden=true; test.hidden=true;
+  if(!enable || !disable) return;
+  enable.hidden=false; disable.hidden=true;
 
   if(!ccPushConfigured_()){
     enable.hidden=true; ccPushSetStatus_('Az értesítési szolgáltatás még nincs aktiválva.','off'); return;
@@ -1796,7 +1836,7 @@ async function ccPushSyncUi_(){
   try{
     const sub=await ccPushBrowserSubscription_();
     if(sub && Notification.permission==='granted'){
-      enable.hidden=true; disable.hidden=false; test.hidden=false;
+      enable.hidden=true; disable.hidden=false;
       ccPushSetStatus_('Aktív ezen az eszközön.','active');
       return;
     }
@@ -1908,7 +1948,6 @@ function ccPushOpenRequestedTarget_(){
 
 document.getElementById('pushEnableBtn')?.addEventListener('click',ccPushSubscribeCurrentDevice_);
 document.getElementById('pushDisableBtn')?.addEventListener('click',ccPushDisableCurrentDevice_);
-document.getElementById('pushTestBtn')?.addEventListener('click',ccPushQueueTest_);
 
 const settingsDialog=document.getElementById('settingsDialog');
 let currentPlayerSettings=null;

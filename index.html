@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=14.1-player-push-ui">
+  <link rel="stylesheet" href="./styles.css?v=14.2-account-menu">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -55,12 +55,29 @@
       <h1 class="team-heading"><span id="teamTitle">BEAC Női I.</span></h1>
       <div class="eyebrow player-season-label" id="teamSeason">2026/27</div>
     </div>
-    <div class="header-actions">
-      <button class="round-btn" id="themeBtn" aria-label="Téma">◐</button>
-      <button class="profile-btn" data-view-jump="profileView">
-        <span class="profile-dot" id="profileInitials">JT</span>
+    <div class="header-actions account-menu-anchor">
+      <button class="profile-btn" id="accountMenuBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="accountQuickMenu">
+        <span class="profile-avatar-wrap">
+          <span class="profile-dot" id="profileInitials">JT</span>
+          <span class="profile-notification-badge" id="profileNotificationBadge" hidden aria-label="0 új értesítés">0</span>
+        </span>
         <span class="profile-meta"><b id="profileName">Játékos Teszt</b><small id="profileMeta">Szélső ütő • #12</small></span>
       </button>
+      <div class="account-quick-menu" id="accountQuickMenu" role="menu" hidden>
+        <button class="account-quick-item" id="quickNotificationsBtn" type="button" role="menuitem">
+          <span class="account-quick-icon" aria-hidden="true">◌</span>
+          <span class="account-quick-copy"><b>Értesítések</b><small id="quickNotificationsStatus">Nincs új értesítés</small></span>
+          <span class="account-quick-count" id="quickNotificationsCount" hidden>0</span>
+        </button>
+        <button class="account-quick-item" id="quickSettingsBtn" type="button" role="menuitem">
+          <span class="account-quick-icon account-gear-icon" aria-hidden="true">⚙</span>
+          <span class="account-quick-copy"><b>Beállítások</b><small>Megjelenés, értesítések, menetrend</small></span>
+        </button>
+        <button class="account-quick-item" id="quickProfileBtn" type="button" role="menuitem">
+          <span class="account-quick-icon" aria-hidden="true">○</span>
+          <span class="account-quick-copy"><b>Profil</b><small>Személyes adatok és statisztikák</small></span>
+        </button>
+      </div>
     </div>
   </div>
 </header>
@@ -184,6 +201,23 @@
         <div class="planner-scroll-tail" aria-hidden="true"></div>
       </div>
     </section>
+<section id="notificationsView" class="view">
+      <div class="home-panel-head notification-view-head">
+        <div>
+          <h3>Értesítések</h3>
+          <p id="notificationsViewSummary">Nincs új értesítés.</p>
+        </div>
+      </div>
+      <div class="card notification-inbox-card">
+        <div class="notification-empty-state" id="notificationEmptyState">
+          <span class="notification-empty-icon" aria-hidden="true">✓</span>
+          <b>Minden rendben.</b>
+          <small>Nincs új értesítésed.</small>
+        </div>
+        <div id="notificationInboxList" class="notification-inbox-list" hidden></div>
+      </div>
+    </section>
+
 <section id="profileView" class="view">
       <div class="section-head">
         <div>
@@ -262,8 +296,16 @@
       </div>
 
       <div class="card">
+        <h4>Értesítések</h4>
+        <button class="settings-row profile-notifications-row" id="openNotificationsBtn" type="button">
+          <span><small class="settings-row-main" id="profileNotificationsStatus">Nincs új értesítés</small></span>
+          <span class="profile-notifications-count" id="profileNotificationsCount" hidden>0</span>
+        </button>
+      </div>
+
+      <div class="card">
         <h4>Beállítások</h4>
-        <button class="settings-row" id="openSettingsBtn">
+        <button class="settings-row" id="openSettingsBtn" type="button">
           <span><small class="settings-row-main">Értesítések, megjelenés, menetrend, fiók</small></span>
         </button>
       </div>
@@ -314,7 +356,6 @@
           </div>
           <div class="push-device-actions">
             <button class="ghost-btn push-device-btn" id="pushEnableBtn" type="button">Értesítések bekapcsolása</button>
-            <button class="ghost-btn push-device-btn" id="pushTestBtn" type="button" hidden>Teszt értesítés</button>
             <button class="ghost-btn push-device-btn danger-outline" id="pushDisableBtn" type="button" hidden>Kikapcsolás ezen az eszközön</button>
           </div>
         </div>
@@ -413,7 +454,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.1</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.2</b></div>
       </div>
     </div>
   </dialog>
@@ -456,7 +497,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=14.1-player-push-ui"></script>
-  <script src="./app.js?v=14.1-player-push-ui"></script>
+  <script src="./config.js?v=14.2-account-menu"></script>
+  <script src="./app.js?v=14.2-account-menu"></script>
 </body>
 </html>
