@@ -1,16 +1,16 @@
-PLAYER V2.3.9.5 — targeted UI fix only
-Base: V2.3.9.4 in-app notifications
+CLUB CONTROL PLAYER V2.3.9.6 — SHARED PANEL + SETTINGS POLISH
 
-Full replacement files:
+FULL REPLACEMENT FILES:
 - index.html
 - app.js
 - styles.css
 - sw.js
 - config.js
 
-No SQL required.
-Changes:
-- Read notification cards no longer become red-tinted after opening.
-- Mobile Notifications dialog is top-aligned with the Settings dialog visual rhythm.
-- PWA cache/service-worker version bumped.
-No push/backend/inbox data logic changed.
+Scope only:
+- Settings + Notifications share the same modal shell geometry.
+- Same mobile top position, width, padding rhythm and close-button coordinates.
+- Notifications can remain shorter; content grows downward naturally.
+- Settings direct controls use a consistent framed-row visual language.
+- Existing notification inbox, push, subscription, preferences, RSVP, profile and payment logic unchanged.
+- No SQL required.
