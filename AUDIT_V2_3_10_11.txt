@@ -1,0 +1,37 @@
+PLAYER V2.3.10.11 — QA / AUDIT
+
+Cél:
+A kézzel számolt pointer/touch swipe kiváltása böngésző-natív horizontal scrolling + CSS Scroll Snap működéssel.
+
+Architektúra:
+- notification row = valódi overflow-x scroll container
+- notification card = 100% széles első snap target
+- Eltüntetés action = fix/bounded szélességű második snap target
+- JS nem mozgatja a kártyát pointermove/touchmove közben
+- browser kezeli az érintést, momentumot és axis arbitrationt
+- JS csak scroll vége után archivál, ha a dismiss snap pozícióban állt meg
+- iOS 18 fallback: scroll-event debounce, mert a scrollend támogatás nem garantált
+
+Regression scope:
+- app.js: notification item DOM order + ccBindNotificationSwipes_ only
+- styles.css: legacy V2.3.10.8/10.9/10.10 swipe overrides removed; one canonical V2.3.10.11 block added
+- index.html: app/styles cache-bust only
+- sw.js: cache name only
+- config.js: byte-identical to V2.3.10.10
+- backend / Supabase / push / auth / RSVP / payments unchanged
+
+Static QA:
+- app.js syntax: PASS
+- sw.js syntax: PASS
+- config.js syntax: PASS
+- CSS parser: 0 errors
+- duplicate HTML IDs: 0
+- frontend secret scan: clean
+- no pointerdown/pointermove/pointerup/pointercancel gesture math in notification swipe
+- no setPointerCapture/releasePointerCapture/lostpointercapture
+- CSS scroll-snap-type: x mandatory present
+- fixed/bounded dismiss action width present
+- previous V2.3.10.8/10.9/10.10 swipe override blocks removed
+
+Runtime note:
+The container browser is blocked from localhost by environment policy, so no claim is made of a successful real iOS runtime test here. Final tactile QA must be done in the iPhone PWA.

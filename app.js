@@ -1578,7 +1578,6 @@ function ccNotificationTime_(value){
 function ccNotificationItemHtml_(item){
   const unread=!item.readAt;
   return `<div class="notification-swipe-row ${unread?'is-unread':'is-read'}" data-notification-id="${escapeHtml_(item.id)}">
-    <div class="notification-swipe-action" aria-hidden="true">Eltüntetés</div>
     <button type="button" class="notification-item-card" data-notification-open="${escapeHtml_(item.id)}">
       <span class="notification-item-dot" aria-hidden="true"></span>
       <span class="notification-item-content">
@@ -1587,6 +1586,7 @@ function ccNotificationItemHtml_(item){
         <span class="notification-item-meta">${escapeHtml_(ccNotificationTypeLabel_(item.type))}</span>
       </span>
     </button>
+    <div class="notification-swipe-action" aria-hidden="true">Eltüntetés</div>
   </div>`;
 }
 function renderNotificationInbox_(){
@@ -1692,217 +1692,101 @@ function ccBindNotificationSwipes_(){
     row.dataset.swipeBound='1';
 
     const card=row.querySelector('.notification-item-card');
-    const action=row.querySelector('.notification-swipe-action');
     const id=row.dataset.notificationId;
-    if(!card || !action || !id) return;
+    if(!card || !id) return;
 
-    // iOS-first swipe gesture:
-    // - no manual pointer capture (Safari can drop it mid-gesture)
-    // - very early, forgiving horizontal intent detection
-    // - full-size action layer stays underneath the card
-    // - direct transform updates only; no layout work during drag
-    const PREVIEW_X=2;
-    const LOCK_X=4;
-    const LOCK_Y=12;
-    const MIN_FLICK_DISTANCE=18;
-    const FLICK_VELOCITY=-0.30; // px/ms, leftward
-    const DISTANCE_RATIO=.20;
-    const MIN_DISTANCE=58;
-    const MAX_DISTANCE=82;
-    const SNAP_MS=125;
-    const EXIT_MS=150;
-
-    let pointerId=null;
-    let startX=0,startY=0,currentX=0;
-    let axis='';
-    let moved=false;
+    // Browser-native swipe for iOS/Android PWAs.
+    // The row itself is a horizontal scroller. Safari/Chrome own the drag,
+    // momentum and axis arbitration; JS never moves the card during touch.
+    // CSS Scroll Snap settles either at 0 (keep) or at maxScroll (dismiss).
     let dismissing=false;
-    let suppressClickUntil=0;
-    let lastSampleX=0,lastSampleAt=0,velocityX=0;
-    let gestureWidth=0;
+    let settleTimer=0;
+    let lastScrollAt=0;
+    let maxSeenScroll=0;
+    let touchActive=false;
 
-    const width_=()=>Math.max(1,gestureWidth || card.getBoundingClientRect().width || row.getBoundingClientRect().width);
-    const threshold_=()=>Math.min(MAX_DISTANCE,Math.max(MIN_DISTANCE,width_()*DISTANCE_RATIO));
-    const setX=x=>{
-      const limit=width_();
-      currentX=Math.max(-limit,Math.min(0,Number(x)||0));
-      row.style.setProperty('--cc-swipe-x',`${currentX}px`);
-    };
-    const hideAction=()=>{
-      row.classList.remove('swipe-engaged');
-      action.setAttribute('aria-hidden','true');
-    };
-    const showAction=()=>{
-      row.classList.add('swipe-engaged');
-      action.setAttribute('aria-hidden','true');
-    };
-    const resetTracking=()=>{
-      pointerId=null;
-      axis='';
-      row.classList.remove('swiping');
-    };
-    const haptic=()=>{
-      try{ navigator.vibrate?.(8); }catch(_){ }
-    };
-
-    const snapBack=()=>{
-      const hadHorizontal=axis==='x' || currentX<0;
-      resetTracking();
-      if(!hadHorizontal){
-        setX(0);
-        hideAction();
-        return;
-      }
-      row.classList.add('is-snapping');
-      row.style.setProperty('--cc-swipe-snap-ms',`${SNAP_MS}ms`);
-      setX(0);
-      const finish=()=>{
-        row.classList.remove('is-snapping');
-        hideAction();
-      };
-      let done=false;
-      const once=event=>{
-        if(done || event.target!==card || event.propertyName!=='transform') return;
-        done=true;
-        card.removeEventListener('transitionend',once);
-        finish();
-      };
-      card.addEventListener('transitionend',once);
-      window.setTimeout(()=>{
-        if(done) return;
-        done=true;
-        card.removeEventListener('transitionend',once);
-        finish();
-      },SNAP_MS+40);
-    };
+    const maxScroll_=()=>Math.max(0,row.scrollWidth-row.clientWidth);
+    const haptic=()=>{ try{ navigator.vibrate?.(8); }catch(_){ } };
 
     const commitDismiss=()=>{
-      hideAction();
+      if(dismissing) return;
+      dismissing=true;
+      clearTimeout(settleTimer);
+      row.classList.add('is-native-dismissing');
+      haptic();
+      // No red-tail animation: the list is re-rendered immediately once the
+      // browser has finished its native snap at the dismiss position.
       ccDismissNotification_(id);
     };
 
-    const animateDismiss=()=>{
-      if(dismissing) return;
-      dismissing=true;
-      suppressClickUntil=performance.now()+360;
-      resetTracking();
-      showAction();
-      haptic();
+    const settle=()=>{
+      if(dismissing || touchActive) return;
+      const max=maxScroll_();
+      if(max<=1) return;
+      const left=Math.max(0,row.scrollLeft);
 
-      row.classList.remove('is-snapping');
-      row.classList.add('is-dismissing');
-      row.style.setProperty('--cc-swipe-exit-ms',`${EXIT_MS}ms`);
-
-      requestAnimationFrame(()=>setX(-width_()));
-
-      let done=false;
-      const finish=()=>{
-        if(done) return;
-        done=true;
-        card.removeEventListener('transitionend',onEnd);
+      // With mandatory snapping the final resting positions are 0 or max.
+      // Use a small tolerance for sub-pixel / Safari rounding.
+      if(left>=max-6 || (left/max)>=0.88){
         commitDismiss();
-      };
-      const onEnd=event=>{
-        if(event.target===card && event.propertyName==='transform') finish();
-      };
-      card.addEventListener('transitionend',onEnd);
-      window.setTimeout(finish,EXIT_MS+45);
-    };
-
-    row.addEventListener('pointerdown',event=>{
-      if(dismissing || (event.pointerType==='mouse' && event.button!==0)) return;
-      pointerId=event.pointerId;
-      startX=event.clientX;
-      startY=event.clientY;
-      gestureWidth=Math.max(1,card.getBoundingClientRect().width || row.getBoundingClientRect().width);
-      currentX=0;
-      axis='';
-      moved=false;
-      velocityX=0;
-      lastSampleX=startX;
-      lastSampleAt=performance.now();
-      row.classList.remove('is-snapping');
-      setX(0);
-      hideAction();
-    },{passive:true});
-
-    row.addEventListener('pointermove',event=>{
-      if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
-
-      const dx=event.clientX-startX;
-      const dy=event.clientY-startY;
-      const ax=Math.abs(dx);
-      const ay=Math.abs(dy);
-
-      if(!axis){
-        // Show immediate physical response to a leftward finger movement.
-        // We still keep native vertical scrolling until horizontal intent wins.
-        if(dx<0 && ax>=PREVIEW_X && ax>=ay*.55){
-          showAction();
-          setX(dx);
-        }
-
-        // iPhone thumb movement is rarely perfectly horizontal, so lock early
-        // and tolerate a meaningful diagonal component.
-        if(dx<0 && ax>=LOCK_X && ax>=ay*.62){
-          axis='x';
-          row.classList.add('swiping');
-          showAction();
-        }else if(ay>=LOCK_Y && ay>ax*1.55){
-          // Clearly vertical: hand control back to native scrolling.
-          resetTracking();
-          setX(0);
-          hideAction();
-          return;
-        }else{
-          return;
-        }
+        return;
       }
 
-      if(axis!=='x') return;
-      if(event.cancelable) event.preventDefault();
-
-      const nextX=Math.min(0,dx);
-      moved=moved || Math.abs(nextX)>=LOCK_X;
-      setX(nextX);
-
-      const now=performance.now();
-      const dt=Math.max(1,now-lastSampleAt);
-      const sample=(event.clientX-lastSampleX)/dt;
-      velocityX=(velocityX*.45)+(sample*.55);
-      lastSampleX=event.clientX;
-      lastSampleAt=now;
-    },{passive:false});
-
-    const finishGesture=event=>{
-      if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
-      const horizontal=axis==='x';
-      const distance=currentX;
-      const shouldDismiss=horizontal && (
-        distance<=-threshold_() ||
-        (distance<=-MIN_FLICK_DISTANCE && velocityX<=FLICK_VELOCITY)
-      );
-
-      suppressClickUntil=moved?performance.now()+260:0;
-      if(shouldDismiss) animateDismiss();
-      else snapBack();
+      // If Safari ended between snap points for any reason, leave the row to
+      // the browser's snap engine. Never force a JS transform/scroll animation.
+      maxSeenScroll=left<=2?0:maxSeenScroll;
     };
 
-    row.addEventListener('pointerup',finishGesture,{passive:true});
-    row.addEventListener('pointercancel',event=>{
-      if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
-      // A real browser cancellation should not leave a half-open card.
-      snapBack();
+    const scheduleSettle=()=>{
+      clearTimeout(settleTimer);
+      // iOS 18 has no reliable Element.scrollend. Scroll events continue
+      // through momentum/snap, so this fires only after they stop.
+      settleTimer=window.setTimeout(settle,110);
+    };
+
+    row.addEventListener('touchstart',()=>{
+      touchActive=true;
+      clearTimeout(settleTimer);
     },{passive:true});
 
+    row.addEventListener('scroll',()=>{
+      if(dismissing) return;
+      lastScrollAt=performance.now();
+      maxSeenScroll=Math.max(maxSeenScroll,Math.max(0,row.scrollLeft));
+      scheduleSettle();
+    },{passive:true});
+
+    // Newer browsers can finish without the debounce; iOS 18 uses fallback.
+    if('onscrollend' in row){
+      row.addEventListener('scrollend',()=>{
+        clearTimeout(settleTimer);
+        settle();
+      },{passive:true});
+    }
+
     card.addEventListener('click',event=>{
-      if(dismissing || moved || performance.now()<suppressClickUntil){
+      const recentlyScrolled=(performance.now()-lastScrollAt)<260;
+      if(dismissing || row.scrollLeft>2 || maxSeenScroll>3 || recentlyScrolled){
         event.preventDefault();
-        moved=false;
+        // Once native snap has fully returned to rest, allow the next real tap.
+        if(row.scrollLeft<=2 && !recentlyScrolled) maxSeenScroll=0;
         return;
       }
       ccOpenNotification_(id);
     });
+
+    // Reset the gesture memory after the browser has snapped back to rest.
+    row.addEventListener('touchend',()=>{
+      touchActive=false;
+      scheduleSettle();
+      window.setTimeout(()=>{
+        if(!dismissing && row.scrollLeft<=2) maxSeenScroll=0;
+      },220);
+    },{passive:true});
+    row.addEventListener('touchcancel',()=>{
+      touchActive=false;
+      scheduleSettle();
+    },{passive:true});
   });
 }
 

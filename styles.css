@@ -6580,169 +6580,99 @@ body.dark .chip.yes[class*="position-"]{
   border-color:rgba(var(--position-rgb),.28) !important;
 }
 
-
 /* ==========================================================
-   PLAYER V2.3.10.8 — NATIVE-FEEL NOTIFICATION SWIPE
-   - pointer-event gesture path for iOS/Android/Desktop touch
-   - 1:1 finger tracking with velocity-aware flick dismissal
-   - 115ms snap-back / 145ms exit+collapse
-   - red action opacity follows swipe progress and never gets a red-only tail
+   PLAYER V2.3.10.11 — BROWSER-NATIVE NOTIFICATION SWIPE
+   - no pointer/touch drag math in JavaScript
+   - Safari/Chrome native horizontal scroll + momentum
+   - CSS Scroll Snap settles closed or at the dismiss action
+   - fixed action width means the red surface can never "run out"
    ========================================================== */
 .notification-swipe-row{
-  --cc-swipe-x:0px;
-  --cc-swipe-progress:0;
-  --cc-swipe-snap-ms:115ms;
-  --cc-swipe-exit-ms:145ms;
-  touch-action:pan-y pinch-zoom !important;
-  overscroll-behavior-x:contain;
-  -webkit-user-select:none;
-  user-select:none;
-  contain:layout paint style;
-  background:transparent !important;
-}
-.notification-item-card{
-  transform:translate3d(var(--cc-swipe-x),0,0) !important;
-  transition:transform var(--cc-swipe-snap-ms) cubic-bezier(.2,.8,.2,1),background .12s ease !important;
-  will-change:transform;
-}
-.notification-swipe-row.swiping .notification-item-card{
-  transition:none !important;
-}
-.notification-swipe-action{
-  opacity:var(--cc-swipe-progress) !important;
-  transform:translate3d(0,0,0);
-  transition:none !important;
-  will-change:opacity,transform;
-}
-.notification-swipe-row.is-snapping .notification-item-card{
-  transition:transform var(--cc-swipe-snap-ms) cubic-bezier(.2,.8,.2,1) !important;
-}
-.notification-swipe-row.is-dismissing{
-  overflow:hidden !important;
-  transition:height var(--cc-swipe-exit-ms) cubic-bezier(.2,.8,.2,1) !important;
-}
-.notification-swipe-row.is-dismissing .notification-item-card{
-  pointer-events:none;
-  transition:transform var(--cc-swipe-exit-ms) cubic-bezier(.16,.84,.24,1) !important;
-}
-.notification-swipe-row.is-dismissing .notification-swipe-action{
-  opacity:1 !important;
-  transition:none !important;
-}
-@media (prefers-reduced-motion:reduce){
-  .notification-item-card,
-  .notification-swipe-row.is-dismissing{
-    transition-duration:.01ms !important;
-  }
-}
-
-
-/* ==========================================================
-   PLAYER V2.3.10.9 — TRAVEL-COMPANION STYLE NOTIFICATION SWIPE
-   - full-size rounded action layer under the entire card
-   - action is revealed by card movement, never by a finite red strip
-   - delayed horizontal intent lock for forgiving iPhone pickup
-   - no row-height collapse animation; re-render happens at card exit end
-   ========================================================== */
-.notification-swipe-row{
-  --cc-swipe-x:0px;
-  --cc-swipe-snap-ms:155ms;
-  --cc-swipe-exit-ms:165ms;
+  --cc-swipe-action-width:clamp(128px,38%,156px);
   position:relative !important;
-  overflow:hidden !important;
+  display:flex !important;
+  align-items:stretch !important;
+  width:100% !important;
+  max-width:100% !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
   border-radius:12px !important;
   background:transparent !important;
-  touch-action:pan-y pinch-zoom !important;
+  scroll-snap-type:x mandatory !important;
+  scroll-padding:0 !important;
   overscroll-behavior-x:contain;
-  -webkit-user-select:none;
-  user-select:none;
+  touch-action:auto !important;
+  -webkit-overflow-scrolling:touch;
+  -webkit-user-select:none !important;
+  user-select:none !important;
+  -webkit-touch-callout:none !important;
+  scrollbar-width:none;
   contain:paint;
   isolation:isolate;
 }
+.notification-swipe-row::-webkit-scrollbar{
+  display:none;
+  width:0;
+  height:0;
+}
+.notification-item-card{
+  order:0;
+  flex:0 0 100% !important;
+  width:100% !important;
+  min-width:100% !important;
+  max-width:100% !important;
+  scroll-snap-align:start !important;
+  scroll-snap-stop:always;
+  position:relative !important;
+  z-index:1 !important;
+  transform:none !important;
+  transition:background .12s ease !important;
+  will-change:auto !important;
+  box-sizing:border-box !important;
+}
 .notification-swipe-action{
-  position:absolute !important;
-  inset:0 !important;
-  width:auto !important;
+  order:1;
+  position:relative !important;
+  inset:auto !important;
+  flex:0 0 var(--cc-swipe-action-width) !important;
+  width:var(--cc-swipe-action-width) !important;
+  min-width:var(--cc-swipe-action-width) !important;
   height:auto !important;
+  align-self:stretch !important;
   display:flex !important;
   align-items:center !important;
-  justify-content:flex-end !important;
-  padding:0 18px !important;
+  justify-content:center !important;
+  padding:0 14px !important;
   box-sizing:border-box !important;
-  border-radius:inherit !important;
+  scroll-snap-align:end !important;
+  scroll-snap-stop:always;
+  border:0 !important;
+  border-radius:0 12px 12px 0 !important;
   background:#b3261e !important;
   color:#fff !important;
-  opacity:0 !important;
-  visibility:hidden !important;
+  opacity:1 !important;
+  visibility:visible !important;
   pointer-events:none !important;
   transform:none !important;
   transition:none !important;
-  z-index:0 !important;
-}
-.notification-swipe-row.swipe-engaged .notification-swipe-action{
-  opacity:1 !important;
-  visibility:visible !important;
-}
-.notification-item-card{
-  position:relative !important;
-  z-index:1 !important;
-  transform:translate3d(var(--cc-swipe-x),0,0) !important;
-  transition:transform var(--cc-swipe-snap-ms) cubic-bezier(.22,.82,.22,1),background .12s ease !important;
-  will-change:transform;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
-}
-.notification-swipe-row.swiping .notification-item-card{
-  transition:none !important;
-}
-.notification-swipe-row.is-snapping .notification-item-card{
-  transition:transform var(--cc-swipe-snap-ms) cubic-bezier(.22,.82,.22,1) !important;
-}
-.notification-swipe-row.is-dismissing{
-  height:auto !important;
-  min-height:0 !important;
-  margin-top:0;
-  margin-bottom:0;
-  transition:none !important;
-}
-.notification-swipe-row.is-dismissing .notification-item-card{
-  pointer-events:none !important;
-  transition:transform var(--cc-swipe-exit-ms) cubic-bezier(.18,.78,.22,1) !important;
-}
-.notification-swipe-row.is-dismissing .notification-swipe-action{
-  opacity:1 !important;
-  visibility:visible !important;
+  font-size:11px !important;
+  font-weight:900 !important;
+  letter-spacing:.01em !important;
+  white-space:nowrap;
 }
 .dark .notification-swipe-action{
   background:#8f2d27 !important;
 }
-@media (prefers-reduced-motion:reduce){
-  .notification-item-card{
-    transition-duration:.01ms !important;
-  }
+.notification-swipe-row.is-native-dismissing{
+  pointer-events:none !important;
 }
-
-/* ==========================================================
-   PLAYER V2.3.10.10 — iOS SWIPE GRAB FIX
-   - no manual pointer capture / lostpointercapture snap-back
-   - 2px visual pickup, 4px forgiving horizontal lock
-   - full-size action layer remains behind card
-   - transform-only drag path
-   ========================================================== */
-.notification-swipe-row{
-  --cc-swipe-snap-ms:125ms;
-  --cc-swipe-exit-ms:150ms;
-  touch-action:pan-y !important;
-  -webkit-user-select:none !important;
-  user-select:none !important;
-  -webkit-touch-callout:none !important;
+/* Legacy JS swipe classes are neutralized deliberately. */
+.notification-swipe-row.swiping .notification-item-card,
+.notification-swipe-row.is-snapping .notification-item-card,
+.notification-swipe-row.is-dismissing .notification-item-card{
+  transform:none !important;
+  transition:background .12s ease !important;
 }
-.notification-swipe-row.swiping .notification-item-card{
-  transition:none !important;
-}
-.notification-swipe-action{
-  inset:0 !important;
-  width:auto !important;
-  min-width:100% !important;
-  height:100% !important;
+@media(prefers-reduced-motion:reduce){
+  .notification-swipe-row{scroll-behavior:auto !important;}
 }
