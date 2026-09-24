@@ -1,0 +1,20 @@
+PLAYER V2.3.10.5 AUDIT
+
+Scope only:
+- Compact notification empty state to one notification-row height.
+- Notification summary exposed on Profile notification row and avatar quick menu.
+- Quick-menu Notification / Settings / Profile icons replaced with unified monochrome inline SVGs.
+- Asset/cache version bump.
+
+Checks:
+- app.js syntax: PASS
+- sw.js syntax: PASS
+- config.js syntax: PASS
+- CSS parse errors: 0
+- duplicate HTML IDs: 0
+- config.js unchanged from V2.3.10.4: PASS
+- no emoji gear / legacy text quick-menu icons: PASS
+- 3 inline quick-menu SVG icons present: PASS
+- empty state measured at 72px in 414px mobile render harness: PASS
+- summary cases checked: 0/0, all-new, mixed new/previous, all-previous: PASS
+- push/backend/RSVP logic not changed by this patch.

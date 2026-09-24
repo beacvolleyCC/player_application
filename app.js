@@ -1494,7 +1494,11 @@ function renderNotificationShell_(count=ccUnreadNotificationCount){
   const value=Math.max(0,Number(count)||0);
   ccUnreadNotificationCount=value;
   const compact=value>9?'9+':String(value);
-  const label=value===0?'Nincs új értesítés':`${value} új`;
+  const visibleCount=Array.isArray(ccPlayerNotifications)?ccPlayerNotifications.length:0;
+  const previousCount=Math.max(0,visibleCount-value);
+  const shortSummary=value>0
+    ? (previousCount>0 ? `${value} új · ${previousCount} korábbi` : `${value} új`)
+    : (previousCount>0 ? `Nincs új · ${previousCount} korábbi` : 'Nincs új');
 
   const badge=document.getElementById('profileNotificationBadge');
   if(badge){
@@ -1503,11 +1507,11 @@ function renderNotificationShell_(count=ccUnreadNotificationCount){
     badge.setAttribute('aria-label',value===0?'Nincs új értesítés':`${value} új értesítés`);
   }
   const quickStatus=document.getElementById('quickNotificationsStatus');
-  if(quickStatus) quickStatus.textContent=label;
+  if(quickStatus) quickStatus.textContent=shortSummary;
   const quickCount=document.getElementById('quickNotificationsCount');
   if(quickCount){ quickCount.hidden=value===0; quickCount.textContent=compact; }
   const profileStatus=document.getElementById('profileNotificationsStatus');
-  if(profileStatus) profileStatus.textContent=label;
+  if(profileStatus) profileStatus.textContent=shortSummary;
   const profileCount=document.getElementById('profileNotificationsCount');
   if(profileCount){ profileCount.hidden=value===0; profileCount.textContent=compact; }
   const dialogSummary=document.getElementById('notificationsDialogSummary');
@@ -1517,8 +1521,6 @@ function renderNotificationShell_(count=ccUnreadNotificationCount){
     }else if(ccNotificationsLoading){
       dialogSummary.textContent='Értesítések betöltése…';
     }else{
-      const visibleCount=Array.isArray(ccPlayerNotifications)?ccPlayerNotifications.length:0;
-      const previousCount=Math.max(0,visibleCount-value);
       const newPart=value===1?'1 új értesítés':`${value} új értesítés`;
       const previousPart=previousCount===1?'1 korábbi':`${previousCount} korábbi`;
       if(value>0 && previousCount>0) dialogSummary.textContent=`${newPart} · ${previousPart}`;

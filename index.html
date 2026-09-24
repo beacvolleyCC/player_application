@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=15.4-notification-inbox-polish">
+  <link rel="stylesheet" href="./styles.css?v=15.5-notification-menu-icons">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -65,16 +65,29 @@
       </button>
       <div class="account-quick-menu" id="accountQuickMenu" role="menu" hidden>
         <button class="account-quick-item" id="quickNotificationsBtn" type="button" role="menuitem">
-          <span class="account-quick-icon" aria-hidden="true">◌</span>
+          <span class="account-quick-icon" aria-hidden="true">
+            <svg class="account-quick-svg" viewBox="0 0 24 24" focusable="false">
+              <circle class="account-icon-notification-ring" cx="12" cy="12" r="8.2"></circle>
+            </svg>
+          </span>
           <span class="account-quick-copy"><b>Értesítések</b><small id="quickNotificationsStatus">Nincs új értesítés</small></span>
           <span class="account-quick-count" id="quickNotificationsCount" hidden>0</span>
         </button>
         <button class="account-quick-item" id="quickSettingsBtn" type="button" role="menuitem">
-          <span class="account-quick-icon account-gear-icon" aria-hidden="true">⚙</span>
+          <span class="account-quick-icon" aria-hidden="true">
+            <svg class="account-quick-svg account-settings-svg" viewBox="0 0 24 24" focusable="false">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.73v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.73l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </span>
           <span class="account-quick-copy"><b>Beállítások</b><small>Megjelenés, értesítések, menetrend</small></span>
         </button>
         <button class="account-quick-item" id="quickProfileBtn" type="button" role="menuitem">
-          <span class="account-quick-icon" aria-hidden="true">○</span>
+          <span class="account-quick-icon" aria-hidden="true">
+            <svg class="account-quick-svg account-profile-svg" viewBox="0 0 24 24" focusable="false">
+              <circle cx="12" cy="12" r="7.8"></circle>
+            </svg>
+          </span>
           <span class="account-quick-copy"><b>Profil</b><small>Személyes adatok és statisztikák</small></span>
         </button>
       </div>
@@ -515,7 +528,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=15.4-notification-inbox-polish"></script>
-  <script src="./app.js?v=15.4-notification-inbox-polish"></script>
+  <script src="./config.js?v=15.5-notification-menu-icons"></script>
+  <script src="./app.js?v=15.5-notification-menu-icons"></script>
 </body>
 </html>

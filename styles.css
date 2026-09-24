@@ -6394,3 +6394,104 @@ body.dark .account-quick-menu{box-shadow:0 18px 46px rgba(0,0,0,.42);}
     transition-duration:.01ms !important;
   }
 }
+
+/* ==========================================================
+   PLAYER V2.3.10.5 — COMPACT EMPTY + QUICK MENU ICON SYSTEM
+   UI-only refinement:
+   - empty inbox occupies about one notification row
+   - quick/profile surfaces show new + previous counts
+   - quick menu icons share one monochrome geometric SVG language
+   ========================================================== */
+.account-quick-icon{
+  width:32px;
+  height:32px;
+  border:1px solid var(--line);
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  color:var(--black);
+  font-size:0;
+  line-height:0;
+}
+.account-quick-svg{
+  width:23px;
+  height:23px;
+  display:block;
+  overflow:visible;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.55;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+}
+.account-icon-notification-ring{
+  stroke-dasharray:1.25 2.35;
+  stroke-width:1.85;
+}
+.account-settings-svg{
+  width:21px;
+  height:21px;
+  stroke-width:1.35;
+}
+.account-profile-svg{
+  width:22px;
+  height:22px;
+  stroke-width:1.55;
+}
+.account-quick-item{
+  grid-template-columns:36px minmax(0,1fr) auto;
+  gap:10px;
+}
+.account-quick-copy small{
+  max-width:210px;
+}
+
+/* Keep the empty state the same visual rhythm/height as one notification. */
+#notificationsDialog .notification-inbox-card:has(.notification-empty-state:not([hidden])){
+  min-height:0 !important;
+  padding:5px !important;
+}
+#notificationsDialog .notification-empty-state:not([hidden]){
+  min-height:72px !important;
+  display:grid !important;
+  grid-template-columns:34px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  column-gap:10px;
+  row-gap:2px;
+  align-content:center;
+  align-items:center;
+  justify-items:start;
+  padding:9px 10px;
+  box-sizing:border-box;
+  text-align:left;
+}
+#notificationsDialog .notification-empty-icon{
+  grid-column:1;
+  grid-row:1 / span 2;
+  width:30px;
+  height:30px;
+  margin:0;
+  font-size:14px;
+}
+#notificationsDialog .notification-empty-state b{
+  grid-column:2;
+  grid-row:1;
+  margin:0;
+  font-size:13px;
+  line-height:1.25;
+}
+#notificationsDialog .notification-empty-state small{
+  grid-column:2;
+  grid-row:2;
+  margin:0;
+  font-size:10px;
+  line-height:1.3;
+}
+
+@media(max-width:520px){
+  .account-quick-icon{width:32px;height:32px;}
+  #notificationsDialog .notification-inbox-card:has(.notification-empty-state:not([hidden])){
+    padding:5px !important;
+  }
+}
