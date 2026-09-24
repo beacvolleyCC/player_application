@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-9-3-notification-panel';
+const CACHE='club-control-player-v2-3-9-4-inapp-notifications';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -72,7 +72,12 @@ self.addEventListener('push', event => {
     data:{...(payload.data||{}),url:payload.url||payload.data?.url||'./'},
     timestamp:Date.now()
   };
-  event.waitUntil(self.registration.showNotification(payload.title||'Club Control',options));
+  event.waitUntil(Promise.all([
+    self.registration.showNotification(payload.title||'Club Control',options),
+    clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>Promise.all(list.map(client=>{
+      try{ client.postMessage({type:'CC_PUSH_RECEIVED'}); }catch(_){ }
+    })))
+  ]));
 });
 
 self.addEventListener('notificationclick', event => {

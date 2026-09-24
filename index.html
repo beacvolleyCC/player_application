@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=14.3-notification-panel">
+  <link rel="stylesheet" href="./styles.css?v=14.4-inapp-notifications">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -336,7 +336,7 @@
           <b>Minden rendben.</b>
           <small>Nincs új értesítésed.</small>
         </div>
-        <div id="notificationInboxList" class="notification-inbox-list" hidden></div>
+        <div id="notificationInboxList" class="notification-inbox-list" hidden aria-live="polite"></div>
       </div>
     </div>
   </dialog>
@@ -464,7 +464,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.3</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.4</b></div>
       </div>
     </div>
   </dialog>
@@ -507,7 +507,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=14.3-notification-panel"></script>
-  <script src="./app.js?v=14.3-notification-panel"></script>
+  <script src="./config.js?v=14.4-inapp-notifications"></script>
+  <script src="./app.js?v=14.4-inapp-notifications"></script>
 </body>
 </html>

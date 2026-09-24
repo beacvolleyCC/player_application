@@ -1486,6 +1486,9 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
 }
 
 let ccUnreadNotificationCount=0;
+let ccPlayerNotifications=[];
+let ccNotificationsLoading=false;
+let ccNotificationsBackendReady=true;
 
 function renderNotificationShell_(count=ccUnreadNotificationCount){
   const value=Math.max(0,Number(count)||0);
@@ -1508,7 +1511,155 @@ function renderNotificationShell_(count=ccUnreadNotificationCount){
   const profileCount=document.getElementById('profileNotificationsCount');
   if(profileCount){ profileCount.hidden=value===0; profileCount.textContent=compact; }
   const dialogSummary=document.getElementById('notificationsDialogSummary');
-  if(dialogSummary) dialogSummary.textContent=value===0?'Nincs új értesítés.':`${value} új értesítés.`;
+  if(dialogSummary){
+    if(!ccNotificationsBackendReady) dialogSummary.textContent='Az értesítési központ jelenleg nem érhető el.';
+    else if(ccNotificationsLoading) dialogSummary.textContent='Értesítések betöltése…';
+    else dialogSummary.textContent=value===0?'Nincs új értesítés.':`${value} új értesítés.`;
+  }
+}
+
+function ccNotificationTypeLabel_(type){
+  const map={
+    new_training:'Új edzés',training_change:'Edzés változás',weekly_response_reminder:'Visszajelzés',
+    same_day_response_reminder:'Mai edzés',new_match:'Új meccs',match_change:'Meccs változás',
+    payment:'Fizetés',test:'Teszt'
+  };
+  return map[String(type||'')]||'Értesítés';
+}
+function ccNotificationTime_(value){
+  const d=new Date(value||'');
+  if(Number.isNaN(d.getTime())) return '';
+  try{
+    return new Intl.DateTimeFormat('hu-HU',{
+      timeZone:'Europe/Budapest',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'
+    }).format(d).replace(',',' ·');
+  }catch(_){ return ''; }
+}
+function ccNotificationItemHtml_(item){
+  const unread=!item.readAt;
+  return `<div class="notification-swipe-row ${unread?'is-unread':'is-read'}" data-notification-id="${escapeHtml_(item.id)}">
+    <div class="notification-swipe-action" aria-hidden="true">Eltüntetés</div>
+    <button type="button" class="notification-item-card" data-notification-open="${escapeHtml_(item.id)}">
+      <span class="notification-item-dot" aria-hidden="true"></span>
+      <span class="notification-item-content">
+        <span class="notification-item-top"><b>${escapeHtml_(item.title||'Értesítés')}</b><small>${escapeHtml_(ccNotificationTime_(item.createdAt))}</small></span>
+        ${item.body?`<span class="notification-item-body">${escapeHtml_(item.body)}</span>`:''}
+        <span class="notification-item-meta">${escapeHtml_(ccNotificationTypeLabel_(item.type))}</span>
+      </span>
+    </button>
+  </div>`;
+}
+function renderNotificationInbox_(){
+  const list=document.getElementById('notificationInboxList');
+  const empty=document.getElementById('notificationEmptyState');
+  if(!list || !empty) return;
+  if(ccNotificationsLoading){
+    empty.hidden=false; list.hidden=true;
+    empty.innerHTML='<span class="notification-empty-icon" aria-hidden="true">…</span><b>Betöltés…</b><small>Értesítések frissítése.</small>';
+    return;
+  }
+  if(!ccNotificationsBackendReady){
+    empty.hidden=false; list.hidden=true;
+    empty.innerHTML='<span class="notification-empty-icon" aria-hidden="true">!</span><b>Nem érhető el.</b><small>Az értesítési központ backendje még nem válaszol.</small>';
+    return;
+  }
+  if(!ccPlayerNotifications.length){
+    empty.hidden=false; list.hidden=true;
+    empty.innerHTML='<span class="notification-empty-icon" aria-hidden="true">✓</span><b>Minden rendben.</b><small>Nincs megjelenítendő értesítésed.</small>';
+    return;
+  }
+  empty.hidden=true; list.hidden=false;
+  list.innerHTML=ccPlayerNotifications.map(ccNotificationItemHtml_).join('');
+  ccBindNotificationSwipes_();
+}
+async function ccLoadNotifications_(options={}){
+  if(!SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession){
+    ccNotificationsBackendReady=false; ccPlayerNotifications=[]; renderNotificationShell_(0); renderNotificationInbox_(); return;
+  }
+  if(ccNotificationsLoading && !options.force) return;
+  ccNotificationsLoading=true; renderNotificationShell_(ccUnreadNotificationCount); renderNotificationInbox_();
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_notifications_v1',{p_limit:50,p_include_dismissed:false});
+    if(error) throw error;
+    const payload=typeof data==='string'?JSON.parse(data):(data||{});
+    ccNotificationsBackendReady=true;
+    ccPlayerNotifications=Array.isArray(payload.items)?payload.items:[];
+    ccUnreadNotificationCount=Math.max(0,Number(payload.unreadCount)||0);
+  }catch(error){
+    console.warn('Értesítési központ nem érhető el:',error);
+    ccNotificationsBackendReady=false;
+    ccPlayerNotifications=[];
+    ccUnreadNotificationCount=0;
+  }finally{
+    ccNotificationsLoading=false; renderNotificationShell_(ccUnreadNotificationCount); renderNotificationInbox_();
+  }
+}
+async function ccMarkNotificationRead_(id){
+  if(!id || !SUPABASE_ENABLED || !ccSupabase) return;
+  const item=ccPlayerNotifications.find(x=>String(x.id)===String(id));
+  if(item && !item.readAt){
+    item.readAt=new Date().toISOString();
+    ccUnreadNotificationCount=Math.max(0,ccUnreadNotificationCount-1);
+    renderNotificationShell_(ccUnreadNotificationCount); renderNotificationInbox_();
+  }
+  try{
+    const {error}=await ccSupabase.rpc('cc_player_notification_read_v1',{p_notification_id:id});
+    if(error) throw error;
+  }catch(error){ console.warn('Értesítés olvasott állapota nem menthető:',error); await ccLoadNotifications_({force:true}); }
+}
+async function ccDismissNotification_(id){
+  if(!id || !SUPABASE_ENABLED || !ccSupabase) return;
+  const item=ccPlayerNotifications.find(x=>String(x.id)===String(id));
+  if(item && !item.readAt) ccUnreadNotificationCount=Math.max(0,ccUnreadNotificationCount-1);
+  ccPlayerNotifications=ccPlayerNotifications.filter(x=>String(x.id)!==String(id));
+  renderNotificationShell_(ccUnreadNotificationCount); renderNotificationInbox_();
+  try{
+    const {error}=await ccSupabase.rpc('cc_player_notification_dismiss_v1',{p_notification_id:id});
+    if(error) throw error;
+  }catch(error){ console.warn('Értesítés archiválása nem sikerült:',error); await ccLoadNotifications_({force:true}); }
+}
+async function ccOpenNotification_(id){
+  const item=ccPlayerNotifications.find(x=>String(x.id)===String(id));
+  if(!item) return;
+  await ccMarkNotificationRead_(id);
+  const raw=String(item.url||'./');
+  let target;
+  try{ target=new URL(raw,location.href); }catch(_){ target=null; }
+  if(!target || target.searchParams.has('ccNotifications')) return;
+  notificationsDialog?.close();
+  const eventId=target.searchParams.get('ccEvent') || item.eventId || item.data?.eventId;
+  const view=target.searchParams.get('ccView');
+  if(view==='profile') switchView('profileView');
+  else if(view==='schedule') switchView('plannerView');
+  if(eventId && events.some(e=>String(e.id)===String(eventId))) window.setTimeout(()=>openEventDialog(String(eventId)),100);
+}
+function ccBindNotificationSwipes_(){
+  document.querySelectorAll('.notification-swipe-row').forEach(row=>{
+    if(row.dataset.swipeBound==='1') return;
+    row.dataset.swipeBound='1';
+    const card=row.querySelector('.notification-item-card');
+    const id=row.dataset.notificationId;
+    let startX=0,startY=0,dx=0,tracking=false,moved=false;
+    const reset=()=>{ if(card) card.style.transform=''; row.classList.remove('swiping'); };
+    row.addEventListener('touchstart',event=>{
+      const t=event.touches?.[0]; if(!t) return;
+      startX=t.clientX; startY=t.clientY; dx=0; tracking=true; moved=false; row.classList.add('swiping');
+    },{passive:true});
+    row.addEventListener('touchmove',event=>{
+      if(!tracking || !card) return;
+      const t=event.touches?.[0]; if(!t) return;
+      const dy=t.clientY-startY; dx=t.clientX-startX;
+      if(Math.abs(dy)>Math.abs(dx)+8){ tracking=false; reset(); return; }
+      if(dx<0){ moved=Math.abs(dx)>8; card.style.transform=`translateX(${Math.max(-112,dx)}px)`; }
+    },{passive:true});
+    row.addEventListener('touchend',()=>{
+      if(!tracking){ reset(); return; }
+      tracking=false;
+      if(dx<-72){ if(card) card.style.transform='translateX(-100%)'; window.setTimeout(()=>ccDismissNotification_(id),100); }
+      else reset();
+    },{passive:true});
+    card?.addEventListener('click',event=>{ if(moved){ event.preventDefault(); moved=false; return; } ccOpenNotification_(id); });
+  });
 }
 
 function closeAccountQuickMenu_(){
@@ -1534,10 +1685,10 @@ document.getElementById('accountQuickMenu')?.addEventListener('click',event=>eve
 document.addEventListener('click',closeAccountQuickMenu_);
 document.addEventListener('keydown',event=>{ if(event.key==='Escape') closeAccountQuickMenu_(); });
 const notificationsDialog=document.getElementById('notificationsDialog');
-function openNotificationsDialog_(){
+async function openNotificationsDialog_(){
   closeAccountQuickMenu_();
-  renderNotificationShell_(ccUnreadNotificationCount);
   if(notificationsDialog && !notificationsDialog.open) notificationsDialog.showModal();
+  await ccLoadNotifications_({force:true});
 }
 document.getElementById('quickNotificationsBtn')?.addEventListener('click',openNotificationsDialog_);
 document.getElementById('quickSettingsBtn')?.addEventListener('click',()=>{ closeAccountQuickMenu_(); document.getElementById('openSettingsBtn')?.click(); });
@@ -1943,11 +2094,13 @@ function ccPushOpenRequestedTarget_(){
     const url=new URL(location.href);
     const eventId=url.searchParams.get('ccEvent');
     const view=url.searchParams.get('ccView');
+    const openNotifications=url.searchParams.has('ccNotifications');
     if(view==='profile') document.querySelector('[data-view="profileView"]')?.click();
     else if(view==='schedule') document.querySelector('[data-view="plannerView"]')?.click();
     if(eventId && events.some(e=>String(e.id)===String(eventId))) window.setTimeout(()=>openEventDialog(eventId),120);
-    if(eventId || view || url.searchParams.has('ccPush')){
-      url.searchParams.delete('ccEvent'); url.searchParams.delete('ccView'); url.searchParams.delete('ccPush');
+    if(openNotifications) window.setTimeout(()=>openNotificationsDialog_(),120);
+    if(eventId || view || openNotifications || url.searchParams.has('ccPush')){
+      url.searchParams.delete('ccEvent'); url.searchParams.delete('ccView'); url.searchParams.delete('ccPush'); url.searchParams.delete('ccNotifications');
       history.replaceState({},'',url.pathname+url.search+url.hash);
     }
   }catch(_){ }
@@ -1955,6 +2108,16 @@ function ccPushOpenRequestedTarget_(){
 
 document.getElementById('pushEnableBtn')?.addEventListener('click',ccPushSubscribeCurrentDevice_);
 document.getElementById('pushDisableBtn')?.addEventListener('click',ccPushDisableCurrentDevice_);
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message',event=>{
+    if(event.data?.type==='CC_PUSH_RECEIVED') ccLoadNotifications_({force:true});
+  });
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && ccSupabaseSession) ccLoadNotifications_({force:true});
+});
+window.addEventListener('focus',()=>{ if(ccSupabaseSession) ccLoadNotifications_({force:true}); });
 
 const settingsDialog=document.getElementById('settingsDialog');
 let currentPlayerSettings=null;
@@ -2485,7 +2648,8 @@ async function loadBootstrap(options={}){
     applyBootstrap(payload);
     await Promise.all([
       ccLoadProfileData_(),
-      ccLoadAvatarDirectory_()
+      ccLoadAvatarDirectory_(),
+      ccLoadNotifications_({force:true})
     ]);
     if(!options.skipRealtimeSetup) await ccSetupRealtime_(payload.team);
     hideLogin();

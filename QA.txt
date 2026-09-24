@@ -1,14 +1,21 @@
-V2.3.9.3 QA
-- JS syntax: PASS
-- SW syntax: PASS
-- config syntax: PASS
-- duplicate HTML ids: 0
-- notification switches: 7
-- notification view removed; dialog present
-- notification types default collapsed
-- N/7 summary update wired
-- push subscribe/unsubscribe markers preserved
-- service worker push/click handlers preserved
-- cache bumped
-- config.js byte-identical to V2.3.9.2
-- frontend secret scan: PASS
+PLAYER V2.3.9.4 / 049 IN-APP NOTIFICATIONS V1 — STATIC QA
+
+PASS — app.js syntax (node --check)
+PASS — sw.js syntax (node --check)
+PASS — config.js syntax (node --check)
+PASS — 118 HTML IDs / 0 duplicates
+PASS — config.js byte-identical to V2.3.9.3
+PASS — frontend contains no service-role / private VAPID / cron secret / sb_secret key
+PASS — 049 modifies no core rows in events / availability / players / team_memberships / player_settings
+PASS — player_notifications direct table access revoked from anon/authenticated
+PASS — Player access only via scoped RPCs resolving the current authenticated Player
+PASS — outbox -> inbox trigger is additive and uses existing notification preferences
+PASS — team notifications materialize from active team_memberships even without a push subscription
+PASS — badge counts unread + non-dismissed notifications only
+PASS — tap marks read and deep-links to event/schedule/profile target
+PASS — left swipe dismisses/archive-hides an item
+PASS — service worker refreshes an open Player after a real push is received
+PASS — PWA cache version bumped to V2.3.9.4
+PASS — QA sender aborts unless exactly one distinct Player owns an active push subscription
+
+Runtime checks still required in Supabase + one real phone before release is considered complete.

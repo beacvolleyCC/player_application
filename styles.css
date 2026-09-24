@@ -5930,3 +5930,28 @@ body.dark .account-quick-menu{box-shadow:0 18px 46px rgba(0,0,0,.42);}
     max-height:calc(100dvh - 34px);
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.9.4 — REAL IN-APP NOTIFICATION INBOX
+   ========================================================== */
+.notification-inbox-list{gap:9px !important;overflow:hidden;}
+.notification-swipe-row{position:relative;overflow:hidden;border-radius:12px;background:#b3261e;touch-action:pan-y;}
+.notification-swipe-action{position:absolute;inset:0 0 0 auto;width:112px;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:900;letter-spacing:.01em;}
+.notification-item-card{position:relative;z-index:2;width:100%;min-height:76px;display:grid;grid-template-columns:8px minmax(0,1fr);gap:10px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--black);text-align:left;cursor:pointer;transition:transform .16s ease,opacity .16s ease,background .16s ease;box-shadow:none;-webkit-tap-highlight-color:transparent;}
+.notification-swipe-row.swiping .notification-item-card{transition:none;}
+.notification-item-card:hover,.notification-item-card:focus-visible{outline:none;background:color-mix(in srgb,var(--card) 88%,var(--soft));}
+.notification-item-dot{width:7px;height:7px;margin-top:5px;border-radius:50%;background:#c82929;opacity:1;}
+.notification-swipe-row.is-read .notification-item-dot{background:var(--line);}
+.notification-swipe-row.is-read .notification-item-card{opacity:.7;}
+.notification-item-content{min-width:0;display:flex;flex-direction:column;gap:4px;}
+.notification-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.notification-item-top b{min-width:0;font-size:13px;line-height:1.25;}
+.notification-item-top small{flex:0 0 auto;color:var(--muted);font-size:9px;line-height:1.25;white-space:nowrap;}
+.notification-item-body{color:var(--muted);font-size:11px;line-height:1.4;overflow-wrap:anywhere;}
+.notification-item-meta{margin-top:2px;color:var(--muted);font-size:9px;font-weight:850;letter-spacing:.04em;text-transform:uppercase;}
+.dark .notification-swipe-row{background:#8f2d27;}
+@media(max-width:520px){
+  .notifications-dialog-card{width:calc(100vw - 16px);max-height:calc(100dvh - 28px);}
+  .notification-item-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;}
+}
