@@ -1,0 +1,50 @@
+CLUB CONTROL PLAYER V2.3.9.7 — MULTI-PERSPECTIVE AUDIT
+
+ROOT CAUSE FOUND IN V2.3.9.6
+1. The V2.3.9.6 CSS block was written with literal "\\n" strings instead of real newlines.
+   CSS parser result: 1 parse error; the intended shared panel rules were therefore not applied.
+2. Historical notification-specific rules still positioned Notifications at the top.
+3. Settings fell back to native <dialog> auto-centering based on its taller content.
+4. A historical notification-card width rule made the inner Notifications card wider than its dialog,
+   which shifted/clipped the close button.
+
+V2.3.9.7 FIX
+- Removed malformed CSS block.
+- Added one canonical Settings/Notifications dialog geometry.
+- Explicit fixed positioning instead of browser-dependent vertical auto-centering.
+- Inner card width is exactly 100% of the dialog for both panels.
+- Shared close button: 44x44 touch target, same coordinates.
+- Settings uses coherent section cards with simple rows and compound inset controls.
+- Native <dialog> is retained for modal semantics/focus behavior.
+- Explicit aria-labelledby added; Notifications also has aria-describedby.
+
+STATIC QA
+- CSS parser errors: 0
+- Literal backslash-n artifacts: 0
+- JavaScript syntax: PASS
+- Service worker syntax: PASS
+- Config syntax: PASS
+- Duplicate HTML ids: 0
+- Notification toggles: 7
+- Frontend secret marker scan: PASS
+
+RUNTIME GEOMETRY QA (headless Chromium)
+375x667   same panel geometry: PASS
+390x844   same panel geometry: PASS
+414x896   same panel geometry: PASS
+430x932   same panel geometry: PASS
+768x1024  same panel geometry: PASS
+1280x800  same panel geometry: PASS
+
+414x896 measured values:
+Notifications: x=8, y=84, width=398
+Settings:      x=8, y=84, width=398
+Notifications X: x=356, y=90, 44x44
+Settings X:      x=356, y=90, 44x44
+
+REGRESSION SCOPE
+- app.js: byte-identical to V2.3.9.6
+- config.js: byte-identical to V2.3.9.6
+- sw.js: cache key only
+- index.html: cache-bust/build label + dialog accessibility metadata
+- styles.css: panel system/UI-only correction

@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-9-6-shared-panel-settings-polish';
+const CACHE='club-control-player-v2-3-9-7-panel-system-audited';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

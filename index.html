@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=14.6-shared-panel">
+  <link rel="stylesheet" href="./styles.css?v=14.7-panel-audited">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -325,10 +325,10 @@
     </button>
   </nav>
 
-  <dialog id="notificationsDialog" class="cc-panel-dialog notifications-dialog">
+  <dialog id="notificationsDialog" class="cc-panel-dialog notifications-dialog" aria-labelledby="notificationsDialogTitle" aria-describedby="notificationsDialogSummary">
     <div class="dialog-card cc-panel-card notifications-dialog-card">
       <button class="dialog-x-btn" id="closeNotificationsBtn" type="button" aria-label="Bezárás">×</button>
-      <h3>Értesítések</h3>
+      <h3 id="notificationsDialogTitle">Értesítések</h3>
       <p class="notifications-dialog-summary" id="notificationsDialogSummary">Nincs új értesítés.</p>
       <div class="notification-inbox-card">
         <div class="notification-empty-state" id="notificationEmptyState">
@@ -341,10 +341,10 @@
     </div>
   </dialog>
 
-  <dialog id="settingsDialog" class="cc-panel-dialog settings-dialog">
+  <dialog id="settingsDialog" class="cc-panel-dialog settings-dialog" aria-labelledby="settingsDialogTitle">
     <div class="dialog-card cc-panel-card settings-dialog-card">
       <button class="dialog-x-btn" id="closeSettingsBtn" type="button" aria-label="Bezárás">×</button>
-      <h3>Beállítások</h3>
+      <h3 id="settingsDialogTitle">Beállítások</h3>
 
       <div class="settings-section">
         <h4>Értesítések</h4>
@@ -464,7 +464,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.6</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.9.7</b></div>
       </div>
     </div>
   </dialog>
@@ -507,7 +507,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=14.6-shared-panel"></script>
-  <script src="./app.js?v=14.6-shared-panel"></script>
+  <script src="./config.js?v=14.7-panel-audited"></script>
+  <script src="./app.js?v=14.7-panel-audited"></script>
 </body>
 </html>

@@ -5986,4 +5986,223 @@ body.dark .account-quick-menu{box-shadow:0 18px 46px rgba(0,0,0,.42);}
     max-height:calc(100dvh - env(safe-area-inset-top) - 28px) !important;
   }
 }
-\n\n/* ==========================================================\n   PLAYER V2.3.9.6 — SHARED PANEL SHELL + SETTINGS POLISH\n   Scope:\n   - Settings and Notifications use one shared modal geometry\n   - identical top position / width / close-button coordinates\n   - content may grow downward independently\n   - Settings direct controls use one consistent framed-row language\n   - no notification / push / persistence logic changes\n   ========================================================== */\n\n/* Shared shell: the two panels differ only in their body content. */\n.cc-panel-dialog{\n  width:min(640px,calc(100vw - 24px)) !important;\n  box-sizing:border-box !important;\n}\n.cc-panel-card{\n  position:relative !important;\n  width:100% !important;\n  box-sizing:border-box !important;\n  max-height:min(720px,84vh) !important;\n  overflow:auto !important;\n  -webkit-overflow-scrolling:touch;\n}\n.cc-panel-card > h3{\n  padding-right:42px !important;\n}\n.cc-panel-card > .dialog-x-btn{\n  top:10px !important;\n  right:10px !important;\n}\n\n/* Notification body keeps its own natural height; shell geometry stays shared. */\n.notifications-dialog-card{\n  width:100% !important;\n}\n.notifications-dialog-summary{\n  margin:0 0 12px !important;\n}\n\n/* Settings: consistent visual language for every direct setting control. */\n.settings-dialog-card .settings-section{\n  padding:14px 0 !important;\n}\n.settings-dialog-card .settings-section > h4{\n  margin:0 0 9px !important;\n}\n.settings-dialog-card .settings-section > label.settings-select-row,\n.settings-dialog-card .settings-section > label.switch-row,\n.settings-dialog-card .settings-section > .compact-setting-detail{\n  width:100% !important;\n  box-sizing:border-box !important;\n  margin:8px 0 0 !important;\n  padding:11px 12px !important;\n  border:1px solid var(--line) !important;\n  border-radius:12px !important;\n  background:var(--soft) !important;\n}\n.settings-dialog-card .settings-section > label.settings-select-row:first-of-type,\n.settings-dialog-card .settings-section > label.switch-row:first-of-type,\n.settings-dialog-card .settings-section > .compact-setting-detail:first-of-type{\n  margin-top:0 !important;\n}\n.settings-dialog-card .settings-section > label.settings-select-row{\n  min-height:56px;\n}\n.settings-dialog-card .settings-section > label.switch-row{\n  min-height:58px;\n}\n.settings-dialog-card .settings-section > .compact-setting-detail{\n  min-height:48px;\n  display:flex !important;\n  align-items:center !important;\n}\n.settings-dialog-card .push-device-card,\n.settings-dialog-card .notification-types-details,\n.settings-dialog-card .settings-avatar-block{\n  margin:8px 0 0 !important;\n  border-radius:12px !important;\n}\n.settings-dialog-card .push-device-card:first-of-type{\n  margin-top:0 !important;\n}\n.settings-dialog-card .settings-avatar-block{\n  padding:11px 12px !important;\n}\n.settings-dialog-card .settings-section > .settings-note{\n  margin:8px 2px 0 !important;\n}\n\n/* One mobile placement rule for BOTH panels. */\n@media(max-width:760px){\n  .cc-panel-dialog{\n    inset:calc(env(safe-area-inset-top) + 10px) 0 auto 0 !important;\n    margin:0 auto !important;\n    width:calc(100vw - 20px) !important;\n    max-height:calc(100dvh - env(safe-area-inset-top) - 20px) !important;\n  }\n  .cc-panel-card{\n    max-height:calc(100dvh - env(safe-area-inset-top) - 28px) !important;\n  }\n}\n\n@media(max-width:560px){\n  .settings-dialog-card .settings-section > label.settings-select-row{\n    align-items:stretch !important;\n  }\n}\n\n.dark .settings-dialog-card .settings-section > label.settings-select-row,\n.dark .settings-dialog-card .settings-section > label.switch-row,\n.dark .settings-dialog-card .settings-section > .compact-setting-detail{\n  background:#1b1a18 !important;\n}\n
+
+/* ==========================================================
+   PLAYER V2.3.9.7 — AUDITED SHARED PANEL SYSTEM
+   Canonical modal geometry for Settings + Notifications.
+   This block intentionally overrides historical dialog geometry.
+   ========================================================== */
+
+/* The native <dialog> top-layer is kept for accessibility/focus trapping,
+   but its browser-dependent auto-centering is disabled for these two panels. */
+#notificationsDialog.cc-panel-dialog,
+#settingsDialog.cc-panel-dialog{
+  position:fixed !important;
+  inset:auto !important;
+  top:48px !important;
+  left:50% !important;
+  right:auto !important;
+  bottom:auto !important;
+  transform:translateX(-50%) !important;
+  margin:0 !important;
+  width:min(640px,calc(100vw - 24px)) !important;
+  max-width:none !important;
+  height:auto !important;
+  max-height:none !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+}
+
+#notificationsDialog .cc-panel-card,
+#settingsDialog .cc-panel-card{
+  position:relative !important;
+  width:100% !important;
+  max-width:none !important;
+  height:auto !important;
+  max-height:min(720px,calc(100dvh - 96px)) !important;
+  margin:0 !important;
+  padding:18px !important;
+  box-sizing:border-box !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  border:0 !important;
+  border-radius:16px !important;
+  background:var(--card) !important;
+  color:var(--black) !important;
+  box-shadow:0 22px 70px rgba(0,0,0,.30) !important;
+}
+
+/* One header geometry for both panels. */
+#notificationsDialog .cc-panel-card > h3,
+#settingsDialog .cc-panel-card > h3{
+  margin:0 0 4px !important;
+  padding:4px 56px 0 0 !important;
+  min-height:44px !important;
+  box-sizing:border-box !important;
+  font-size:22px !important;
+  line-height:1.15 !important;
+}
+
+#notificationsDialog .dialog-x-btn,
+#settingsDialog .dialog-x-btn{
+  position:absolute !important;
+  top:8px !important;
+  right:8px !important;
+  width:44px !important;
+  height:44px !important;
+  min-width:44px !important;
+  min-height:44px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  background:transparent !important;
+  color:var(--muted) !important;
+  font:500 30px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+  display:grid !important;
+  place-items:center !important;
+  cursor:pointer;
+  z-index:10 !important;
+  -webkit-tap-highlight-color:transparent;
+}
+#notificationsDialog .dialog-x-btn:active,
+#settingsDialog .dialog-x-btn:active{
+  background:var(--soft) !important;
+}
+#notificationsDialog .dialog-x-btn:focus-visible,
+#settingsDialog .dialog-x-btn:focus-visible{
+  outline:2px solid var(--yellow-dark) !important;
+  outline-offset:1px !important;
+  background:var(--soft) !important;
+}
+
+.notifications-dialog-summary{
+  margin:0 0 12px !important;
+  font-size:13px !important;
+  line-height:1.4 !important;
+}
+.notifications-dialog .notification-inbox-card{
+  margin:0 !important;
+}
+
+/* Settings hierarchy:
+   - each main section is one coherent surface
+   - simple controls are rows inside that surface
+   - only compound controls use an inset card */
+#settingsDialog .settings-section{
+  margin:12px 0 0 !important;
+  padding:14px !important;
+  border:1px solid var(--line) !important;
+  border-radius:14px !important;
+  background:var(--soft) !important;
+}
+#settingsDialog .settings-section:first-of-type{
+  margin-top:8px !important;
+}
+#settingsDialog .settings-section > h4{
+  margin:0 0 10px !important;
+  font-size:15px !important;
+  line-height:1.2 !important;
+}
+
+#settingsDialog .settings-section > label.settings-select-row,
+#settingsDialog .settings-section > label.switch-row,
+#settingsDialog .settings-section > .compact-setting-detail{
+  width:100% !important;
+  min-height:50px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+  padding:10px 0 !important;
+  border:0 !important;
+  border-top:1px solid var(--line) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+}
+#settingsDialog .settings-section > h4 + label.settings-select-row,
+#settingsDialog .settings-section > h4 + label.switch-row,
+#settingsDialog .settings-section > h4 + .compact-setting-detail{
+  padding-top:0 !important;
+  border-top:0 !important;
+}
+#settingsDialog .settings-section > .compact-setting-detail{
+  display:flex !important;
+  align-items:center !important;
+}
+
+#settingsDialog .push-device-card,
+#settingsDialog .notification-types-details,
+#settingsDialog .settings-avatar-block{
+  margin:10px 0 0 !important;
+  border:1px solid var(--line) !important;
+  border-radius:12px !important;
+  background:var(--card) !important;
+}
+#settingsDialog .settings-section > h4 + .push-device-card,
+#settingsDialog .settings-section > h4 + .notification-types-details,
+#settingsDialog .settings-section > h4 + .settings-avatar-block{
+  margin-top:0 !important;
+}
+#settingsDialog .settings-avatar-block{
+  padding:11px 12px !important;
+}
+#settingsDialog .notification-types-content{
+  background:var(--card) !important;
+}
+#settingsDialog .settings-section > .settings-note{
+  margin:8px 0 0 !important;
+}
+
+#settingsDialog .settings-footer-actions{
+  margin-top:14px !important;
+}
+
+@media(max-width:760px){
+  #notificationsDialog.cc-panel-dialog,
+  #settingsDialog.cc-panel-dialog{
+    /* Matches the established Settings rhythm: below the compact app header,
+       while respecting the iPhone safe area. */
+    top:calc(env(safe-area-inset-top) + 84px) !important;
+    width:calc(100vw - 20px) !important;
+  }
+
+  #notificationsDialog .cc-panel-card,
+  #settingsDialog .cc-panel-card{
+    max-height:min(680px,calc(100dvh - env(safe-area-inset-top) - 96px)) !important;
+  }
+
+  #settingsDialog .settings-select-row{
+    align-items:stretch !important;
+  }
+}
+
+@media(max-width:420px){
+  #notificationsDialog.cc-panel-dialog,
+  #settingsDialog.cc-panel-dialog{
+    width:calc(100vw - 16px) !important;
+  }
+  #notificationsDialog .cc-panel-card,
+  #settingsDialog .cc-panel-card{
+    padding:16px !important;
+  }
+  #notificationsDialog .dialog-x-btn,
+  #settingsDialog .dialog-x-btn{
+    top:6px !important;
+    right:6px !important;
+  }
+}
+
+.dark #settingsDialog .settings-section{
+  background:#1b1a18 !important;
+}
+.dark #settingsDialog .push-device-card,
+.dark #settingsDialog .notification-types-details,
+.dark #settingsDialog .settings-avatar-block,
+.dark #settingsDialog .notification-types-content{
+  background:#151412 !important;
+}
+

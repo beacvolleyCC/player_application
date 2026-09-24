@@ -1,4 +1,12 @@
-CLUB CONTROL PLAYER V2.3.9.6 — SHARED PANEL + SETTINGS POLISH
+CLUB CONTROL PLAYER V2.3.9.7 — PANEL SYSTEM AUDITED
+
+BASE: V2.3.9.6
+SCOPE:
+- Settings and Notifications now use one canonical modal geometry.
+- Same top position, width, close-button coordinates and scroll model.
+- Settings visual hierarchy normalized.
+- No Player business logic changes.
+- No Supabase / push / inbox / RSVP / payment / avatar logic changes.
 
 FULL REPLACEMENT FILES:
 - index.html
@@ -7,10 +15,8 @@ FULL REPLACEMENT FILES:
 - sw.js
 - config.js
 
-Scope only:
-- Settings + Notifications share the same modal shell geometry.
-- Same mobile top position, width, padding rhythm and close-button coordinates.
-- Notifications can remain shorter; content grows downward naturally.
-- Settings direct controls use a consistent framed-row visual language.
-- Existing notification inbox, push, subscription, preferences, RSVP, profile and payment logic unchanged.
-- No SQL required.
+NO SQL REQUIRED.
+
+IMPORTANT:
+Replace the five files completely. Do not manually patch snippets.
+After deploy, fully close and reopen the installed PWA so the new service worker/cache can activate.
