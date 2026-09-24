@@ -1690,98 +1690,177 @@ function ccBindNotificationSwipes_(){
   document.querySelectorAll('.notification-swipe-row').forEach(row=>{
     if(row.dataset.swipeBound==='1') return;
     row.dataset.swipeBound='1';
+
     const card=row.querySelector('.notification-item-card');
+    const action=row.querySelector('.notification-swipe-action');
     const id=row.dataset.notificationId;
     if(!card || !id) return;
 
-    const MAX_REVEAL=112;
-    const DISMISS_THRESHOLD=64;
-    let startX=0,startY=0,currentX=0;
-    let tracking=false,axis='',moved=false,dismissing=false;
-    let rafId=0,suppressClickUntil=0;
+    const START_THRESHOLD=6;
+    const MIN_FLICK_DISTANCE=18;
+    const FLICK_VELOCITY=-0.48; // px/ms, leftward
+    const DISTANCE_RATIO=.22;
+    const MAX_DISTANCE=96;
+    const EXIT_MS=145;
+    const SNAP_MS=115;
 
+    let pointerId=null;
+    let startX=0,startY=0,currentX=0;
+    let axis='';
+    let moved=false;
+    let dismissing=false;
+    let suppressClickUntil=0;
+    let lastSampleX=0,lastSampleAt=0,velocityX=0;
+    let rafId=0;
+
+    const width_=()=>Math.max(1,row.getBoundingClientRect().width);
+    const threshold_=()=>Math.min(MAX_DISTANCE,Math.max(58,width_()*DISTANCE_RATIO));
+
+    const setVisual=(x,progress)=>{
+      row.style.setProperty('--cc-swipe-x',`${x}px`);
+      row.style.setProperty('--cc-swipe-progress',String(Math.max(0,Math.min(1,progress))));
+    };
     const paint=()=>{
       rafId=0;
-      card.style.transform=`translate3d(${Math.max(-MAX_REVEAL,Math.min(0,currentX))}px,0,0)`;
+      const threshold=threshold_();
+      const progress=Math.abs(Math.min(0,currentX))/threshold;
+      setVisual(Math.min(0,currentX),progress);
     };
-    const schedulePaint=()=>{
-      if(!rafId) rafId=requestAnimationFrame(paint);
-    };
-    const reset=()=>{
-      tracking=false; axis=''; currentX=0;
+    const schedulePaint=()=>{ if(!rafId) rafId=requestAnimationFrame(paint); };
+
+    const clearTracking=()=>{
+      const capturedId=pointerId;
+      pointerId=null;
+      axis='';
       if(rafId){ cancelAnimationFrame(rafId); rafId=0; }
       row.classList.remove('swiping');
-      card.style.transform='translate3d(0,0,0)';
+      if(capturedId!==null){
+        try{ if(row.hasPointerCapture?.(capturedId)) row.releasePointerCapture(capturedId); }catch(_){ }
+      }
     };
-    const collapseAndDismiss=()=>{
-      if(row.dataset.dismissFinalizing==='1') return;
-      row.dataset.dismissFinalizing='1';
-      const height=Math.ceil(row.getBoundingClientRect().height);
-      row.style.height=`${height}px`;
-      row.style.opacity='1';
-      row.classList.add('notification-row-collapsing');
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        row.style.height='0px';
-        row.style.opacity='0';
-      }));
-      window.setTimeout(()=>ccDismissNotification_(id),170);
+
+    const snapBack=()=>{
+      clearTracking();
+      row.classList.add('is-snapping');
+      row.style.setProperty('--cc-swipe-snap-ms',`${SNAP_MS}ms`);
+      setVisual(0,0);
+      window.setTimeout(()=>row.classList.remove('is-snapping'),SNAP_MS+24);
     };
+
+    const commitDismiss=()=>{
+      // Hide the red action before the full inbox re-render. This avoids the
+      // one-frame red flash that Safari/iOS can otherwise leave behind.
+      row.style.setProperty('--cc-swipe-progress','0');
+      if(action) action.style.visibility='hidden';
+      ccDismissNotification_(id);
+    };
+
     const animateDismiss=()=>{
       if(dismissing) return;
-      dismissing=true; tracking=false;
-      suppressClickUntil=performance.now()+500;
-      if(rafId){ cancelAnimationFrame(rafId); rafId=0; }
-      row.classList.remove('swiping');
-      row.classList.add('is-dismissing');
-      card.style.transform='translate3d(-105%,0,0)';
+      dismissing=true;
+      suppressClickUntil=performance.now()+420;
+      clearTracking();
 
-      let finished=false;
-      const finish=event=>{
-        if(event && event.target!==card) return;
-        if(finished) return;
-        finished=true;
-        card.removeEventListener('transitionend',finish);
-        collapseAndDismiss();
+      const h=Math.ceil(row.getBoundingClientRect().height);
+      const exitX=-(width_()+24);
+      row.style.height=`${h}px`;
+      row.style.minHeight='0';
+      row.classList.remove('is-snapping');
+      row.classList.add('is-dismissing');
+      row.style.setProperty('--cc-swipe-exit-ms',`${EXIT_MS}ms`);
+
+      // Start both motions on the same animation frame: the card exits while
+      // its row collapses underneath it. There is no separate red-only phase.
+      requestAnimationFrame(()=>{
+        setVisual(exitX,1);
+        row.style.height='0px';
+        row.style.marginTop='0px';
+        row.style.marginBottom='0px';
+        row.style.paddingTop='0px';
+        row.style.paddingBottom='0px';
+      });
+
+      let done=false;
+      const finish=()=>{
+        if(done) return;
+        done=true;
+        commitDismiss();
       };
-      card.addEventListener('transitionend',finish);
-      window.setTimeout(()=>finish(),280);
+      row.addEventListener('transitionend',event=>{
+        if(event.target===row && event.propertyName==='height') finish();
+      },{once:true});
+      window.setTimeout(finish,EXIT_MS+55);
     };
 
-    row.addEventListener('touchstart',event=>{
-      if(dismissing || event.touches?.length!==1) return;
-      const t=event.touches[0];
-      startX=t.clientX; startY=t.clientY; currentX=0;
-      tracking=true; axis=''; moved=false;
+    row.addEventListener('pointerdown',event=>{
+      if(dismissing || event.pointerType==='mouse' && event.button!==0) return;
+      pointerId=event.pointerId;
+      startX=event.clientX;
+      startY=event.clientY;
+      currentX=0;
+      axis='';
+      moved=false;
+      velocityX=0;
+      lastSampleX=startX;
+      lastSampleAt=performance.now();
+      row.classList.remove('is-snapping');
       row.classList.add('swiping');
+      try{ row.setPointerCapture(pointerId); }catch(_){ }
     },{passive:true});
 
-    row.addEventListener('touchmove',event=>{
-      if(!tracking || dismissing) return;
-      const t=event.touches?.[0]; if(!t) return;
-      const dx=t.clientX-startX;
-      const dy=t.clientY-startY;
+    row.addEventListener('pointermove',event=>{
+      if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
+      const dx=event.clientX-startX;
+      const dy=event.clientY-startY;
+
       if(!axis){
-        if(Math.max(Math.abs(dx),Math.abs(dy))<7) return;
+        if(Math.max(Math.abs(dx),Math.abs(dy))<START_THRESHOLD) return;
         axis=Math.abs(dx)>Math.abs(dy)?'x':'y';
-        if(axis==='y'){ reset(); return; }
+        if(axis==='y'){
+          snapBack();
+          return;
+        }
       }
       if(axis!=='x') return;
-      moved=moved || Math.abs(dx)>8;
-      currentX=Math.max(-MAX_REVEAL,Math.min(0,dx));
+
+      // Rightward movement is ignored; leftward movement follows the finger 1:1.
+      currentX=Math.min(0,dx);
+      moved=moved || Math.abs(currentX)>START_THRESHOLD;
+
+      const now=performance.now();
+      const dt=Math.max(1,now-lastSampleAt);
+      const sample=(event.clientX-lastSampleX)/dt;
+      // Mild smoothing keeps noisy iOS touch samples from causing false flicks.
+      velocityX=(velocityX*.62)+(sample*.38);
+      lastSampleX=event.clientX;
+      lastSampleAt=now;
       schedulePaint();
     },{passive:true});
 
-    row.addEventListener('touchend',()=>{
-      if(dismissing) return;
-      if(!tracking || axis!=='x'){ reset(); return; }
-      tracking=false;
-      suppressClickUntil=moved?performance.now()+350:0;
-      if(currentX<=-DISMISS_THRESHOLD) animateDismiss();
-      else reset();
-    },{passive:true});
+    const finishGesture=event=>{
+      if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
+      const wasHorizontal=axis==='x';
+      const distance=currentX;
+      const shouldDismiss=wasHorizontal && (
+        distance<=-threshold_() ||
+        (distance<=-MIN_FLICK_DISTANCE && velocityX<=FLICK_VELOCITY)
+      );
 
-    row.addEventListener('touchcancel',()=>{
-      if(!dismissing) reset();
+      suppressClickUntil=moved?performance.now()+300:0;
+      if(shouldDismiss) animateDismiss();
+      else snapBack();
+    };
+
+    row.addEventListener('pointerup',finishGesture,{passive:true});
+    row.addEventListener('pointercancel',event=>{
+      if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
+      snapBack();
+    },{passive:true});
+    row.addEventListener('lostpointercapture',event=>{
+      if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
+      // pointerup normally clears first; this is only the defensive Safari path.
+      if(axis==='x' && currentX<=-threshold_()) animateDismiss();
+      else snapBack();
     },{passive:true});
 
     card.addEventListener('click',event=>{

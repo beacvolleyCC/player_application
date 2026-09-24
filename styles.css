@@ -6579,3 +6579,59 @@ body.dark .chip.yes[class*="position-"]{
   background:linear-gradient(90deg, rgba(var(--position-rgb),.18) 0%, rgba(var(--position-rgb),.09) 58%, rgba(var(--position-rgb),.025) 100%) !important;
   border-color:rgba(var(--position-rgb),.28) !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.8 — NATIVE-FEEL NOTIFICATION SWIPE
+   - pointer-event gesture path for iOS/Android/Desktop touch
+   - 1:1 finger tracking with velocity-aware flick dismissal
+   - 115ms snap-back / 145ms exit+collapse
+   - red action opacity follows swipe progress and never gets a red-only tail
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-x:0px;
+  --cc-swipe-progress:0;
+  --cc-swipe-snap-ms:115ms;
+  --cc-swipe-exit-ms:145ms;
+  touch-action:pan-y pinch-zoom !important;
+  overscroll-behavior-x:contain;
+  -webkit-user-select:none;
+  user-select:none;
+  contain:layout paint style;
+  background:transparent !important;
+}
+.notification-item-card{
+  transform:translate3d(var(--cc-swipe-x),0,0) !important;
+  transition:transform var(--cc-swipe-snap-ms) cubic-bezier(.2,.8,.2,1),background .12s ease !important;
+  will-change:transform;
+}
+.notification-swipe-row.swiping .notification-item-card{
+  transition:none !important;
+}
+.notification-swipe-action{
+  opacity:var(--cc-swipe-progress) !important;
+  transform:translate3d(0,0,0);
+  transition:none !important;
+  will-change:opacity,transform;
+}
+.notification-swipe-row.is-snapping .notification-item-card{
+  transition:transform var(--cc-swipe-snap-ms) cubic-bezier(.2,.8,.2,1) !important;
+}
+.notification-swipe-row.is-dismissing{
+  overflow:hidden !important;
+  transition:height var(--cc-swipe-exit-ms) cubic-bezier(.2,.8,.2,1) !important;
+}
+.notification-swipe-row.is-dismissing .notification-item-card{
+  pointer-events:none;
+  transition:transform var(--cc-swipe-exit-ms) cubic-bezier(.16,.84,.24,1) !important;
+}
+.notification-swipe-row.is-dismissing .notification-swipe-action{
+  opacity:1 !important;
+  transition:none !important;
+}
+@media (prefers-reduced-motion:reduce){
+  .notification-item-card,
+  .notification-swipe-row.is-dismissing{
+    transition-duration:.01ms !important;
+  }
+}

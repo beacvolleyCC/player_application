@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-7-ui-consistency-position-gradient';
+const CACHE='club-control-player-v2-3-10-8-native-notification-swipe';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

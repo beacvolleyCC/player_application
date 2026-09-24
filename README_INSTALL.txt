@@ -1,6 +1,6 @@
-PLAYER V2.3.10.7 — UI consistency + position gradients
+PLAYER V2.3.10.8 — Native-feel notification swipe
 
-FULL REPLACEMENT: replace these 5 files in the Player app:
+FULL REPLACEMENT FILES:
 - index.html
 - app.js
 - styles.css
@@ -10,8 +10,9 @@ FULL REPLACEMENT: replace these 5 files in the Player app:
 No SQL migration is required.
 
 Scope:
-- header Settings button next to avatar; avatar opens Notifications when unread, otherwise Profile
-- További/Kevesebb disclosure labels
-- Edzések and Menetrend filter controls use neutral text color
-- Jövök + Névsor black/neutral; Nem jövök red
-- attending roster chips get very subtle position gradients based on real player position data
+- notification swipe gesture only
+- pointer-event based 1:1 tracking
+- velocity-aware fast flick dismiss
+- faster snap-back and dismiss timing
+- exit and row collapse run together so the red action does not linger
+- all V2.3.10.7 Player UI changes remain

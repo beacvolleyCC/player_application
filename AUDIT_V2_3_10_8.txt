@@ -1,0 +1,35 @@
+PLAYER V2.3.10.8 — Notification swipe native-feel audit
+Date: 2026-09-24
+
+SCOPE
+- Notification inbox swipe gesture only.
+- Preserve V2.3.10.7 header/settings/avatar/disclosure/filter/roster/position-gradient behavior.
+- No database, RPC, push scheduler, auth, RSVP, payment, or config changes.
+
+IMPLEMENTATION
+- Replaced notification touchstart/touchmove/touchend path with Pointer Events.
+- touch-action: pan-y pinch-zoom keeps vertical page scrolling native.
+- Horizontal drag follows finger 1:1 via translate3d/custom property.
+- Dismiss decision supports distance threshold OR fast leftward flick velocity.
+- Snap-back: 115ms.
+- Exit + row collapse: concurrent 145ms.
+- Red action opacity follows swipe progress.
+- Red action is explicitly hidden before inbox re-render to prevent Safari red-frame residue.
+- Pointer capture is explicitly released when tracking ends.
+
+QA
+- node --check app.js: PASS
+- node --check sw.js: PASS
+- node --check config.js: PASS
+- tinycss2 parse errors: 0
+- logic harness:
+  * slow short drag -> no dismiss, reset x=0, red=0: PASS
+  * fast flick -> dismiss: PASS
+  * distance threshold drag -> dismiss: PASS
+  * action hidden before commit: PASS
+- config.js unchanged vs V2.3.10.7: PASS
+- secret scan: no frontend service-role/private-key/cron-secret value found
+- cache bumped to club-control-player-v2-3-10-8-native-notification-swipe
+
+LIMITATION
+- Headless Chromium in this execution environment hung on local-file runtime testing, so it is not counted as a successful browser/iOS runtime test. Final tactile validation should be done on the installed iPhone PWA.
