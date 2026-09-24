@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=15.0-hidden-self-test">
+  <link rel="stylesheet" href="./styles.css?v=15.1-hidden-self-test-long-press">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -350,7 +350,7 @@
         <h4>Értesítések</h4>
         <div class="push-device-card" id="pushDeviceCard">
           <div class="push-device-copy">
-            <b>Telefonos értesítések</b>
+            <b id="pushDeviceQaTrigger">Telefonos értesítések</b>
             <small id="pushDeviceStatus">Állapot ellenőrzése…</small>
           </div>
           <div class="push-device-actions">
@@ -514,7 +514,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js?v=15.0-hidden-self-test"></script>
-  <script src="./app.js?v=15.0-hidden-self-test"></script>
+  <script src="./config.js?v=15.1-hidden-self-test-long-press"></script>
+  <script src="./app.js?v=15.1-hidden-self-test-long-press"></script>
 </body>
 </html>

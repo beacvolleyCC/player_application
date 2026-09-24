@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-0-hidden-self-test';
+const CACHE='club-control-player-v2-3-10-1-hidden-self-test-long-press';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

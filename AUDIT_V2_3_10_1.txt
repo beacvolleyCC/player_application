@@ -1,0 +1,18 @@
+CLUB CONTROL PLAYER V2.3.10.1 — HIDDEN SELF-TEST LONG-PRESS
+
+Scope
+- Replaced unstable 5-tap QA unlock with a 1.6 second long-press on the fixed “Telefonos értesítések” heading.
+- The changing device-status line is no longer used as the QA trigger.
+- No SQL or backend change.
+- Existing self-only cc_player_push_test_v1 path is unchanged.
+- QA row auto-hides after 90 seconds.
+
+Checks
+- app.js syntax: PASS
+- sw.js syntax: PASS
+- config.js syntax: PASS
+- duplicate HTML IDs: 0
+- notification preference controls: 7/7 preserved
+- private secret scan: PASS
+- service-worker/cache version bumped
+- old 5-tap trigger removed

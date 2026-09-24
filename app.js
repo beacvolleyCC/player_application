@@ -1758,7 +1758,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=23100').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=23101').catch(()=>{}));
 }
 
 
@@ -1968,7 +1968,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=23100');
+    return await navigator.serviceWorker.register('./sw.js?v=23101');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -2083,16 +2083,16 @@ async function ccPushDisableCurrentDevice_(){
   }catch(err){ console.error(err); ccPushSetStatus_(err?.message||'Nem sikerült kikapcsolni.','error'); }
   finally{ ccPushBusy=false; await ccPushSyncUi_(); }
 }
-let ccPushQaTapCount=0;
-let ccPushQaFirstTapAt=0;
 let ccPushQaHideTimer=null;
+let ccPushQaHoldTimer=null;
+let ccPushQaHoldPointerId=null;
 
 function ccPushQaHide_(){
   const row=document.getElementById('pushSelfTestRow');
   if(row) row.hidden=true;
-  ccPushQaTapCount=0;
-  ccPushQaFirstTapAt=0;
   if(ccPushQaHideTimer){ clearTimeout(ccPushQaHideTimer); ccPushQaHideTimer=null; }
+  if(ccPushQaHoldTimer){ clearTimeout(ccPushQaHoldTimer); ccPushQaHoldTimer=null; }
+  ccPushQaHoldPointerId=null;
 }
 function ccPushQaReveal_(){
   const row=document.getElementById('pushSelfTestRow');
@@ -2101,21 +2101,23 @@ function ccPushQaReveal_(){
   if(ccPushQaHideTimer) clearTimeout(ccPushQaHideTimer);
   ccPushQaHideTimer=setTimeout(ccPushQaHide_,90_000);
 }
-function ccPushQaTap_(){
+function ccPushQaHoldStart_(event){
   const card=document.getElementById('pushDeviceCard');
   if(card?.dataset.pushState!=='active') return;
-  const now=Date.now();
-  if(!ccPushQaFirstTapAt || now-ccPushQaFirstTapAt>2400){
-    ccPushQaFirstTapAt=now;
-    ccPushQaTapCount=1;
-    return;
-  }
-  ccPushQaTapCount+=1;
-  if(ccPushQaTapCount>=5){
+  if(event && event.pointerType==='mouse' && event.button!==0) return;
+  if(ccPushQaHoldTimer) clearTimeout(ccPushQaHoldTimer);
+  ccPushQaHoldPointerId=event?.pointerId ?? null;
+  event?.currentTarget?.setPointerCapture?.(event.pointerId);
+  ccPushQaHoldTimer=setTimeout(()=>{
+    ccPushQaHoldTimer=null;
+    ccPushQaHoldPointerId=null;
     ccPushQaReveal_();
-    ccPushQaTapCount=0;
-    ccPushQaFirstTapAt=0;
-  }
+  },1600);
+}
+function ccPushQaHoldCancel_(event){
+  if(ccPushQaHoldPointerId!==null && event?.pointerId!==undefined && event.pointerId!==ccPushQaHoldPointerId) return;
+  if(ccPushQaHoldTimer){ clearTimeout(ccPushQaHoldTimer); ccPushQaHoldTimer=null; }
+  ccPushQaHoldPointerId=null;
 }
 async function ccPushQueueTest_(){
   if(!SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession) return;
@@ -2163,7 +2165,11 @@ function ccPushOpenRequestedTarget_(){
 
 document.getElementById('pushEnableBtn')?.addEventListener('click',ccPushSubscribeCurrentDevice_);
 document.getElementById('pushDisableBtn')?.addEventListener('click',ccPushDisableCurrentDevice_);
-document.getElementById('pushDeviceStatus')?.addEventListener('click',ccPushQaTap_);
+const ccPushQaTrigger=document.getElementById('pushDeviceQaTrigger');
+ccPushQaTrigger?.addEventListener('pointerdown',ccPushQaHoldStart_);
+ccPushQaTrigger?.addEventListener('pointerup',ccPushQaHoldCancel_);
+ccPushQaTrigger?.addEventListener('pointercancel',ccPushQaHoldCancel_);
+ccPushQaTrigger?.addEventListener('pointerleave',ccPushQaHoldCancel_);
 document.getElementById('pushSelfTestBtn')?.addEventListener('click',ccPushQueueTest_);
 
 if('serviceWorker' in navigator){
