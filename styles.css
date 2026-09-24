@@ -6721,3 +6721,28 @@ body.dark .chip.yes[class*="position-"]{
     transition-duration:.01ms !important;
   }
 }
+
+/* ==========================================================
+   PLAYER V2.3.10.10 — iOS SWIPE GRAB FIX
+   - no manual pointer capture / lostpointercapture snap-back
+   - 2px visual pickup, 4px forgiving horizontal lock
+   - full-size action layer remains behind card
+   - transform-only drag path
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-snap-ms:125ms;
+  --cc-swipe-exit-ms:150ms;
+  touch-action:pan-y !important;
+  -webkit-user-select:none !important;
+  user-select:none !important;
+  -webkit-touch-callout:none !important;
+}
+.notification-swipe-row.swiping .notification-item-card{
+  transition:none !important;
+}
+.notification-swipe-action{
+  inset:0 !important;
+  width:auto !important;
+  min-width:100% !important;
+  height:100% !important;
+}

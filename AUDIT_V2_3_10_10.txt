@@ -1,0 +1,22 @@
+PLAYER V2.3.10.10 AUDIT
+
+Scope:
+- notification swipe gesture only
+- iOS pickup reliability
+- full-size red action layer
+- cache/build bump
+
+Key fix:
+- removed manual setPointerCapture/releasePointerCapture/lostpointercapture handling from notification swipe
+- early 2px visual pickup and 4px horizontal lock
+- preserves native vertical scrolling with touch-action: pan-y
+- red action layer remains full card size
+- notification open-on-tap behavior preserved
+
+Regression checks:
+- app.js syntax: PASS
+- sw.js syntax: PASS
+- CSS parser: 0 errors
+- duplicate HTML ids: none
+- config.js unchanged from V2.3.10.9
+- no SQL/backend changes

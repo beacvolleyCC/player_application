@@ -1696,20 +1696,21 @@ function ccBindNotificationSwipes_(){
     const id=row.dataset.notificationId;
     if(!card || !action || !id) return;
 
-    // Travel Companion-style gesture:
-    // - the full-size action layer lives underneath the card
-    // - the card itself tracks the finger directly
-    // - we only capture after horizontal intent is clear
-    // - no separate row-collapse phase after dismissal
-    const H_INTENT=7;
-    const V_INTENT=11;
-    const MIN_FLICK_DISTANCE=22;
-    const FLICK_VELOCITY=-0.38; // px/ms, leftward
-    const DISTANCE_RATIO=.23;
-    const MIN_DISTANCE=66;
-    const MAX_DISTANCE=92;
-    const SNAP_MS=155;
-    const EXIT_MS=165;
+    // iOS-first swipe gesture:
+    // - no manual pointer capture (Safari can drop it mid-gesture)
+    // - very early, forgiving horizontal intent detection
+    // - full-size action layer stays underneath the card
+    // - direct transform updates only; no layout work during drag
+    const PREVIEW_X=2;
+    const LOCK_X=4;
+    const LOCK_Y=12;
+    const MIN_FLICK_DISTANCE=18;
+    const FLICK_VELOCITY=-0.30; // px/ms, leftward
+    const DISTANCE_RATIO=.20;
+    const MIN_DISTANCE=58;
+    const MAX_DISTANCE=82;
+    const SNAP_MS=125;
+    const EXIT_MS=150;
 
     let pointerId=null;
     let startX=0,startY=0,currentX=0;
@@ -1735,14 +1736,7 @@ function ccBindNotificationSwipes_(){
       row.classList.add('swipe-engaged');
       action.setAttribute('aria-hidden','true');
     };
-    const releaseCapture=()=>{
-      if(pointerId===null) return;
-      try{
-        if(row.hasPointerCapture?.(pointerId)) row.releasePointerCapture(pointerId);
-      }catch(_){ }
-    };
     const resetTracking=()=>{
-      releaseCapture();
       pointerId=null;
       axis='';
       row.classList.remove('swiping');
@@ -1752,7 +1746,7 @@ function ccBindNotificationSwipes_(){
     };
 
     const snapBack=()=>{
-      const hadHorizontal=axis==='x';
+      const hadHorizontal=axis==='x' || currentX<0;
       resetTracking();
       if(!hadHorizontal){
         setX(0);
@@ -1779,12 +1773,10 @@ function ccBindNotificationSwipes_(){
         done=true;
         card.removeEventListener('transitionend',once);
         finish();
-      },SNAP_MS+45);
+      },SNAP_MS+40);
     };
 
     const commitDismiss=()=>{
-      // ccDismissNotification_ updates local state and re-renders synchronously
-      // before awaiting Supabase, so the red layer cannot linger by itself.
       hideAction();
       ccDismissNotification_(id);
     };
@@ -1792,7 +1784,7 @@ function ccBindNotificationSwipes_(){
     const animateDismiss=()=>{
       if(dismissing) return;
       dismissing=true;
-      suppressClickUntil=performance.now()+400;
+      suppressClickUntil=performance.now()+360;
       resetTracking();
       showAction();
       haptic();
@@ -1801,8 +1793,7 @@ function ccBindNotificationSwipes_(){
       row.classList.add('is-dismissing');
       row.style.setProperty('--cc-swipe-exit-ms',`${EXIT_MS}ms`);
 
-      const exitX=-width_();
-      requestAnimationFrame(()=>setX(exitX));
+      requestAnimationFrame(()=>setX(-width_()));
 
       let done=false;
       const finish=()=>{
@@ -1815,7 +1806,7 @@ function ccBindNotificationSwipes_(){
         if(event.target===card && event.propertyName==='transform') finish();
       };
       card.addEventListener('transitionend',onEnd);
-      window.setTimeout(finish,EXIT_MS+55);
+      window.setTimeout(finish,EXIT_MS+45);
     };
 
     row.addEventListener('pointerdown',event=>{
@@ -1833,27 +1824,32 @@ function ccBindNotificationSwipes_(){
       row.classList.remove('is-snapping');
       setX(0);
       hideAction();
-      // Deliberately no pointer capture here. It is enabled only after the
-      // movement has clearly become a horizontal swipe.
     },{passive:true});
 
     row.addEventListener('pointermove',event=>{
       if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
+
       const dx=event.clientX-startX;
       const dy=event.clientY-startY;
       const ax=Math.abs(dx);
       const ay=Math.abs(dy);
 
       if(!axis){
-        // Forgiving direction lock: do not decide too early on a slightly
-        // diagonal finger movement. Horizontal swipes get the benefit of doubt.
-        if(ax>=H_INTENT && ax>=ay*.78){
+        // Show immediate physical response to a leftward finger movement.
+        // We still keep native vertical scrolling until horizontal intent wins.
+        if(dx<0 && ax>=PREVIEW_X && ax>=ay*.55){
+          showAction();
+          setX(dx);
+        }
+
+        // iPhone thumb movement is rarely perfectly horizontal, so lock early
+        // and tolerate a meaningful diagonal component.
+        if(dx<0 && ax>=LOCK_X && ax>=ay*.62){
           axis='x';
           row.classList.add('swiping');
           showAction();
-          try{ row.setPointerCapture(pointerId); }catch(_){ }
-        }else if(ay>=V_INTENT && ay>ax*1.28){
-          // Vertical intent belongs to native page scrolling.
+        }else if(ay>=LOCK_Y && ay>ax*1.55){
+          // Clearly vertical: hand control back to native scrolling.
           resetTracking();
           setX(0);
           hideAction();
@@ -1862,17 +1858,18 @@ function ccBindNotificationSwipes_(){
           return;
         }
       }
-      if(axis!=='x') return;
 
+      if(axis!=='x') return;
       if(event.cancelable) event.preventDefault();
+
       const nextX=Math.min(0,dx);
-      moved=moved || Math.abs(nextX)>=H_INTENT;
+      moved=moved || Math.abs(nextX)>=LOCK_X;
       setX(nextX);
 
       const now=performance.now();
       const dt=Math.max(1,now-lastSampleAt);
       const sample=(event.clientX-lastSampleX)/dt;
-      velocityX=(velocityX*.55)+(sample*.45);
+      velocityX=(velocityX*.45)+(sample*.55);
       lastSampleX=event.clientX;
       lastSampleAt=now;
     },{passive:false});
@@ -1886,7 +1883,7 @@ function ccBindNotificationSwipes_(){
         (distance<=-MIN_FLICK_DISTANCE && velocityX<=FLICK_VELOCITY)
       );
 
-      suppressClickUntil=moved?performance.now()+280:0;
+      suppressClickUntil=moved?performance.now()+260:0;
       if(shouldDismiss) animateDismiss();
       else snapBack();
     };
@@ -1894,18 +1891,8 @@ function ccBindNotificationSwipes_(){
     row.addEventListener('pointerup',finishGesture,{passive:true});
     row.addEventListener('pointercancel',event=>{
       if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
+      // A real browser cancellation should not leave a half-open card.
       snapBack();
-    },{passive:true});
-    row.addEventListener('lostpointercapture',event=>{
-      if(pointerId===null || event.pointerId!==pointerId || dismissing) return;
-      // Safari can lose capture at gesture boundaries. Preserve the same
-      // threshold decision instead of forcing an extra visual phase.
-      const shouldDismiss=axis==='x' && (
-        currentX<=-threshold_() ||
-        (currentX<=-MIN_FLICK_DISTANCE && velocityX<=FLICK_VELOCITY)
-      );
-      if(shouldDismiss) animateDismiss();
-      else snapBack();
     },{passive:true});
 
     card.addEventListener('click',event=>{

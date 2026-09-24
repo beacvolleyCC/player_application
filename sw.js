@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-9-travel-notification-swipe';
+const CACHE='club-control-player-v2-3-10-10-ios-swipe-grab-fix';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
