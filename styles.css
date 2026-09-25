@@ -6678,16 +6678,33 @@ body.dark .chip.yes[class*="position-"]{
 }
 
 /* ==========================================================
-   PLAYER V2.3.10.12 — NOTIFICATION SWIPE CORNER CLIP FIX
-   iOS/Safari can paint horizontally-scrolled descendants past
-   a scroll container's border-radius. Clip the complete swipe
-   row once, and let the wrapper own the outer rounded corners.
+   PLAYER V2.3.10.13 — NOTIFICATION SWIPE MASK / BORDER FIX
+   - persistent outer border belongs to the scroll row
+   - Safari/iOS mask forces composited scroll content inside radius
+   - red dismiss surface does not draw its own outer radius
    ========================================================== */
 .notification-swipe-row{
-  -webkit-clip-path:inset(0 round 12px) !important;
-  clip-path:inset(0 round 12px) !important;
+  border:1px solid var(--line) !important;
+  border-radius:12px !important;
+  box-sizing:border-box !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  -webkit-mask-image:-webkit-radial-gradient(white,black);
+  -webkit-mask-repeat:no-repeat;
+  -webkit-mask-size:100% 100%;
+  mask-image:linear-gradient(#fff,#fff);
+  mask-repeat:no-repeat;
+  mask-size:100% 100%;
+  isolation:isolate;
+}
+.notification-item-card{
+  border:0 !important;
+  border-radius:11px !important;
 }
 .notification-swipe-action{
+  border:0 !important;
   border-radius:0 !important;
+  margin:0 !important;
+  background-clip:padding-box !important;
 }
 

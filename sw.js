@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-12-swipe-corner-clip';
+const CACHE='club-control-player-v2-3-10-13-swipe-mask-clip';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

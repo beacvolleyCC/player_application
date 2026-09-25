@@ -1,0 +1,14 @@
+PASS — visible build label 10.13
+PASS — styles cache bust 15.13
+PASS — app cache bust 15.13
+PASS — outer persistent border
+PASS — webkit Safari mask
+PASS — standard mask
+PASS — action radius neutralized
+PASS — native scroll preserved
+PASS — scroll snap preserved
+PASS — service worker cache bumped
+PASS — push handler preserved
+PASS — notificationclick preserved
+PASS — CSS braces balanced
+PASS — HTML tags present
