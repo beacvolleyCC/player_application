@@ -1,0 +1,33 @@
+PASS — small push dot removed from HTML
+PASS — hidden triple-tap trigger remains removed
+PASS — self-test UI remains removed
+PASS — enable/disable controls remain
+PASS — push status copy remains
+PASS — both push buttons forced monochrome
+PASS — iOS native blue explicitly overridden
+PASS — active card green tint neutralized
+PASS — error card red tint neutralized
+PASS — app.js unchanged from 10.14
+PASS — test RPC absent from frontend
+PASS — push register retained
+PASS — push unregister retained
+PASS — notification inbox retained
+PASS — 10.13 Safari swipe fix retained
+PASS — native scroll snap retained
+PASS — service worker push handler retained
+PASS — service worker click handler retained
+PASS — SW cache bumped
+PASS — visible build 10.15
+PASS — cache bust 15.15
+PASS — status-dot CSS removed
+PASS — QA trigger CSS remains absent
+PASS — self-test CSS remains absent
+PASS — 053 authenticated revoke retained
+PASS — 053 service role diagnostic retained
+PASS — app syntax PASS
+PASS — sw syntax PASS
+PASS — CSS braces balanced
+PASS — duplicate HTML IDs = 0
+PASS — auth markup retained
+PASS — planner retained
+PASS — payments retained

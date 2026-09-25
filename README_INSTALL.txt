@@ -1,42 +1,38 @@
-CLUB CONTROL PLAYER — V2.3.10.13
-NOTIFICATION SWIPE MASK / BORDER FIX
+CLUB CONTROL PLAYER — V2.3.10.15
+MONOCHROME PUSH SETTINGS
 
-MIÉRT KELL EZ A 10.12 UTÁN
-- A 10.12-ben csak styles.css + sw.js változott.
-- Az index.html cache-bustja viszont 15.11 maradt, ezért iPhone PWA-ban
-  a régi CSS tovább élhetett.
-- A Safari composited horizontal scroll réteg ráadásul néha a sima
-  border-radius/overflow clippinget is megkerüli.
-
-EZ A BUILD
-- index.html is változik -> új styles/app cache-bust
-- Beállításokban látható build: Player V2.3.10.13
-- a swipe-row kapja a fix külső border-t
-- Safari/iOS mask kényszeríti a piros actiont a 12px külső íven belülre
-- a piros action nem rajzol külön külső radius-t
-- browser-native swipe + Scroll Snap változatlan
-
-CSERÉLENDŐ
-- index.html
-- styles.css
-- sw.js
+Ez a V2.3.10.14 teljes production cleanupját tartalmazza, plusz:
+- a kis push állapotjelző pötty teljesen kikerült
+- Bekapcsolás és Kikapcsolás gomb fekete/monokróm
+- iOS/Safari natív kék gombszín explicit felülírva
+- aktív/error állapotban sincs zöld/piros push-kártya kiemelés
+- a státusz szöveg is semleges
+- dark mode-ban a témához illeszkedő világos foreground marad olvasható
 
 NEM VÁLTOZIK
-- app.js tartalma
-- config.js
-- backend / Supabase
-- push / auth / RSVP / payments
+- normál push be-/kikapcsolás logika
+- in-app notification inbox
+- push kézbesítés és deep link
+- notification preference-ek
+- V2.3.10.13 swipe fix
+- auth / planner / profile / payments
 
 TELEPÍTÉS
-1. Cseréld le ezt a 3 fájlt a Player repo-ban.
-2. Commit + push.
-3. iPhone-on zárd be teljesen a Player PWA-t.
-4. Nyisd meg egyszer Safari-ból a Player URL-t.
-5. Zárd be Safarit / PWA-t, majd nyisd újra a PWA-t.
-6. Beállítások -> alul a Build feliratnak ezt KELL mutatnia:
-   Player V2.3.10.13
-7. Csak akkor teszteld a swipe-ot, ha ez a build látszik.
+Ha a 10.14-et még nem tetted fel, azt hagyd ki; elég ezt a 10.15-öt felrakni.
 
-ELVÁRT
-- teljes balra húzásnál a piros jobb felső / jobb alsó sarok
-  nem lóghat túl a külső lekerekített kereten.
+Cseréld:
+index.html
+app.js
+styles.css
+sw.js
+
+A 053 SQL ugyanaz:
+PREFLIGHT_053_PUSH_TEST_RPC_READ_ONLY.sql
+053_PLAYER_PUSH_TEST_RPC_PRODUCTION_LOCKDOWN.sql
+
+Elvárt verify:
+authenticated_can_execute = false
+service_role_can_execute = true
+
+Build:
+Player V2.3.10.15

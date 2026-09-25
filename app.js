@@ -2189,60 +2189,6 @@ async function ccPushDisableCurrentDevice_(){
   }catch(err){ console.error(err); ccPushSetStatus_(err?.message||'Nem sikerült kikapcsolni.','error'); }
   finally{ ccPushBusy=false; await ccPushSyncUi_(); }
 }
-let ccPushQaHideTimer=null;
-let ccPushQaTapTimer=null;
-let ccPushQaTapCount=0;
-
-function ccPushQaResetTap_(){
-  ccPushQaTapCount=0;
-  if(ccPushQaTapTimer){ clearTimeout(ccPushQaTapTimer); ccPushQaTapTimer=null; }
-}
-function ccPushQaHide_(){
-  const row=document.getElementById('pushSelfTestRow');
-  if(row) row.hidden=true;
-  if(ccPushQaHideTimer){ clearTimeout(ccPushQaHideTimer); ccPushQaHideTimer=null; }
-  ccPushQaResetTap_();
-}
-function ccPushQaReveal_(){
-  const row=document.getElementById('pushSelfTestRow');
-  if(!row) return;
-  row.hidden=false;
-  if(ccPushQaHideTimer) clearTimeout(ccPushQaHideTimer);
-  ccPushQaHideTimer=setTimeout(ccPushQaHide_,90_000);
-}
-function ccPushQaTap_(event){
-  event?.preventDefault?.();
-  const card=document.getElementById('pushDeviceCard');
-  if(card?.dataset.pushState!=='active'){ ccPushQaResetTap_(); return; }
-  ccPushQaTapCount+=1;
-  if(ccPushQaTapTimer) clearTimeout(ccPushQaTapTimer);
-  if(ccPushQaTapCount>=3){
-    ccPushQaResetTap_();
-    ccPushQaReveal_();
-    return;
-  }
-  ccPushQaTapTimer=setTimeout(ccPushQaResetTap_,900);
-}
-async function ccPushQueueTest_(){
-  if(!SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession) return;
-  const btn=document.getElementById('pushSelfTestBtn');
-  if(btn) btn.disabled=true;
-  try{
-    const sub=await ccPushBrowserSubscription_();
-    if(!sub || Notification.permission!=='granted'){
-      throw new Error('Ezen az eszközön előbb kapcsold be a telefonos értesítéseket.');
-    }
-    const {data,error}=await ccSupabase.rpc('cc_player_push_test_v1');
-    if(error) throw error;
-    if(data && data.ok===false) throw new Error(data.error||'A teszt értesítés nem indítható.');
-    await ccLoadNotifications_({force:true});
-    ccPushSetStatus_('Saját teszt létrehozva. Az appban már látszik; a push a következő automatikus küldési körben érkezik.','active');
-    ccPushQaHide_();
-  }catch(err){
-    console.error('Saját push teszt hiba:',err);
-    ccPushSetStatus_(err?.message||'A teszt értesítés nem indítható.','error');
-  }finally{ if(btn) btn.disabled=false; }
-}
 async function ccPushDeactivateBackendOnLogout_(){
   if(!ccPushSupported_() || !SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession) return;
   try{
@@ -2269,9 +2215,6 @@ function ccPushOpenRequestedTarget_(){
 
 document.getElementById('pushEnableBtn')?.addEventListener('click',ccPushSubscribeCurrentDevice_);
 document.getElementById('pushDisableBtn')?.addEventListener('click',ccPushDisableCurrentDevice_);
-const ccPushQaTrigger=document.getElementById('pushDeviceQaTrigger');
-ccPushQaTrigger?.addEventListener('click',ccPushQaTap_);
-document.getElementById('pushSelfTestBtn')?.addEventListener('click',ccPushQueueTest_);
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.addEventListener('message',event=>{
