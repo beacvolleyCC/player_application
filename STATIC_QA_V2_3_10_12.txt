@@ -1,0 +1,12 @@
+PASS — V2.3.10.11 native swipe preserved
+PASS — wrapper clip-path added
+PASS — webkit clip-path added
+PASS — action outer radius neutralized
+PASS — native horizontal scroll preserved
+PASS — scroll snap preserved
+PASS — bounded action width preserved
+PASS — SW cache bumped
+PASS — push receiver preserved
+PASS — notification click preserved
+PASS — CSS braces balanced
+PASS — SW braces balanced

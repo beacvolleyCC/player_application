@@ -6676,3 +6676,18 @@ body.dark .chip.yes[class*="position-"]{
 @media(prefers-reduced-motion:reduce){
   .notification-swipe-row{scroll-behavior:auto !important;}
 }
+
+/* ==========================================================
+   PLAYER V2.3.10.12 — NOTIFICATION SWIPE CORNER CLIP FIX
+   iOS/Safari can paint horizontally-scrolled descendants past
+   a scroll container's border-radius. Clip the complete swipe
+   row once, and let the wrapper own the outer rounded corners.
+   ========================================================== */
+.notification-swipe-row{
+  -webkit-clip-path:inset(0 round 12px) !important;
+  clip-path:inset(0 round 12px) !important;
+}
+.notification-swipe-action{
+  border-radius:0 !important;
+}
+
