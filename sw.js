@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-15-monochrome-push-settings';
+const CACHE='club-control-player-v2-3-10-16-swipe-red-tail';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

@@ -1,0 +1,30 @@
+PASS — app.js runtime byte-identical to 10.15
+PASS — no extra swipe content/filler added
+PASS — action width unchanged
+PASS — scroll snap unchanged
+PASS — JS dismiss maxScroll logic unchanged
+PASS — light swipe backing continuous red
+PASS — dark swipe backing continuous red
+PASS — inner card radius neutralized
+PASS — outer 10.13 mask retained
+PASS — outer border/radius retained
+PASS — red action remains
+PASS — hidden QA trigger still absent
+PASS — test RPC frontend still absent
+PASS — push register retained
+PASS — push unregister retained
+PASS — monochrome push settings retained
+PASS — small status dot remains removed
+PASS — notification inbox retained
+PASS — SW cache bumped to 10.16
+PASS — visible build 10.16
+PASS — asset cache-bust 15.16
+PASS — SW push handler retained
+PASS — SW notification click retained
+PASS — app syntax PASS
+PASS — sw syntax PASS
+PASS — CSS braces balanced
+PASS — duplicate HTML IDs = 0
+PASS — auth retained
+PASS — planner retained
+PASS — payments retained

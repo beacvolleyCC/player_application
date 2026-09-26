@@ -6712,3 +6712,20 @@ body.dark #settingsDialog #pushDisableBtn{
   -webkit-text-fill-color:var(--black) !important;
 }
 
+/* ==========================================================
+   PLAYER V2.3.10.16 — NOTIFICATION SWIPE RED TAIL
+   iOS can rubber-band a horizontal scroller beyond its content edge.
+   Keep the scrollport backing red so the dismiss surface never visually
+   "runs out". The outer row remains the sole rounded/masked shape owner.
+   Scroll width, snap positions and dismiss thresholds are unchanged.
+   ========================================================== */
+.notification-swipe-row{
+  background:#b3261e !important;
+}
+.dark .notification-swipe-row{
+  background:#8f2d27 !important;
+}
+.notification-item-card{
+  border-radius:0 !important;
+}
+
