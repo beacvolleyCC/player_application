@@ -38,7 +38,7 @@ let avatarPickerMode = 'monogram';
 
 
 // ---------------------------------------------------------------------------
-// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.24
+// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.25
 // Shared motion primitives only. Business/data behavior stays unchanged.
 // ---------------------------------------------------------------------------
 const CC_MOTION_V1=Object.freeze({
@@ -1213,22 +1213,23 @@ function renderGridMatrix(rows){
     const count=(e.yes||[]).length;
     const monthKey=monthKeyFromDate(eventDateObj(e));
     const divider=(rowIndex>0 && monthKey!==lastMonth)
-      ? `<tr class="matrix-month-divider"><td colspan="${1+people.length}">${monthDividerHtml_(e)}</td></tr>`
+      ? `<tr class="matrix-month-divider"><td colspan="${2+people.length}">${monthDividerHtml_(e)}</td></tr>`
       : '';
     lastMonth=monthKey;
 
     const eventButton=archived
       ? `<div class="matrix-event-side-btn matrix-event-closed" aria-label="${typeLabel(e)} · ${e.title} · lezárt esemény">
           <span class="matrix-side-icon">${typeIcon(e)}</span>
-          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small><span class="matrix-inline-count ${attendanceCountClass(count)}">${count} fő</span></span>
+          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small></span>
         </div>`
       : `<button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
           <span class="matrix-side-icon">${typeIcon(e)}</span>
-          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small><span class="matrix-inline-count ${attendanceCountClass(count)}">${count} fő</span></span>
+          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small></span>
         </button>`;
 
     return divider+`<tr class="${archived?'matrix-past-row':''} ${rowIndex===anchorIndex?'matrix-current-anchor':''}" data-grid-event="${e.id}">
       <th class="matrix-event-side sticky-matrix-col">${eventButton}</th>
+      <td class="matrix-count-cell"><strong class="${attendanceCountClass(count)}">${count}</strong></td>
       ${people.map(person=>{
         const mine=person.id==='__ME__';
         const st=personStatusForEvent(e,person);
@@ -1239,10 +1240,11 @@ function renderGridMatrix(rows){
     </tr>`;
   }).join('');
 
-  return `<div class="matrix-scroll matrix-mobile-v2" id="matrixScroll"><table class="season-matrix transposed-matrix">
+  return `<div class="matrix-scroll matrix-mobile-v2 matrix-freeze-v3" id="matrixScroll"><table class="season-matrix transposed-matrix">
     <thead>
       <tr>
         <th class="matrix-event-side sticky-matrix-col">Alkalom</th>
+        <th class="matrix-count-head">Fő</th>
         ${people.map(person=>{
           const mine=person.id==='__ME__';
           const label=mine ? 'Én' : gridGivenName(person);
@@ -3030,6 +3032,11 @@ function openEventDialog(eventId){
     ${eventNoteSection_(e,archived)}
     ${eventDialogRoster(e)}`;
   ccOpenDialog_(eventDialog);
+  // showModal() auto-focuses the first button on Safari/iOS (the X). Move focus
+  // to the dialog surface so opening details never looks like the close button
+  // was pre-selected. Keyboard users can still Tab to the close button normally.
+  try{ eventDialog.focus({preventScroll:true}); }
+  catch(_){ eventDialog.focus(); }
   bindSliderDrag();
 }
 document.getElementById('closeEventDialogBtn')?.addEventListener('click',()=>ccCloseDialog_(eventDialog));

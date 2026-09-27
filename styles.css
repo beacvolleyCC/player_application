@@ -7614,3 +7614,107 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
   }
 }
 .attendance-slider.cc-slider-tap-snapping{pointer-events:none !important;}
+
+
+/* ========================================================================== 
+   PLAYER V2.3.10.25 — MOBILE GRID V3 / FREEZE PANES
+   One native X/Y scroll surface. Header row + Alkalom + Fő are frozen.
+   ========================================================================== */
+#plannerView .matrix-mobile-v2.matrix-freeze-v3{
+  --cc-grid-event-w:132px;
+  --cc-grid-count-w:44px;
+  --cc-grid-freeze-line:#a7834c;
+  position:relative !important;
+  overflow:auto !important;
+  overscroll-behavior:contain !important;
+  touch-action:pan-x pan-y !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+
+/* Restore the dedicated count column removed by Mobile Grid v2. */
+#plannerView .matrix-freeze-v3 .matrix-count-head,
+#plannerView .matrix-freeze-v3 .matrix-count-cell{
+  display:table-cell !important;
+  box-sizing:border-box !important;
+  width:var(--cc-grid-count-w) !important;
+  min-width:var(--cc-grid-count-w) !important;
+  max-width:var(--cc-grid-count-w) !important;
+  padding:0 3px !important;
+  text-align:center !important;
+  vertical-align:middle !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-count-cell strong{
+  font-size:11px !important;
+  line-height:1 !important;
+  font-weight:950 !important;
+  white-space:nowrap !important;
+}
+
+/* Freeze pane: first column. */
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-event-side{
+  left:0 !important;
+  width:var(--cc-grid-event-w) !important;
+  min-width:var(--cc-grid-event-w) !important;
+  max-width:var(--cc-grid-event-w) !important;
+  z-index:10 !important;
+  background:var(--card) !important;
+  box-shadow:1px 0 0 var(--line) !important;
+}
+
+/* Freeze pane: second column immediately after Alkalom. */
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-head,
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-cell{
+  position:sticky !important;
+  left:var(--cc-grid-event-w) !important;
+  z-index:9 !important;
+  background:var(--card) !important;
+  box-shadow:2px 0 0 var(--cc-grid-freeze-line) !important;
+}
+
+/* Header row stays above vertical scrolling; the two top-left cells sit above
+   both frozen axes. */
+#plannerView .matrix-freeze-v3 .transposed-matrix thead th{
+  position:sticky !important;
+  top:0 !important;
+  z-index:12 !important;
+  background:var(--card) !important;
+  border-bottom:2px solid var(--cc-grid-freeze-line) !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix thead .matrix-event-side{
+  z-index:16 !important;
+  background:var(--card) !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix thead .matrix-count-head{
+  z-index:15 !important;
+  background:var(--card) !important;
+}
+
+/* The count is now in its own frozen column, not repeated inside Alkalom. */
+#plannerView .matrix-freeze-v3 .matrix-inline-count{display:none !important;}
+
+/* Month dividers scroll with the body and never become a competing sticky pane. */
+#plannerView .matrix-freeze-v3 .matrix-month-divider td{
+  position:relative !important;
+  left:auto !important;
+  z-index:1 !important;
+}
+
+/* Dark theme keeps the same freeze geometry. */
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-head,
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-cell,
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix .matrix-event-side,
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix thead th{
+  background:#151412 !important;
+}
+
+/* Event details: opening the dialog focuses the surface, not the X button. */
+#eventDialog:focus{outline:none !important;}
+#eventDialog .dialog-x-btn:focus:not(:focus-visible){outline:none !important;box-shadow:none !important;}
+
+@media(max-width:760px){
+  #plannerView .matrix-mobile-v2.matrix-freeze-v3{
+    --cc-grid-event-w:124px;
+    --cc-grid-count-w:42px;
+  }
+  #plannerView .matrix-freeze-v3 .matrix-count-cell strong{font-size:10.5px !important;}
+}

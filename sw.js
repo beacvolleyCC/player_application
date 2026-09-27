@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-24-mobile-grid-v2';
+const CACHE='club-control-player-v2-3-10-25-freeze-pane-grid-v3';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
