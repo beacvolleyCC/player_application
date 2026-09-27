@@ -1,21 +1,46 @@
-CLUB CONTROL PLAYER V2.3.10.23 — QA RESULT
+CLUB CONTROL PLAYER V2.3.10.25 — QA RESULT
 
-TARGETED SCOPE
-- Attendance slider adjacent-state tap/flick behavior + tap snap motion
-- Weekly team court fallback correction
-- Preserve V2.3.10.22 grid touch fix and Motion System v1
+RESULT: STATIC / TARGETED QA PASS
+Production status: candidate; physical iPhone/Android/desktop smoke still required.
 
-STATIC QA
-- JS syntax: PASS (node --check)
-- Service worker syntax: PASS (node --check)
-- Build/cache version: updated to V2.3.10.23
-- No SQL/schema changes
+SCOPE VERIFIED
+- Grid v3 renders dedicated Alkalom + Fő columns before Én/player columns.
+- Month divider colspan updated for restored Fő column.
+- Matrix remains one native X/Y scroll surface.
+- Header row is sticky at top.
+- Alkalom is sticky left: 0.
+- Fő is sticky left: Alkalom width.
+- Top-left Alkalom/Fő headers have higher z-index than scrolling cells.
+- Én and all player columns remain horizontally scrollable.
+- Event dialog has tabindex=-1 and receives focus after showModal(), avoiding Safari auto-focus on X.
+- Google Maps link remains detail-only (single mapLink(e) render use).
+- Fixed court rules retained:
+  Női I Tue=1 / Fri=3; Női II Tue=2 / Fri=1; Férfi Mon=3 / Wed=2.
+- Calendar .ics export retained.
+- Motion System v1 / slider drag+tap code retained.
 
-PHYSICAL QA STILL REQUIRED
-- iPhone PWA: tap Jövök -> tap Nem jövök should stop at Nincs jelzés first; second tap reaches Nem jövök.
-- iPhone PWA: short flick from Jövök must stop at Nincs jelzés; deliberate drag may reach Nem jövök.
-- Verify court fallback on Női I / Női II / Férfi weekly sessions.
-- Re-smoke Menetrend grid X/Y scroll from V2.3.10.22.
-- Adjacent tap state-transition helper cases: PASS
-- Flick cap vs deliberate full-drag helper cases: PASS
-- Weekly court mapping/static integration checks: PASS
+AUTOMATED STATIC CHECKS
+- node --check app.js: PASS
+- node --check sw.js: PASS
+- tinycss2 stylesheet parse: PASS (0 top-level parse errors)
+- HTML duplicate IDs: PASS (0 duplicates)
+- build label: V2.3.10.25
+- cache key: club-control-player-v2-3-10-25-freeze-pane-grid-v3
+- asset query versions: 15.25-freeze-pane-grid-v3
+
+REGRESSION DIFF
+Compared app.js with V2.3.10.24. Functional changes are limited to:
+1) restored Fő matrix column/freeze-pane markup,
+2) event dialog focus target,
+3) build comment/version.
+No database migration or backend change.
+
+PHYSICAL RELEASE GATE
+Still test on actual iPhone PWA:
+1) open grid at left edge;
+2) horizontal drag far right — Alkalom + Fő stay fixed;
+3) vertical drag — entire header stays fixed;
+4) diagonal drag — one native scroll surface, no split/blank layout;
+5) month divider crossing;
+6) open event details — X must NOT appear preselected;
+7) slider tap/flick/drag regression.

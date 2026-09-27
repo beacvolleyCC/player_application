@@ -7297,3 +7297,424 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
     left:112px !important;
   }
 }
+
+/* ==========================================================
+   PLAYER V2.3.10.24 — MOBILE GRID V2 + COMPACT CARD FIXES
+   - one native matrix scroll owner
+   - one sticky event column; no second sticky headcount column
+   - stable mobile player widths
+   - Maps only lives in the event detail dialog
+   - compact, stable headcount alignment
+   ========================================================== */
+
+/* Event card: count is always the stable right-hand element. */
+.event-card .event-top.centered-card{
+  grid-template-columns:58px minmax(0,1fr) auto !important;
+  column-gap:10px !important;
+  align-items:end !important;
+}
+.event-card .event-main{min-width:0 !important;}
+.event-card .head-count{
+  grid-column:3 !important;
+  grid-row:1 !important;
+  align-self:end !important;
+  justify-self:end !important;
+  margin:0 0 1px 8px !important;
+  min-width:max-content !important;
+  white-space:nowrap !important;
+}
+.event-card .event-away-compact{
+  display:block !important;
+  min-width:0 !important;
+  margin-top:5px !important;
+}
+.event-card .away-address{
+  display:block !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  color:var(--muted) !important;
+}
+.event-card .event-top{
+  transition:background-color var(--cc-motion-tap-snap) var(--cc-ease-tap-snap) !important;
+}
+
+/* Grid V2: the outer viewport/card never becomes a competing scroller. */
+#plannerView .planner-scroll-viewport{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+  overscroll-behavior:auto !important;
+  touch-action:auto !important;
+  -webkit-overflow-scrolling:auto !important;
+}
+#plannerView .planner-scroll-viewport > .planner-card.planner-surface{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  border:1px solid var(--line) !important;
+  border-radius:15px !important;
+  background:var(--card) !important;
+  box-shadow:var(--shadow) !important;
+}
+#plannerView #plannerList:has(.matrix-mobile-v2){
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+}
+#plannerView #plannerList .matrix-scroll.matrix-mobile-v2{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  height:auto !important;
+  max-height:calc(100dvh - 292px) !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow-x:auto !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+  touch-action:pan-x pan-y !important;
+  -webkit-overflow-scrolling:touch !important;
+  scroll-behavior:auto !important;
+  scrollbar-width:none !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:var(--card) !important;
+}
+#plannerView #plannerList .matrix-scroll.matrix-mobile-v2::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important;}
+
+#plannerView .matrix-mobile-v2 .transposed-matrix{
+  width:max-content !important;
+  min-width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  border-collapse:separate !important;
+  border-spacing:0 !important;
+  table-layout:fixed !important;
+}
+#plannerView .matrix-mobile-v2 .transposed-matrix thead th{
+  position:sticky !important;
+  top:0 !important;
+  z-index:8 !important;
+  height:62px !important;
+  min-height:62px !important;
+  padding:5px 4px !important;
+  background:var(--card) !important;
+  border-bottom:2px solid var(--line) !important;
+  vertical-align:middle !important;
+}
+#plannerView .matrix-mobile-v2 .transposed-matrix .matrix-event-side{
+  position:sticky !important;
+  left:0 !important;
+  z-index:6 !important;
+  width:132px !important;
+  min-width:132px !important;
+  max-width:132px !important;
+  height:66px !important;
+  padding:7px 8px !important;
+  background:var(--card) !important;
+  box-shadow:1px 0 0 var(--line) !important;
+  vertical-align:middle !important;
+}
+#plannerView .matrix-mobile-v2 .transposed-matrix thead .matrix-event-side{
+  z-index:12 !important;
+  height:62px !important;
+  background:var(--card) !important;
+  font-size:12px !important;
+  font-weight:950 !important;
+  padding-left:12px !important;
+}
+#plannerView .matrix-mobile-v2 .matrix-event-side-btn{
+  width:100% !important;
+  min-width:0 !important;
+  display:grid !important;
+  grid-template-columns:30px minmax(0,1fr) !important;
+  align-items:center !important;
+  gap:7px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  color:inherit !important;
+  text-align:left !important;
+}
+#plannerView .matrix-mobile-v2 .matrix-event-closed{cursor:default !important;}
+#plannerView .matrix-mobile-v2 .matrix-side-icon{width:30px !important;display:grid !important;place-items:center !important;}
+#plannerView .matrix-mobile-v2 .matrix-event-copy{min-width:0 !important;display:block !important;}
+#plannerView .matrix-mobile-v2 .matrix-event-copy b{
+  display:block !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  font-size:11px !important;
+  line-height:1.15 !important;
+}
+#plannerView .matrix-mobile-v2 .matrix-event-copy small{
+  display:block !important;
+  max-width:100% !important;
+  margin-top:3px !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  font-size:8.5px !important;
+  line-height:1.1 !important;
+  color:var(--muted) !important;
+}
+#plannerView .matrix-mobile-v2 .matrix-inline-count{
+  display:inline-block !important;
+  margin-top:3px !important;
+  font-size:9px !important;
+  line-height:1 !important;
+  font-weight:950 !important;
+  white-space:nowrap !important;
+}
+
+/* Every player column is deliberately stable; only the user's own column is wider. */
+#plannerView .matrix-mobile-v2 .transposed-matrix .matrix-player-head,
+#plannerView .matrix-mobile-v2 .transposed-matrix .matrix-cell{
+  box-sizing:border-box !important;
+  width:64px !important;
+  min-width:64px !important;
+  max-width:64px !important;
+  height:66px !important;
+  padding:0 3px !important;
+  text-align:center !important;
+  vertical-align:middle !important;
+  background:var(--card);
+}
+#plannerView .matrix-mobile-v2 .transposed-matrix .current-player-head,
+#plannerView .matrix-mobile-v2 .transposed-matrix .current-player-cell{
+  width:86px !important;
+  min-width:86px !important;
+  max-width:86px !important;
+}
+#plannerView .matrix-mobile-v2 .current-player-head{
+  background:#fff1ae !important;
+  box-shadow:inset 1px 0 0 var(--line),inset -1px 0 0 var(--line) !important;
+}
+#plannerView .matrix-mobile-v2 .current-player-cell{
+  box-shadow:inset 1px 0 0 #e7b000,inset -1px 0 0 #e7b000 !important;
+}
+#plannerView .matrix-mobile-v2 .grid-player-head-inner{
+  width:100% !important;
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:2px !important;
+}
+#plannerView .matrix-mobile-v2 .grid-player-label{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  font-size:9.5px !important;
+  line-height:1.05 !important;
+  font-weight:900 !important;
+}
+#plannerView .matrix-mobile-v2 .grid-player-avatar{width:24px !important;height:24px !important;}
+#plannerView .matrix-mobile-v2 .grid-player-avatar-svg{width:24px !important;height:24px !important;}
+#plannerView .matrix-mobile-v2 .matrix-control{
+  width:76px !important;
+  min-width:76px !important;
+  max-width:76px !important;
+  margin:0 auto !important;
+}
+#plannerView .matrix-mobile-v2 .matrix-control button{min-width:0 !important;width:25px !important;padding:0 !important;}
+#plannerView .matrix-mobile-v2 .matrix-status{font-size:18px !important;font-weight:950 !important;}
+
+/* Month dividers do not participate in sticky geometry. */
+#plannerView .matrix-mobile-v2 .matrix-month-divider td{
+  position:relative !important;
+  left:auto !important;
+  width:auto !important;
+  min-width:0 !important;
+  height:24px !important;
+  padding:0 10px !important;
+  background:var(--card) !important;
+  border:0 !important;
+}
+#plannerView .matrix-mobile-v2 .matrix-month-divider .month-divider{margin:2px 0 !important;}
+#plannerView .matrix-mobile-v2 .matrix-past-row{opacity:.58 !important;}
+#plannerView .matrix-mobile-v2 .matrix-current-anchor th,
+#plannerView .matrix-mobile-v2 .matrix-current-anchor td{border-top:1px solid var(--line) !important;}
+
+/* Historical count-column rules are intentionally neutralized in V2. */
+#plannerView .matrix-mobile-v2 .matrix-count-head,
+#plannerView .matrix-mobile-v2 .matrix-count-cell{display:none !important;position:static !important;left:auto !important;}
+
+/* Past calendar items remain visible but are inert. */
+.calendar-event.calendar-event-past{
+  cursor:default !important;
+  pointer-events:none !important;
+  opacity:.76 !important;
+  box-shadow:none !important;
+}
+.calendar-event.calendar-event-past-training{
+  background:#ececec !important;
+  color:#707070 !important;
+  border-color:#d7d7d7 !important;
+}
+.calendar-event.calendar-result-win{
+  background:#e7f4e9 !important;
+  color:#256c3a !important;
+  border-color:#cde5d2 !important;
+}
+.calendar-event.calendar-result-loss{
+  background:#f9e7e6 !important;
+  color:#a9302c !important;
+  border-color:#efd0ce !important;
+}
+.dark .calendar-event.calendar-event-past-training{background:#242424 !important;color:#aaa !important;border-color:#383838 !important;}
+.dark .calendar-event.calendar-result-win{background:#17301e !important;color:#86d49b !important;border-color:#285438 !important;}
+.dark .calendar-event.calendar-result-loss{background:#351d1b !important;color:#ef9d97 !important;border-color:#60312d !important;}
+
+@media(max-width:760px){
+  #plannerView #plannerList .matrix-scroll.matrix-mobile-v2{
+    max-height:calc(100dvh - 286px) !important;
+  }
+  #plannerView .matrix-mobile-v2 .transposed-matrix .matrix-event-side{
+    width:124px !important;
+    min-width:124px !important;
+    max-width:124px !important;
+  }
+  #plannerView .matrix-mobile-v2 .transposed-matrix .matrix-player-head,
+  #plannerView .matrix-mobile-v2 .transposed-matrix .matrix-cell{
+    width:62px !important;
+    min-width:62px !important;
+    max-width:62px !important;
+  }
+  #plannerView .matrix-mobile-v2 .transposed-matrix .current-player-head,
+  #plannerView .matrix-mobile-v2 .transposed-matrix .current-player-cell{
+    width:84px !important;
+    min-width:84px !important;
+    max-width:84px !important;
+  }
+}
+.attendance-slider.cc-slider-tap-snapping{pointer-events:none !important;}
+
+
+/* ========================================================================== 
+   PLAYER V2.3.10.25 — MOBILE GRID V3 / FREEZE PANES
+   One native X/Y scroll surface. Header row + Alkalom + Fő are frozen.
+   ========================================================================== */
+#plannerView .matrix-mobile-v2.matrix-freeze-v3{
+  --cc-grid-event-w:132px;
+  --cc-grid-count-w:44px;
+  --cc-grid-freeze-line:#a7834c;
+  position:relative !important;
+  overflow:auto !important;
+  overscroll-behavior:contain !important;
+  touch-action:pan-x pan-y !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+
+/* Restore the dedicated count column removed by Mobile Grid v2. */
+#plannerView .matrix-freeze-v3 .matrix-count-head,
+#plannerView .matrix-freeze-v3 .matrix-count-cell{
+  display:table-cell !important;
+  box-sizing:border-box !important;
+  width:var(--cc-grid-count-w) !important;
+  min-width:var(--cc-grid-count-w) !important;
+  max-width:var(--cc-grid-count-w) !important;
+  padding:0 3px !important;
+  text-align:center !important;
+  vertical-align:middle !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-count-cell strong{
+  font-size:11px !important;
+  line-height:1 !important;
+  font-weight:950 !important;
+  white-space:nowrap !important;
+}
+
+/* Freeze pane: first column. */
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-event-side{
+  left:0 !important;
+  width:var(--cc-grid-event-w) !important;
+  min-width:var(--cc-grid-event-w) !important;
+  max-width:var(--cc-grid-event-w) !important;
+  z-index:10 !important;
+  background:var(--card) !important;
+  box-shadow:1px 0 0 var(--line) !important;
+}
+
+/* Freeze pane: second column immediately after Alkalom. */
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-head,
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-cell{
+  position:sticky !important;
+  left:var(--cc-grid-event-w) !important;
+  z-index:9 !important;
+  background:var(--card) !important;
+  box-shadow:2px 0 0 var(--cc-grid-freeze-line) !important;
+}
+
+/* Header row stays above vertical scrolling; the two top-left cells sit above
+   both frozen axes. */
+#plannerView .matrix-freeze-v3 .transposed-matrix thead th{
+  position:sticky !important;
+  top:0 !important;
+  z-index:12 !important;
+  background:var(--card) !important;
+  border-bottom:2px solid var(--cc-grid-freeze-line) !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix thead .matrix-event-side{
+  z-index:16 !important;
+  background:var(--card) !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix thead .matrix-count-head{
+  z-index:15 !important;
+  background:var(--card) !important;
+}
+
+/* The count is now in its own frozen column, not repeated inside Alkalom. */
+#plannerView .matrix-freeze-v3 .matrix-inline-count{display:none !important;}
+
+/* Month dividers scroll with the body and never become a competing sticky pane. */
+#plannerView .matrix-freeze-v3 .matrix-month-divider td{
+  position:relative !important;
+  left:auto !important;
+  z-index:1 !important;
+}
+
+/* Dark theme keeps the same freeze geometry. */
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-head,
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-cell,
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix .matrix-event-side,
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix thead th{
+  background:#151412 !important;
+}
+
+/* Event details: opening the dialog focuses the surface, not the X button. */
+#eventDialog:focus{outline:none !important;}
+#eventDialog .dialog-x-btn:focus:not(:focus-visible){outline:none !important;box-shadow:none !important;}
+
+@media(max-width:760px){
+  #plannerView .matrix-mobile-v2.matrix-freeze-v3{
+    --cc-grid-event-w:124px;
+    --cc-grid-count-w:42px;
+  }
+  #plannerView .matrix-freeze-v3 .matrix-count-cell strong{font-size:10.5px !important;}
+}
