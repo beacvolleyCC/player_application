@@ -1,28 +1,11 @@
-CLUB CONTROL PLAYER V2.3.10.26 — QA RESULT
+PLAYER V2.3.10.26 FULL REPO PACKAGE
 
-RESULT: STATIC QA PASS
+PACKAGE CHECK: PASS
+- index.html present
+- app.js present
+- styles.css present
+- sw.js present
+- complete current Player runtime set copied from V2.3.10.26 working package
 
-PASS
-- app.js syntax
-- sw.js syntax
-- build label V2.3.10.26
-- service-worker cache bumped to v2-3-10-26
-- freeze-pane structure preserved: Alkalom + Fő + top header
-- reference geometry present:
-  Alkalom 108 px
-  Fő 44 px
-  Én 82 px
-  player 52 px
-  header 48 px
-  row 54 px
-- green matrix yes background restored
-- red matrix no background restored
-- compact matrix header no longer renders avatars
-- compact matrix event cell no longer renders event icon
-- no RSVP / Supabase write-path changes in this patch
-
-BROWSER AUTOMATION
-- A local Chromium screenshot attempt was not counted as PASS because Chromium
-  hung in this container environment (DBus/zygote environment issue).
-- Physical iPhone smoke remains required, especially horizontal/vertical grid
-  scrolling and sticky panes.
+NOTE
+Physical iPhone / Android / desktop smoke remains the production release gate.

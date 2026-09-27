@@ -1,32 +1,22 @@
-CLUB CONTROL PLAYER — V2.3.10.26
-REFERENCE GRID PARITY
+CLUB CONTROL PLAYER — V2.3.10.26 FULL REPO PACKAGE
+
+This is the complete current Player frontend package used by this project line.
+Runtime files:
+- index.html
+- app.js
+- styles.css
+- sw.js
+
+There is no separate config.js, manifest.webmanifest, assets/ or icons/ directory
+in the current Player package lineage. The stable V2.3.10.16 checkpoint and all
+subsequent Player release packages use these same four runtime files.
+
+INSTALL / GITHUB
+1. Replace the four files in the player_application repository with the four files here.
+2. Do not delete unrelated repository metadata such as .git, .github or README files if present.
+3. Commit and push.
+4. After deployment, fully close and reopen the installed PWA / browser tab so the new service worker can activate.
 
 BASELINE
-- V2.3.10.25 Freeze Pane Grid v3
-
-CHANGES
-- Player Menetrend / Rács resized to the approved compact reference:
-  Alkalom 108 px, Fő 44 px, Én 82 px, player columns 52 px,
-  header 48 px, event rows 54 px.
-- Alkalom + Fő remain frozen on the left.
-- Header remains frozen on top.
-- Removed animal avatars and event icons ONLY from the dense grid to preserve
-  the reference density. Avatars remain available elsewhere in Player.
-- Restored green background for Jövök cells and red background for Nem jövök.
-- Neutral/no-answer cells remain white/card background.
-- Own column uses the same neutral header styling as the reference; the Én
-  label and three-way control identify it.
-
-UNCHANGED
-- RSVP business logic and slider behavior
-- event details / Maps detail-only behavior
-- calendar export
-- court fallback rules
-- Motion System v1
-- past-event calendar behavior
-- Supabase / auth / push / notification business logic
-
-DEPLOY
-Replace the Player frontend files with the files in this package.
-Close and reopen the installed PWA after deployment so the V2.3.10.26 service
-worker cache is activated.
+- Built from the retained Player V2.3.10.x line, not from the accidentally overwritten local Git folder.
+- Includes the V2.3.10.26 reference-grid changes plus the prior retained Player behavior.
