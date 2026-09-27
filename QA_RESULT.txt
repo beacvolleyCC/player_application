@@ -1,11 +1,21 @@
-PLAYER V2.3.10.26 FULL REPO PACKAGE
+CLUB CONTROL PLAYER V2.3.10.23 — QA RESULT
 
-PACKAGE CHECK: PASS
-- index.html present
-- app.js present
-- styles.css present
-- sw.js present
-- complete current Player runtime set copied from V2.3.10.26 working package
+TARGETED SCOPE
+- Attendance slider adjacent-state tap/flick behavior + tap snap motion
+- Weekly team court fallback correction
+- Preserve V2.3.10.22 grid touch fix and Motion System v1
 
-NOTE
-Physical iPhone / Android / desktop smoke remains the production release gate.
+STATIC QA
+- JS syntax: PASS (node --check)
+- Service worker syntax: PASS (node --check)
+- Build/cache version: updated to V2.3.10.23
+- No SQL/schema changes
+
+PHYSICAL QA STILL REQUIRED
+- iPhone PWA: tap Jövök -> tap Nem jövök should stop at Nincs jelzés first; second tap reaches Nem jövök.
+- iPhone PWA: short flick from Jövök must stop at Nincs jelzés; deliberate drag may reach Nem jövök.
+- Verify court fallback on Női I / Női II / Férfi weekly sessions.
+- Re-smoke Menetrend grid X/Y scroll from V2.3.10.22.
+- Adjacent tap state-transition helper cases: PASS
+- Flick cap vs deliberate full-drag helper cases: PASS
+- Weekly court mapping/static integration checks: PASS
