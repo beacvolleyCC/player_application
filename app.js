@@ -1219,10 +1219,12 @@ function renderGridMatrix(rows){
 
     const eventButton=archived
       ? `<div class="matrix-event-side-btn matrix-event-closed" aria-label="${typeLabel(e)} · ${e.title} · lezárt esemény">
-          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small></span>
+          <span class="matrix-side-icon">${typeIcon(e)}</span>
+          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day} · ${e.time}</small></span>
         </div>`
       : `<button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
-          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small></span>
+          <span class="matrix-side-icon">${typeIcon(e)}</span>
+          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day} · ${e.time}</small></span>
         </button>`;
 
     return divider+`<tr class="${archived?'matrix-past-row':''} ${rowIndex===anchorIndex?'matrix-current-anchor':''}" data-grid-event="${e.id}">
@@ -1238,12 +1240,7 @@ function renderGridMatrix(rows){
     </tr>`;
   }).join('');
 
-  return `<div class="matrix-scroll matrix-mobile-v2 matrix-freeze-v3" id="matrixScroll"><table class="season-matrix transposed-matrix">
-    <colgroup>
-      <col class="matrix-col-event">
-      <col class="matrix-col-count">
-      ${people.map(person=>`<col class="${person.id==='__ME__'?'matrix-col-own':'matrix-col-player'}">`).join('')}
-    </colgroup>
+  return `<div class="matrix-scroll" id="matrixScroll"><table class="season-matrix transposed-matrix">
     <thead>
       <tr>
         <th class="matrix-event-side sticky-matrix-col">Alkalom</th>

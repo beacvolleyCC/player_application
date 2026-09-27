@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26c-notification-swipe-motion-v1';
+const CACHE='club-control-player-v2-3-10-26d-legacy-grid-stable';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

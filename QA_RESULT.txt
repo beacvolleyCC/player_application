@@ -1,21 +1,15 @@
-PLAYER V2.3.10.26C QA
-
-PASS: app.js syntax (node --check)
-PASS: sw.js syntax (node --check)
-PASS: index.html unchanged from V2.3.10.26B
-PASS: old compact grid dimensions retained (112/34/86/38/42)
-PASS: green/red grid status styling retained
-PASS: Notification Swipe Motion v1 8px deadzone
-PASS: horizontal/vertical direction lock
-PASS: direct drag without transition
-PASS: 80px reveal
-PASS: rubber-band resistance after reveal
-PASS: distance + velocity close/open/full-swipe logic
-PASS: one-open-row policy
-PASS: outside-tap close
-PASS: notification-list scroll close
-PASS: revealed action tap dismiss
-PASS: full-swipe dismiss
-PASS: service-worker cache version bumped
-
-Live iPhone/PWA gesture smoke remains required after deploy.
+PLAYER V2.3.10.26D QA
+- app.js syntax: PASS
+- sw.js syntax: PASS
+- legacy simple matrix wrapper restored: PASS
+- Grid-v2/v3 wrapper classes removed: PASS
+- colgroup removed: PASS
+- table-layout auto: PASS
+- mobile Alkalom 112px: PASS
+- mobile Fő 34px, sticky left 112px: PASS
+- mobile own 86px: PASS
+- mobile teammate 38px: PASS
+- RSVP green/red fills: PASS
+- Notification Swipe Motion v1 retained: PASS
+- config/manifest/icons untouched: PASS
+Physical iPhone Safari/PWA smoke remains required.

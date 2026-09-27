@@ -8258,3 +8258,106 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
     transition-duration:.01ms !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26D — LEGACY GRID ROLLBACK + STICKY STABILITY ONLY
+   Restore the proven pre-Grid-v2 matrix. No colgroup and no fixed table layout.
+   Only frozen-column widths/offsets are pinned so Safari cannot squeeze Fő.
+   ========================================================== */
+#plannerView #plannerList:has(.transposed-matrix) .matrix-scroll{
+  width:100% !important;
+  overflow:auto !important;
+  touch-action:pan-x pan-y !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior:contain !important;
+}
+#plannerView #matrixScroll .transposed-matrix{
+  width:max-content !important;
+  min-width:max-content !important;
+  table-layout:auto !important;
+  border-collapse:separate !important;
+  border-spacing:0 !important;
+}
+#plannerView #matrixScroll .transposed-matrix .matrix-event-side{
+  min-width:118px !important;
+  width:118px !important;
+  max-width:118px !important;
+  position:sticky !important;
+  left:0 !important;
+  z-index:10 !important;
+  background:var(--card) !important;
+}
+#plannerView #matrixScroll .transposed-matrix .matrix-count-head,
+#plannerView #matrixScroll .transposed-matrix .matrix-count-cell{
+  min-width:36px !important;
+  width:36px !important;
+  max-width:36px !important;
+  box-sizing:border-box !important;
+  position:sticky !important;
+  left:118px !important;
+  z-index:9 !important;
+  background:var(--card) !important;
+  padding-inline:3px !important;
+  white-space:nowrap !important;
+}
+#plannerView #matrixScroll .transposed-matrix thead th{
+  position:sticky !important;
+  top:0 !important;
+  z-index:12 !important;
+  background:var(--card) !important;
+}
+#plannerView #matrixScroll .transposed-matrix thead .matrix-event-side{z-index:16 !important;}
+#plannerView #matrixScroll .transposed-matrix thead .matrix-count-head{z-index:15 !important;}
+#plannerView #matrixScroll .transposed-matrix thead .matrix-player-head:not(.current-player-head),
+#plannerView #matrixScroll .transposed-matrix tbody .matrix-cell:not(.current-player-cell){
+  min-width:42px !important;
+  width:42px !important;
+  max-width:42px !important;
+  padding-inline:2px !important;
+}
+#plannerView #matrixScroll .transposed-matrix thead .current-player-head,
+#plannerView #matrixScroll .transposed-matrix tbody .current-player-cell{
+  min-width:88px !important;
+  width:88px !important;
+  max-width:88px !important;
+  padding-inline:4px !important;
+}
+#plannerView #matrixScroll .transposed-matrix .matrix-cell.matrix-yes{background:#e9f5eb !important;}
+#plannerView #matrixScroll .transposed-matrix .matrix-cell.matrix-no{background:#fae9e8 !important;}
+#plannerView #matrixScroll .transposed-matrix .matrix-cell.matrix-none{background:var(--card) !important;}
+#plannerView #matrixScroll .transposed-matrix .matrix-yes .matrix-status{color:var(--green) !important;}
+#plannerView #matrixScroll .transposed-matrix .matrix-no .matrix-status{color:var(--red) !important;}
+.dark #plannerView #matrixScroll .transposed-matrix .matrix-cell.matrix-yes{background:#17291c !important;}
+.dark #plannerView #matrixScroll .transposed-matrix .matrix-cell.matrix-no{background:#301a18 !important;}
+.dark #plannerView #matrixScroll .transposed-matrix .matrix-event-side,
+.dark #plannerView #matrixScroll .transposed-matrix .matrix-count-head,
+.dark #plannerView #matrixScroll .transposed-matrix .matrix-count-cell,
+.dark #plannerView #matrixScroll .transposed-matrix thead th{background:#151412 !important;}
+
+@media(max-width:760px){
+  #plannerView #matrixScroll .transposed-matrix .matrix-event-side{
+    min-width:112px !important;
+    width:112px !important;
+    max-width:112px !important;
+  }
+  #plannerView #matrixScroll .transposed-matrix .matrix-count-head,
+  #plannerView #matrixScroll .transposed-matrix .matrix-count-cell{
+    min-width:34px !important;
+    width:34px !important;
+    max-width:34px !important;
+    left:112px !important;
+  }
+  #plannerView #matrixScroll .transposed-matrix thead .matrix-player-head:not(.current-player-head),
+  #plannerView #matrixScroll .transposed-matrix tbody .matrix-cell:not(.current-player-cell){
+    min-width:38px !important;
+    width:38px !important;
+    max-width:38px !important;
+  }
+  #plannerView #matrixScroll .transposed-matrix thead .current-player-head,
+  #plannerView #matrixScroll .transposed-matrix tbody .current-player-cell{
+    min-width:86px !important;
+    width:86px !important;
+    max-width:86px !important;
+  }
+}
