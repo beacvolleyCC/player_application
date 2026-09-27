@@ -1,15 +1,22 @@
-CLUB CONTROL PLAYER — V2.3.10.25
+CLUB CONTROL PLAYER — V2.3.10.26 FULL REPO PACKAGE
 
-Scope
-- Mobile Grid v3 freeze panes: header row + Alkalom + Fő remain fixed.
-- One native X/Y matrix scroll surface; Én + player columns scroll horizontally.
-- Restores dedicated Fő column; attendance count no longer lives inside Alkalom.
-- Event detail dialog no longer opens with the X button auto-selected/focused.
-- V2.3.10.24 behavior retained: Motion System v1, slider fixes, fixed court fallback, detail-only Google Maps, calendar export, past calendar event states.
+This is the complete current Player frontend package used by this project line.
+Runtime files:
+- index.html
+- app.js
+- styles.css
+- sw.js
 
-Deployment
-Replace the Player frontend files with index.html, app.js, styles.css and sw.js from this package.
-No SQL/database migration is included or required.
+There is no separate config.js, manifest.webmanifest, assets/ or icons/ directory
+in the current Player package lineage. The stable V2.3.10.16 checkpoint and all
+subsequent Player release packages use these same four runtime files.
 
-Production gate
-Physically smoke-test iPhone PWA, Android and desktop before treating this candidate as production.
+INSTALL / GITHUB
+1. Replace the four files in the player_application repository with the four files here.
+2. Do not delete unrelated repository metadata such as .git, .github or README files if present.
+3. Commit and push.
+4. After deployment, fully close and reopen the installed PWA / browser tab so the new service worker can activate.
+
+BASELINE
+- Built from the retained Player V2.3.10.x line, not from the accidentally overwritten local Git folder.
+- Includes the V2.3.10.26 reference-grid changes plus the prior retained Player behavior.

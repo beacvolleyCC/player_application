@@ -7617,7 +7617,7 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
 
 
 /* ========================================================================== 
-   PLAYER V2.3.10.25 — MOBILE GRID V3 / FREEZE PANES
+   PLAYER V2.3.10.25 — MOBILE GRID V3 / FREEZE PANES (baseline)
    One native X/Y scroll surface. Header row + Alkalom + Fő are frozen.
    ========================================================================== */
 #plannerView .matrix-mobile-v2.matrix-freeze-v3{
@@ -7717,4 +7717,198 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
     --cc-grid-count-w:42px;
   }
   #plannerView .matrix-freeze-v3 .matrix-count-cell strong{font-size:10.5px !important;}
+}
+
+/* ========================================================================== 
+   PLAYER V2.3.10.26 — REFERENCE GRID PARITY
+   Dense freeze-pane geometry copied from the approved Manager reference:
+   Alkalom 108px | Fő 44px | Én 82px | players 52px | header 48px | rows 54px.
+   ========================================================================== */
+#plannerView .matrix-mobile-v2.matrix-freeze-v3{
+  --cc-grid-event-w:108px !important;
+  --cc-grid-count-w:44px !important;
+  --cc-grid-own-w:82px !important;
+  --cc-grid-player-w:52px !important;
+  --cc-grid-head-h:48px !important;
+  --cc-grid-row-h:54px !important;
+  --cc-grid-freeze-line:#a7834c !important;
+}
+
+/* Reference density: no oversized icon/avatar footprint inside the matrix. */
+#plannerView .matrix-freeze-v3 .matrix-event-side-btn{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  padding:0 !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-event-copy{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-event-copy b{
+  display:block !important;
+  font-size:10px !important;
+  line-height:1.08 !important;
+  font-weight:900 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-event-copy small{
+  display:block !important;
+  margin-top:3px !important;
+  font-size:8px !important;
+  line-height:1.05 !important;
+  font-weight:700 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+/* Exact freeze-pane cell geometry. */
+#plannerView .matrix-freeze-v3 .transposed-matrix thead th{
+  height:var(--cc-grid-head-h) !important;
+  min-height:var(--cc-grid-head-h) !important;
+  max-height:var(--cc-grid-head-h) !important;
+  padding:0 4px !important;
+  border-bottom:3px solid var(--cc-grid-freeze-line) !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-event-side{
+  width:var(--cc-grid-event-w) !important;
+  min-width:var(--cc-grid-event-w) !important;
+  max-width:var(--cc-grid-event-w) !important;
+  height:var(--cc-grid-row-h) !important;
+  min-height:var(--cc-grid-row-h) !important;
+  max-height:var(--cc-grid-row-h) !important;
+  padding:5px 7px !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-head,
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-cell{
+  width:var(--cc-grid-count-w) !important;
+  min-width:var(--cc-grid-count-w) !important;
+  max-width:var(--cc-grid-count-w) !important;
+  height:var(--cc-grid-row-h) !important;
+  min-height:var(--cc-grid-row-h) !important;
+  max-height:var(--cc-grid-row-h) !important;
+  padding:0 2px !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-player-head,
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-cell{
+  width:var(--cc-grid-player-w) !important;
+  min-width:var(--cc-grid-player-w) !important;
+  max-width:var(--cc-grid-player-w) !important;
+  height:var(--cc-grid-row-h) !important;
+  min-height:var(--cc-grid-row-h) !important;
+  max-height:var(--cc-grid-row-h) !important;
+  padding:0 !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .current-player-head,
+#plannerView .matrix-freeze-v3 .transposed-matrix .current-player-cell{
+  width:var(--cc-grid-own-w) !important;
+  min-width:var(--cc-grid-own-w) !important;
+  max-width:var(--cc-grid-own-w) !important;
+}
+
+/* Header typography mirrors the approved dense reference. */
+#plannerView .matrix-freeze-v3 .grid-player-head-inner{
+  height:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+#plannerView .matrix-freeze-v3 .grid-player-label{
+  font-size:9px !important;
+  line-height:1 !important;
+  font-weight:900 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+#plannerView .matrix-freeze-v3 .current-player-head .grid-player-label{
+  font-size:13px !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-count-cell strong{
+  font-size:11px !important;
+}
+
+/* Own three-way control fits the 82px "Én" column like the reference. */
+#plannerView .matrix-freeze-v3 .matrix-control{
+  width:74px !important;
+  min-width:74px !important;
+  max-width:74px !important;
+  height:30px !important;
+  margin:0 auto !important;
+  border-radius:16px !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-control button{
+  width:24.666px !important;
+  min-width:24.666px !important;
+  height:28px !important;
+  padding:0 !important;
+  font-size:12px !important;
+}
+
+/* Restore the green/red availability fill that was accidentally overridden by
+   the Mobile Grid v2 base background rule. */
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-cell.matrix-yes{
+  background:#e7f4e9 !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-cell.matrix-no{
+  background:#f9e7e6 !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-cell.matrix-none{
+  background:var(--card) !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-cell.matrix-yes .matrix-status{
+  color:#258044 !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-cell.matrix-no .matrix-status{
+  color:#c7352d !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-status{
+  font-size:17px !important;
+  line-height:1 !important;
+}
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix .matrix-cell.matrix-yes{
+  background:#17301e !important;
+}
+.dark #plannerView .matrix-freeze-v3 .transposed-matrix .matrix-cell.matrix-no{
+  background:#351d1b !important;
+}
+
+/* Reference month separator is deliberately thin. */
+#plannerView .matrix-freeze-v3 .matrix-month-divider td{
+  height:20px !important;
+  min-height:20px !important;
+  max-height:20px !important;
+  padding:0 8px !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-month-divider .month-divider{
+  margin:0 !important;
+  font-size:7.5px !important;
+}
+
+/* Keep the frozen split visually identical on phone and desktop. */
+@media(max-width:760px){
+  #plannerView .matrix-mobile-v2.matrix-freeze-v3{
+    --cc-grid-event-w:108px !important;
+    --cc-grid-count-w:44px !important;
+    --cc-grid-own-w:82px !important;
+    --cc-grid-player-w:52px !important;
+  }
+}
+/* The approved reference does not use a yellow own-column fill; "Én" + the
+   three-way control are sufficient identification. */
+#plannerView .matrix-freeze-v3 .current-player-head{
+  background:var(--card) !important;
+  color:inherit !important;
+  box-shadow:none !important;
+}
+#plannerView .matrix-freeze-v3 .current-player-cell{
+  box-shadow:none !important;
+}
+.dark #plannerView .matrix-freeze-v3 .current-player-head{
+  background:#151412 !important;
+  color:#f3eee4 !important;
 }

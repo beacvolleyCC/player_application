@@ -38,7 +38,7 @@ let avatarPickerMode = 'monogram';
 
 
 // ---------------------------------------------------------------------------
-// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.25
+// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.26
 // Shared motion primitives only. Business/data behavior stays unchanged.
 // ---------------------------------------------------------------------------
 const CC_MOTION_V1=Object.freeze({
@@ -1219,11 +1219,9 @@ function renderGridMatrix(rows){
 
     const eventButton=archived
       ? `<div class="matrix-event-side-btn matrix-event-closed" aria-label="${typeLabel(e)} · ${e.title} · lezárt esemény">
-          <span class="matrix-side-icon">${typeIcon(e)}</span>
           <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small></span>
         </div>`
       : `<button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
-          <span class="matrix-side-icon">${typeIcon(e)}</span>
           <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small></span>
         </button>`;
 
@@ -1248,7 +1246,7 @@ function renderGridMatrix(rows){
         ${people.map(person=>{
           const mine=person.id==='__ME__';
           const label=mine ? 'Én' : gridGivenName(person);
-          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${escapeHtml_(person.name)}"><span class="grid-player-head-inner">${person.avatarId?`<span class="grid-player-avatar">${avatarMarkup_(person.avatarId,'grid-player-avatar-svg')}</span>`:''}<span class="grid-player-label">${escapeHtml_(label)}</span></span></th>`;
+          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${escapeHtml_(person.name)}"><span class="grid-player-head-inner"><span class="grid-player-label">${escapeHtml_(label)}</span></span></th>`;
         }).join('')}
       </tr>
     </thead>
