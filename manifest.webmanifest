@@ -1,26 +1,29 @@
 {
-  "name": "Club Control Player",
-  "short_name": "CC Player",
-  "description": "Club Control Player alkalmazás versenycsapatoknak.",
+  "name": "Club Control Manager V0.4.2B",
+  "short_name": "CC Manager",
+  "description": "Club Control Manager PWA – structure/parity + admin permissions + Tömegsport",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#f7b700",
+  "background_color": "#f4f4f1",
   "theme_color": "#f7b700",
-  "lang": "hu",
+  "orientation": "any",
   "icons": [
     {
       "src": "./icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "./icons/icon-512.png",
       "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
