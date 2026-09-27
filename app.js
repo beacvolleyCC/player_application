@@ -27,7 +27,7 @@ const plannerList = document.getElementById('plannerList');
 const cancelDialog = document.getElementById('cancelDialog');
 let pendingCancel = null;
 let missingOnly = false;
-let detailedMode = localStorage.getItem('cc-detailed-mode') === 'true';
+let detailedMode = false; // V2.3.10.19: contextual event detail is always used; legacy flag kept DB-compatible.
 let currentPlayerName = 'Te';
 let currentPlayerDisplayName = 'Te';
 let currentPlayerData = null;
@@ -35,6 +35,157 @@ let teamPlayerDirectory = [];
 let currentAvatarId = '';
 let teamAvatarByPlayerId = new Map();
 let avatarPickerMode = 'monogram';
+
+
+// ---------------------------------------------------------------------------
+// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.22
+// Shared motion primitives only. Business/data behavior stays unchanged.
+// ---------------------------------------------------------------------------
+const CC_MOTION_V1=Object.freeze({
+  micro:140,
+  normal:210,
+  structural:280,
+  enter:200,
+  exit:160,
+  snap:200,
+  skeleton:100,
+  directionLock:8
+});
+const ccReducedMotionMedia_=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+function ccPrefersReducedMotion_(){ return !!ccReducedMotionMedia_?.matches; }
+
+const ccDialogCloseTimers_=new WeakMap();
+function ccDialogMotionCleanup_(dialog){
+  if(!dialog) return;
+  const timer=ccDialogCloseTimers_.get(dialog);
+  if(timer) clearTimeout(timer);
+  ccDialogCloseTimers_.delete(dialog);
+  dialog.classList.remove('cc-motion-open','cc-motion-closing','cc-sheet-dragging','cc-sheet-snapping');
+  dialog.style.removeProperty('--cc-sheet-drag-y');
+}
+function ccOpenDialog_(dialog){
+  if(!dialog) return;
+  const oldTimer=ccDialogCloseTimers_.get(dialog);
+  if(oldTimer) clearTimeout(oldTimer);
+  ccDialogCloseTimers_.delete(dialog);
+  dialog.classList.remove('cc-motion-closing');
+  dialog.style.removeProperty('--cc-sheet-drag-y');
+  if(typeof dialog.showModal==='function' && !dialog.open) dialog.showModal();
+  if(ccPrefersReducedMotion_()){
+    dialog.classList.add('cc-motion-open');
+    return;
+  }
+  dialog.classList.remove('cc-motion-open');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(dialog.open) dialog.classList.add('cc-motion-open');
+  }));
+}
+function ccCloseDialog_(dialog,onClosed){
+  if(!dialog?.open){ if(typeof onClosed==='function') onClosed(); return; }
+  const finish=()=>{
+    const oldTimer=ccDialogCloseTimers_.get(dialog);
+    if(oldTimer) clearTimeout(oldTimer);
+    ccDialogCloseTimers_.delete(dialog);
+    if(dialog.open) dialog.close();
+    ccDialogMotionCleanup_(dialog);
+    if(typeof onClosed==='function') onClosed();
+  };
+  if(ccPrefersReducedMotion_()){
+    finish();
+    return;
+  }
+  dialog.classList.remove('cc-motion-open','cc-sheet-dragging','cc-sheet-snapping');
+  dialog.classList.add('cc-motion-closing');
+  const timer=window.setTimeout(finish,CC_MOTION_V1.exit+24);
+  ccDialogCloseTimers_.set(dialog,timer);
+}
+function ccBindDialogMotion_(dialog){
+  if(!dialog || dialog.dataset.ccMotionBound==='1') return;
+  dialog.dataset.ccMotionBound='1';
+  dialog.addEventListener('cancel',event=>{
+    event.preventDefault();
+    ccCloseDialog_(dialog);
+  });
+  dialog.addEventListener('close',()=>ccDialogMotionCleanup_(dialog));
+}
+function ccBindPanelSheetMotion_(dialog){
+  if(!dialog || dialog.dataset.ccSheetBound==='1') return;
+  dialog.dataset.ccSheetBound='1';
+  const card=dialog.querySelector('.cc-panel-card');
+  const handle=card?.querySelector(':scope > h3');
+  if(!card || !handle) return;
+
+  let active=false,locked=false,startX=0,startY=0,lastY=0,lastT=0,velocityY=0,pointerId=null;
+  const reset=()=>{
+    active=false; locked=false; pointerId=null; velocityY=0;
+    dialog.classList.remove('cc-sheet-dragging');
+  };
+  const snapBack=()=>{
+    dialog.classList.remove('cc-sheet-dragging');
+    dialog.classList.add('cc-sheet-snapping');
+    dialog.style.setProperty('--cc-sheet-drag-y','0px');
+    window.setTimeout(()=>dialog.classList.remove('cc-sheet-snapping'),ccPrefersReducedMotion_()?0:CC_MOTION_V1.snap+30);
+  };
+
+  handle.addEventListener('pointerdown',event=>{
+    if(window.innerWidth>760 || ccPrefersReducedMotion_() || event.button!==0) return;
+    active=true; locked=false; pointerId=event.pointerId;
+    startX=event.clientX; startY=event.clientY; lastY=event.clientY; lastT=performance.now(); velocityY=0;
+    handle.setPointerCapture?.(event.pointerId);
+  });
+  handle.addEventListener('pointermove',event=>{
+    if(!active || event.pointerId!==pointerId) return;
+    const dx=event.clientX-startX, dy=event.clientY-startY;
+    if(!locked){
+      if(Math.hypot(dx,dy)<CC_MOTION_V1.directionLock) return;
+      if(Math.abs(dx)>Math.abs(dy)){
+        reset();
+        try{handle.releasePointerCapture?.(event.pointerId);}catch(_){ }
+        return;
+      }
+      locked=true;
+      dialog.classList.add('cc-sheet-dragging');
+    }
+    const y=Math.max(0,dy);
+    const now=performance.now();
+    const dt=Math.max(1,now-lastT);
+    velocityY=(event.clientY-lastY)/dt;
+    lastY=event.clientY; lastT=now;
+    dialog.style.setProperty('--cc-sheet-drag-y',`${y.toFixed(1)}px`);
+    event.preventDefault();
+  });
+  const end=event=>{
+    if(!active || (pointerId!==null && event.pointerId!==pointerId)) return;
+    const dy=Math.max(0,event.clientY-startY);
+    const threshold=Math.max(72,Math.min(132,card.getBoundingClientRect().height*.18));
+    const shouldClose=locked && (dy>=threshold || (velocityY>.55 && dy>32));
+    try{handle.releasePointerCapture?.(event.pointerId);}catch(_){ }
+    reset();
+    if(shouldClose) ccCloseDialog_(dialog);
+    else snapBack();
+  };
+  handle.addEventListener('pointerup',end);
+  handle.addEventListener('pointercancel',event=>{
+    if(!active || (pointerId!==null && event.pointerId!==pointerId)) return;
+    try{handle.releasePointerCapture?.(event.pointerId);}catch(_){ }
+    reset(); snapBack();
+  });
+}
+function ccSyncNavMotionIndicator_(){
+  const nav=document.querySelector('.bottom-nav');
+  if(!nav) return;
+  const buttons=[...nav.querySelectorAll('.nav-btn')];
+  const index=Math.max(0,buttons.findIndex(button=>button.classList.contains('active')));
+  nav.style.setProperty('--cc-nav-offset',`${index*100}%`);
+}
+function ccMotionReveal_(element){
+  if(!element || ccPrefersReducedMotion_()) return;
+  element.classList.remove('cc-motion-content-reveal');
+  void element.offsetWidth;
+  element.classList.add('cc-motion-content-reveal');
+  window.setTimeout(()=>element.classList.remove('cc-motion-content-reveal'),CC_MOTION_V1.skeleton+30);
+}
+
 
 const PLAYER_AVATARS = [
   // First 40 IDs stay untouched for backwards compatibility with saved profiles.
@@ -287,35 +438,78 @@ function typeLabel(e){
   if(e.type==='Edzés') return 'EDZÉS';
   return e.matchKind==='home' ? 'HAZAI MECCS' : 'IDEGENBELI MECCS';
 }
-function mapLink(e){
+function mapLink(e,label='Útvonaltervezés ↗',extraClass=''){
   if(e.matchKind!=='away' || !e.address) return '';
-  const q=encodeURIComponent(e.address);
-  return `<a class="map-link" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Megnyitás Google Mapsben ↗</a>`;
+  const destination=encodeURIComponent(String(e.address).trim());
+  const cls=['map-link','map-nav-link',extraClass].filter(Boolean).join(' ');
+  return `<a class="${cls}" href="https://www.google.com/maps/dir/?api=1&destination=${destination}" target="_blank" rel="noopener noreferrer" aria-label="Útvonaltervezés ehhez a címhez a Google Mapsben">${label}</a>`;
+}
+function inferredHomeMatchCourt_(e){
+  if(e?.type!=='Meccs' || e?.matchKind!=='home') return '';
+  const teamName=String(currentTeamData?.teamName||currentTeamData?.name||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const start=eventStart(e);
+  const weekday=(start instanceof Date && !Number.isNaN(start.getTime())) ? start.getDay() : null;
+
+  // 2026/27 BEAC home-match slots supplied by club operations.
+  // Monday: BEAC Férfi — court 3
+  // Tuesday: BEAC Női II. — court 2
+  // Friday: BEAC Női I. — court 3
+  if(teamName.includes('ferfi') && weekday===1) return '3. pálya';
+  if(teamName.includes('noi ii') && weekday===2) return '2. pálya';
+  if((teamName.includes('noi i') || teamName.includes('noi 1')) && !teamName.includes('noi ii') && weekday===5) return '3. pálya';
+  return '';
+}
+function compactCourtLabel_(e){
+  const normalize=value=>{
+    const raw=String(value||'').trim();
+    if(!raw) return '';
+    if(/^\d+$/.test(raw)) return `${raw}. pálya`;
+    const m=raw.match(/(\d+)\.?\s*pálya/i);
+    if(m) return `${m[1]}. pálya`;
+    return raw;
+  };
+  const direct=normalize(e.court);
+  if(direct) return direct;
+  const place=String(e.place||'').trim();
+  const m=place.match(/(?:^|[•,–—-]\s*)(\d+\.?\s*pálya)\s*$/i);
+  if(m) return normalize(m[1]);
+  const loose=place.match(/(\d+\.?\s*pálya)/i);
+  if(loose) return normalize(loose[1]);
+  const inferred=normalize(inferredHomeMatchCourt_(e));
+  if(inferred) return inferred;
+  return '–';
+}
+function compactCourtMeta_(e){
+  const court=compactCourtLabel_(e);
+  return court==='–' ? 'Pálya –' : court;
 }
 function eventCard(e){
   const archived=isPast(e);
-  const detailClass=detailedMode?'show-detail':'compact-detail';
-  const awayLine = e.matchKind==='away' && e.address
-    ? `<div class="event-extra ${detailClass}"><span>${e.address}</span>${mapLink(e)}</div>` : '';
-  const meetingLine = e.meeting
-    ? `<div class="meeting-note ${detailClass}"><b>Találkozó:</b> ${e.meeting}</div>` : '';
+  const court=compactCourtMeta_(e);
+  const isAway=e.matchKind==='away';
+  const matchTitle=e.type==='Meccs' ? `<div class="event-match-title">${e.title}</div>` : '';
+  const compactMeta=isAway
+    ? [e.date,e.day,e.time].filter(Boolean).join(' • ')
+    : [e.date,e.day,e.time,court].filter(Boolean).join(' • ');
+  const awayLine=isAway && e.address
+    ? `<div class="away-location event-away-compact"><span class="away-address">${e.address}</span><span class="away-card-actions">${mapLink(e,'Google Maps ↗','map-card-link')}<strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></span></div>`
+    : '';
   const autoAbsence = archived && e.status===null
-    ? `<div class="auto-absence ${detailClass}">Automatikus hiányzás a lezáráskor</div>` : '';
+    ? `<div class="auto-absence">Automatikus hiányzás a lezáráskor</div>` : '';
 
   return `<article class="event-card ${cardClass(e)} ${archived?'archived-card':''}">
     <div class="event-collapsed">
-      <div class="event-top centered-card event-open-zone" data-open-event="${e.id}" aria-label="${typeLabel(e)} részleteinek megnyitása">
+      <div class="event-top centered-card event-open-zone ${isAway?'event-top-away':''}" data-open-event="${e.id}" aria-label="${typeLabel(e)} részleteinek megnyitása">
         <div class="event-icon bare-icon">${typeIcon(e)}</div>
         <div class="event-main">
           <div class="event-type">${typeLabel(e)}</div>
-          <div class="event-title">${e.date} • ${e.day}</div>
-          <div class="event-meta">${e.time ? e.time+' • ' : ''}${e.title}</div>
-          <div class="event-place ${detailClass}">${e.place}</div>
+          ${matchTitle}
+          <div class="event-meta event-meta-compact">${compactMeta}</div>
           ${awayLine}
-          ${meetingLine}
           ${autoAbsence}
         </div>
-        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
+        ${isAway?'':`<div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>`}
       </div>
 
       <div class="slider-wrap">
@@ -1111,15 +1305,16 @@ function renderCalendar(rows){
 function renderCardSchedule(rows){
   return rows.map(e=>{
     const archived=isPast(e);
-    const detail = detailedMode ? `
-      <small>${e.day} • ${e.time} • ${e.place}</small>
-      ${e.meeting?`<small><b>Találkozó:</b> ${e.meeting}</small>`:''}
-      ${e.matchKind==='away' && e.address ? `<small>${e.address}</small>${mapLink(e)}` : ''}
-      ${archived?'<span class="archive-badge">Lezárt</span>':''}
-    ` : '';
+    const court=compactCourtMeta_(e);
+    const baseMeta=e.matchKind==='away'
+      ? [e.day,e.time].filter(Boolean).join(' • ')
+      : [e.day,e.time,court].filter(Boolean).join(' • ');
+    const awayQuick=e.matchKind==='away' && e.address
+      ? `<small class="planner-away-location">${e.address}</small>${mapLink(e,'Google Maps ↗','planner-map-link')}`
+      : '';
     return `<div class="planner-row planner-event-open ${cardClass(e)} ${archived?'archived-row':''}" data-open-event="${e.id}" data-event-id="${e.id}">
       <div class="planner-icon bare-icon">${typeIcon(e)}</div>
-      <div class="planner-main"><b>${e.date} · ${e.title}</b>${detail}</div>
+      <div class="planner-main"><b>${e.date} · ${e.title}</b><small>${baseMeta}</small>${awayQuick}${archived?'<span class="archive-badge">Lezárt</span>':''}</div>
       <div class="planner-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
       ${plannerStatusControls(e,archived)}
     </div>`;
@@ -1137,25 +1332,28 @@ function scrollPlannerToNearest(rows, behavior='auto'){
   if(!next) return;
 
   if(plannerMode==='grid'){
-    const viewport=document.getElementById('plannerScrollViewport');
-    const row=viewport?.querySelector(`[data-grid-event="${next.id}"]`);
-    if(!viewport || !row) return;
+    // V2.3.10.22: the matrix itself is the ONE native X/Y scroll surface.
+    // Keeping sticky header + sticky left columns inside the same scroller is
+    // substantially more reliable in iOS/PWA than nested overflow containers.
+    const scroller=document.getElementById('matrixScroll');
+    const row=scroller?.querySelector(`[data-grid-event="${next.id}"]`);
+    if(!scroller || !row) return;
 
     forcePlannerPageTop_();
 
-    const viewportRect=viewport.getBoundingClientRect();
+    const scrollerRect=scroller.getBoundingClientRect();
     const rowRect=row.getBoundingClientRect();
-    const head=viewport.querySelector('thead');
+    const head=scroller.querySelector('thead');
     const target=Math.max(
       0,
-      viewport.scrollTop +
-      (rowRect.top-viewportRect.top) -
+      scroller.scrollTop +
+      (rowRect.top-scrollerRect.top) -
       (head?.offsetHeight || 0) -
       2
     );
 
-    if(behavior==='auto') viewport.scrollTop=target;
-    else viewport.scrollTo({top:target,behavior});
+    if(behavior==='auto') scroller.scrollTop=target;
+    else scroller.scrollTo({top:target,behavior});
     return;
   }
 
@@ -1196,7 +1394,11 @@ function syncPlannerGridViewport_(){
 
   if(!plannerView?.classList.contains('active') || !viewport || !bottomNav) return;
 
-  // Neutralize all historical matrix-scroller runtime sizing.
+  // V2.3.10.22: never create nested scroll containers. The outer viewport is
+  // layout-only; #matrixScroll owns both axes in grid mode.
+  viewport.style.removeProperty('height');
+  viewport.style.removeProperty('max-height');
+
   if(matrix){
     matrix.classList.remove('matrix-has-vertical-scroll');
     matrix.style.removeProperty('height');
@@ -1205,27 +1407,19 @@ function syncPlannerGridViewport_(){
   }
 
   const portrait=window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches;
-
-  // Tail height is derived from the REAL fixed nav height.
-  const navHeight=Math.ceil(bottomNav.getBoundingClientRect().height || 72);
-  viewport.style.setProperty('--planner-nav-height',`${navHeight}px`);
-
-  if(!portrait){
-    viewport.style.removeProperty('height');
-    viewport.style.removeProperty('max-height');
-    return;
-  }
+  if(!portrait || plannerMode!=='grid' || !matrix) return;
 
   forcePlannerPageTop_();
 
-  // Viewport runs to the physical screen bottom, BEHIND the fixed nav.
-  // The tail spacer then makes the real card bottom stop 12px above the nav
-  // at maximum scroll. This geometry never changes during scrolling.
-  const rect=viewport.getBoundingClientRect();
-  const available=Math.max(280,Math.floor(window.innerHeight-rect.top));
+  // The fixed panel remains in place. Only the table viewport pans X/Y.
+  // End it 12px above the fixed bottom navigation without changing geometry
+  // while the user is scrolling.
+  const matrixRect=matrix.getBoundingClientRect();
+  const navRect=bottomNav.getBoundingClientRect();
+  const available=Math.max(260,Math.floor(navRect.top-matrixRect.top-12));
 
-  viewport.style.setProperty('height',`${available}px`,'important');
-  viewport.style.setProperty('max-height',`${available}px`,'important');
+  matrix.style.setProperty('height',`${available}px`,'important');
+  matrix.style.setProperty('max-height',`${available}px`,'important');
 }
 
 function hidePlannerFloatingHeader_(){}
@@ -1240,8 +1434,6 @@ function renderPlanner(){
 
   updatePlannerFilterButton_();
   const rows=filteredPlannerEvents();
-  const settingsToggle=document.getElementById('settingsDetailToggle');
-  if(settingsToggle) settingsToggle.checked=detailedMode;
   const defaultView=document.getElementById('settingsDefaultView');
   if(defaultView) defaultView.value=localStorage.getItem('cc-planner-default') || 'last';
 
@@ -1269,7 +1461,7 @@ function askCancel(event){
   pendingCancel = event;
   document.getElementById('cancelEventTitle').textContent = `${event.date} • ${event.time} • ${event.title}`;
   document.getElementById('cancelNote').value = event.note || '';
-  cancelDialog.showModal();
+  ccOpenDialog_(cancelDialog);
 }
 
 function setYes(event){
@@ -1361,17 +1553,26 @@ plannerList.addEventListener('click',e=>{
 // Programmatic scrollTop changes must NOT set plannerUserPositioned.
 plannerList.addEventListener('touchmove',event=>{
   if(plannerAutoPositioning) return;
-  if(event.target?.closest?.('.planner-scroll-viewport')){
+  if(event.target?.closest?.('.matrix-scroll, .planner-scroll-viewport')){
     plannerUserPositioned=true;
   }
 },{passive:true});
 
 plannerList.addEventListener('wheel',event=>{
   if(plannerAutoPositioning) return;
-  if(event.target?.closest?.('.planner-scroll-viewport')){
+  if(event.target?.closest?.('.matrix-scroll, .planner-scroll-viewport')){
     plannerUserPositioned=true;
   }
 },{passive:true});
+
+document.querySelector('#cancelDialog button[value="cancel"]')?.addEventListener('click',ev=>{
+  ev.preventDefault();
+  ccCloseDialog_(cancelDialog,()=>{
+    pendingCancel=null;
+    const note=document.getElementById('cancelNote');
+    if(note) note.value='';
+  });
+});
 
 document.getElementById('confirmCancel').addEventListener('click',ev=>{
   ev.preventDefault();
@@ -1382,7 +1583,7 @@ document.getElementById('confirmCancel').addEventListener('click',ev=>{
     return;
   }
   persist(pendingCancel,'no',note);
-  cancelDialog.close();
+  ccCloseDialog_(cancelDialog);
   pendingCancel=null;
   renderEvents();
   renderPlanner();
@@ -1494,8 +1695,11 @@ function positionPlannerInitial_(rows=filteredPlannerEvents()){
     requestAnimationFrame(()=>{
       // Default Menetrend is already filtered to current + future.
       // Therefore its first row is the correct starting point.
-      const viewport=document.getElementById('plannerScrollViewport');
-      if(viewport) viewport.scrollTop=0;
+      const matrix=document.getElementById('matrixScroll');
+      if(matrix){
+        matrix.scrollTop=0;
+        matrix.scrollLeft=0;
+      }
 
       plannerList.classList.remove('planner-prepositioning');
 
@@ -1605,16 +1809,20 @@ function renderNotificationInbox_(){
         ccBindNotificationSwipes_();
       }
     }else{
-      list.hidden=true;
+      list.hidden=false;
+      list.classList.add('cc-motion-skeleton-list');
+      list.innerHTML='<div class="cc-motion-skeleton-row" aria-hidden="true"><span></span><b></b><i></i></div><div class="cc-motion-skeleton-row" aria-hidden="true"><span></span><b></b><i></i></div>';
     }
     return;
   }
   if(!ccNotificationsBackendReady){
+    list.classList.remove('cc-motion-skeleton-list');
     empty.hidden=false; list.hidden=true;
     empty.innerHTML='<span class="notification-empty-icon" aria-hidden="true">!</span><b>Nem érhető el.</b><small>Az értesítési központ backendje még nem válaszol.</small>';
     return;
   }
   if(!ccPlayerNotifications.length){
+    list.classList.remove('cc-motion-skeleton-list');
     list.hidden=true;
     list.innerHTML='';
     empty.hidden=false;
@@ -1622,8 +1830,10 @@ function renderNotificationInbox_(){
     return;
   }
   empty.hidden=true; list.hidden=false;
+  list.classList.remove('cc-motion-skeleton-list');
   list.innerHTML=ccPlayerNotifications.map(ccNotificationItemHtml_).join('');
   ccBindNotificationSwipes_();
+  ccMotionReveal_(list);
 }
 async function ccLoadNotifications_(options={}){
   if(!SUPABASE_ENABLED || !ccSupabase || !ccSupabaseSession){
@@ -1679,12 +1889,12 @@ async function ccOpenNotification_(id){
   let target;
   try{ target=new URL(raw,location.href); }catch(_){ target=null; }
   if(!target || target.searchParams.has('ccNotifications')) return;
-  notificationsDialog?.close();
+  ccCloseDialog_(notificationsDialog);
   const eventId=target.searchParams.get('ccEvent') || item.eventId || item.data?.eventId;
   const view=target.searchParams.get('ccView');
   if(view==='profile') switchView('profileView');
   else if(view==='schedule') switchView('plannerView');
-  if(eventId && events.some(e=>String(e.id)===String(eventId))) window.setTimeout(()=>openEventDialog(String(eventId)),100);
+  if(eventId && events.some(e=>String(e.id)===String(eventId))) window.setTimeout(()=>openEventDialog(String(eventId)),CC_MOTION_V1.exit+50);
 }
 function ccBindNotificationSwipes_(){
   document.querySelectorAll('.notification-swipe-row').forEach(row=>{
@@ -1802,7 +2012,7 @@ function ccFocusPanelTitle_(dialog,titleId){
 }
 
 async function openNotificationsDialog_(){
-  if(notificationsDialog && !notificationsDialog.open) notificationsDialog.showModal();
+  ccOpenDialog_(notificationsDialog);
   ccFocusPanelTitle_(notificationsDialog,'notificationsDialogTitle');
   await ccLoadNotifications_({force:true});
 }
@@ -1812,7 +2022,7 @@ document.getElementById('accountMenuBtn')?.addEventListener('click',()=>{
 });
 document.getElementById('headerSettingsBtn')?.addEventListener('click',()=>document.getElementById('openSettingsBtn')?.click());
 document.getElementById('openNotificationsBtn')?.addEventListener('click',openNotificationsDialog_);
-document.getElementById('closeNotificationsBtn')?.addEventListener('click',()=>notificationsDialog?.close());
+document.getElementById('closeNotificationsBtn')?.addEventListener('click',()=>ccCloseDialog_(notificationsDialog));
 renderNotificationShell_(0);
 
 function switchView(viewId){
@@ -1822,6 +2032,7 @@ function switchView(viewId){
   forcePlannerPageTop_();
 
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===navView));
+  ccSyncNavMotionIndicator_();
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
 
   if(viewId==='plannerView'){
@@ -1847,6 +2058,7 @@ function switchView(viewId){
 
 document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
 document.querySelectorAll('[data-view-jump]').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.viewJump)));
+ccSyncNavMotionIndicator_();
 
 window.addEventListener('resize',()=>requestAnimationFrame(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();}));
 window.addEventListener('orientationchange',()=>setTimeout(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();},80));
@@ -1864,7 +2076,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=23107').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231020').catch(()=>{}));
 }
 
 
@@ -1899,9 +2111,9 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   document.body.appendChild(indicator);
 
   document.addEventListener('touchstart',event=>{
-    const plannerViewport=
+    const plannerScroller=
       event.target && event.target.closest
-        ? event.target.closest('.planner-scroll-viewport')
+        ? event.target.closest('.matrix-scroll, .planner-scroll-viewport')
         : null;
 
     if(
@@ -1909,7 +2121,7 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
       running ||
       !event.touches ||
       !event.touches.length ||
-      (plannerViewport && plannerViewport.scrollTop>1)
+      (plannerScroller && plannerScroller.scrollTop>1)
     ){
       startY=null;
       return;
@@ -2011,29 +2223,117 @@ function bindSliderDrag(){
     if(slider.dataset.dragBound==='1') return;
     slider.dataset.dragBound='1';
 
-    let startX=0, dragging=false;
     const id=slider.dataset.slider;
     const event=events.find(x=>x.id===id);
-    if(!event || isPast(event)) return;
+    const thumb=slider.querySelector('.slider-thumb');
+    if(!event || !thumb || isPast(event)) return;
 
-    slider.addEventListener('pointerdown', e=>{
-      if(e.target.closest('button')) return;
-      dragging=true; startX=e.clientX;
+    let active=false,locked=false,pointerId=null;
+    let startX=0,startY=0,startLeft=0,currentLeft=0,lastX=0,lastT=0,velocityX=0;
+    let suppressClick=false;
+
+    const geometry=()=>{
+      const thumbWidth=thumb.getBoundingClientRect().width || Math.max(20,slider.clientWidth/3-4);
+      const min=2;
+      const max=Math.max(min,slider.clientWidth-thumbWidth-2);
+      return {min,max,mid:(min+max)/2};
+    };
+    const stateLeft=(state,g=geometry())=>state==='yes'?g.min:(state==='no'?g.max:g.mid);
+    const stateFromLeft=(left,g=geometry())=>{
+      const points=[['yes',g.min],['none',g.mid],['no',g.max]];
+      return points.reduce((best,item)=>Math.abs(item[1]-left)<Math.abs(best[1]-left)?item:best,points[0])[0];
+    };
+    const setFreeLeft=left=>{
+      currentLeft=left;
+      slider.style.setProperty('--cc-slider-left',`${left.toFixed(1)}px`);
+    };
+    const cleanup=()=>{
+      active=false; locked=false; pointerId=null; velocityX=0;
+      slider.classList.remove('cc-slider-dragging');
+    };
+    const finishSnap=(state,commit=true)=>{
+      const g=geometry();
+      const target=stateLeft(state,g);
+      slider.classList.remove('cc-slider-dragging');
+      slider.classList.add('cc-slider-snapping');
+      setFreeLeft(target);
+      const delay=ccPrefersReducedMotion_()?0:CC_MOTION_V1.snap;
+      window.setTimeout(()=>{
+        slider.classList.remove('cc-slider-snapping');
+        slider.style.removeProperty('--cc-slider-left');
+        if(commit) applySliderState(event,state);
+      },delay);
+    };
+
+    // A drag normally ends over one of the three real buttons. Suppress only
+    // the synthetic click that follows a completed drag; normal taps still use
+    // the existing button/click business logic unchanged.
+    slider.addEventListener('click',e=>{
+      if(!suppressClick) return;
+      suppressClick=false;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+    },true);
+
+    slider.addEventListener('pointerdown',e=>{
+      if(e.button!==0) return;
+      const g=geometry();
+      active=true; locked=false; pointerId=e.pointerId;
+      startX=e.clientX; startY=e.clientY;
+      startLeft=stateLeft(event.status||'none',g); currentLeft=startLeft;
+      lastX=e.clientX; lastT=performance.now(); velocityX=0;
+      setFreeLeft(startLeft);
       slider.setPointerCapture?.(e.pointerId);
     });
 
-    slider.addEventListener('pointerup', e=>{
-      if(!dragging) return;
-      dragging=false;
-      const dx=e.clientX-startX;
-      const threshold=Math.max(24, slider.clientWidth*0.12);
-      if(dx < -threshold) applySliderState(event,'yes');
-      else if(dx > threshold) applySliderState(event,'no');
-      else applySliderState(event,'none');
+    slider.addEventListener('pointermove',e=>{
+      if(!active || e.pointerId!==pointerId) return;
+      const dx=e.clientX-startX,dy=e.clientY-startY;
+      if(!locked){
+        if(Math.hypot(dx,dy)<CC_MOTION_V1.directionLock) return;
+        // Vertical intent stays native so the surrounding page/panel can scroll.
+        if(Math.abs(dy)>Math.abs(dx)){
+          cleanup();
+          slider.style.removeProperty('--cc-slider-left');
+          try{slider.releasePointerCapture?.(e.pointerId);}catch(_){ }
+          return;
+        }
+        locked=true;
+        slider.classList.add('cc-slider-dragging');
+      }
+      const g=geometry();
+      const next=Math.min(g.max,Math.max(g.min,startLeft+dx));
+      const now=performance.now();
+      const dt=Math.max(1,now-lastT);
+      velocityX=(e.clientX-lastX)/dt;
+      lastX=e.clientX; lastT=now;
+      setFreeLeft(next);
+      e.preventDefault();
+    },{passive:false});
+
+    slider.addEventListener('pointerup',e=>{
+      if(!active || e.pointerId!==pointerId) return;
+      try{slider.releasePointerCapture?.(e.pointerId);}catch(_){ }
+      const wasLocked=locked;
+      const g=geometry();
+      const projected=Math.min(g.max,Math.max(g.min,currentLeft+velocityX*120));
+      const state=wasLocked?stateFromLeft(projected,g):(event.status||'none');
+      if(wasLocked) suppressClick=true;
+      cleanup();
+      if(wasLocked) finishSnap(state,true);
+      else slider.style.removeProperty('--cc-slider-left');
+    });
+
+    slider.addEventListener('pointercancel',e=>{
+      if(!active || e.pointerId!==pointerId) return;
+      try{slider.releasePointerCapture?.(e.pointerId);}catch(_){ }
+      const original=event.status||'none';
+      cleanup();
+      finishSnap(original,false);
     });
   });
 }
-
 
 
 
@@ -2074,7 +2374,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=23107');
+    return await navigator.serviceWorker.register('./sw.js?v=231020');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -2226,6 +2526,144 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('focus',()=>{ if(ccSupabaseSession) ccLoadNotifications_({force:true}); });
 
+function icsEscape_(value){
+  return String(value??'')
+    .replace(/\\/g,'\\\\')
+    .replace(/\r?\n/g,'\\n')
+    .replace(/,/g,'\\,')
+    .replace(/;/g,'\\;');
+}
+function icsLocalStamp_(dateObj){
+  const p=n=>String(n).padStart(2,'0');
+  return `${dateObj.getFullYear()}${p(dateObj.getMonth()+1)}${p(dateObj.getDate())}T${p(dateObj.getHours())}${p(dateObj.getMinutes())}${p(dateObj.getSeconds())}`;
+}
+function icsUtcStamp_(dateObj=new Date()){
+  const p=n=>String(n).padStart(2,'0');
+  return `${dateObj.getUTCFullYear()}${p(dateObj.getUTCMonth()+1)}${p(dateObj.getUTCDate())}T${p(dateObj.getUTCHours())}${p(dateObj.getUTCMinutes())}${p(dateObj.getUTCSeconds())}Z`;
+}
+function calendarEventLocation_(e){
+  if(e.matchKind==='away' && e.address) return String(e.address).trim();
+  const place=String(e.place||'').trim();
+  const court=compactCourtLabel_(e);
+  if(place && court!=='–' && !place.toLowerCase().includes(court.toLowerCase())) return `${place} • ${court}`;
+  return place || (court==='–'?'':court) || '';
+}
+function calendarEventSummary_(e){
+  const team=String(currentTeamData?.teamName||currentTeamData?.name||'BEAC').trim();
+  if(e.type==='Edzés') return `${team} – Edzés`;
+  return String(e.title||`${team} – Meccs`).trim();
+}
+function calendarEventDescription_(e){
+  const lines=[typeLabel(e)];
+  if(e.meeting) lines.push(`Találkozó: ${e.meeting}`);
+  lines.push('Club Control');
+  return lines.join('\n');
+}
+function buildCalendarIcs_(){
+  const rows=(events||[]).slice().sort((a,b)=>eventStart(a)-eventStart(b));
+  const now=icsUtcStamp_();
+  const body=rows.map(e=>{
+    const start=eventStart(e);
+    let end=eventEnd(e);
+    if(!(end instanceof Date) || Number.isNaN(end.getTime()) || end<=start){
+      end=new Date(start.getTime()+(e.type==='Meccs'?2:2)*60*60*1000);
+    }
+    const uid=`${String(e.id||crypto?.randomUUID?.()||Date.now()).replace(/[^a-zA-Z0-9._-]/g,'-')}@club-control.beac`;
+    return [
+      'BEGIN:VEVENT',
+      `UID:${icsEscape_(uid)}`,
+      `DTSTAMP:${now}`,
+      `DTSTART;TZID=Europe/Budapest:${icsLocalStamp_(start)}`,
+      `DTEND;TZID=Europe/Budapest:${icsLocalStamp_(end)}`,
+      `SUMMARY:${icsEscape_(calendarEventSummary_(e))}`,
+      `LOCATION:${icsEscape_(calendarEventLocation_(e))}`,
+      `DESCRIPTION:${icsEscape_(calendarEventDescription_(e))}`,
+      `CATEGORIES:${icsEscape_(e.type==='Meccs'?'Meccs':'Edzés')}`,
+      'END:VEVENT'
+    ].join('\r\n');
+  }).join('\r\n');
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//BEAC Club Control//Player Calendar Export//HU',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${icsEscape_(String(currentTeamData?.teamName||currentTeamData?.name||'BEAC Club Control'))}`,
+    'X-WR-TIMEZONE:Europe/Budapest',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Budapest',
+    'X-LIC-LOCATION:Europe/Budapest',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0200',
+    'TZNAME:CEST',
+    'DTSTART:19700329T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'DTSTART:19701025T030000',
+    'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    body,
+    'END:VCALENDAR',
+    ''
+  ].join('\r\n');
+}
+function calendarExportFilename_(){
+  const team=String(currentTeamData?.teamName||currentTeamData?.name||'BEAC')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_|_$/g,'');
+  return `${team||'BEAC'}_Club_Control_2026_27.ics`;
+}
+function setCalendarExportStatus_(text,tone='info'){
+  const el=document.getElementById('calendarExportStatus');
+  if(!el) return;
+  el.textContent=text||'';
+  el.dataset.tone=tone;
+}
+function calendarIcsFile_(){
+  return new File([buildCalendarIcs_()],calendarExportFilename_(),{type:'text/calendar;charset=utf-8'});
+}
+function downloadCalendarIcs_(){
+  const file=calendarIcsFile_();
+  const url=URL.createObjectURL(file);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),1500);
+  return file;
+}
+async function exportAppleCalendar_(){
+  if(!events?.length){ setCalendarExportStatus_('Nincs exportálható esemény.','error'); return; }
+  const file=calendarIcsFile_();
+  try{
+    if(navigator.share && navigator.canShare?.({files:[file]})){
+      await navigator.share({files:[file],title:'BEAC Club Control – naptár'});
+      setCalendarExportStatus_(`${events.length} esemény átadva a megosztási panelnek.`,'ok');
+      return;
+    }
+  }catch(error){
+    if(error?.name==='AbortError') return;
+    console.warn('Apple naptár megosztás hiba:',error);
+  }
+  downloadCalendarIcs_();
+  setCalendarExportStatus_(`${events.length} esemény .ics fájlba exportálva. iPhone-on nyisd meg a fájlt a Naptárral.`,'ok');
+}
+function exportGoogleCalendar_(){
+  if(!events?.length){ setCalendarExportStatus_('Nincs exportálható esemény.','error'); return; }
+  downloadCalendarIcs_();
+  setCalendarExportStatus_(`${events.length} esemény .ics fájlba exportálva. Google Calendarba számítógépen: Beállítások → Importálás és exportálás.`,'ok');
+}
+
+document.getElementById('calendarExportAppleBtn')?.addEventListener('click',()=>exportAppleCalendar_());
+document.getElementById('calendarExportGoogleBtn')?.addEventListener('click',exportGoogleCalendar_);
+
 const settingsDialog=document.getElementById('settingsDialog');
 let currentPlayerSettings=null;
 let ccSettingsSaveTimer=null;
@@ -2235,7 +2673,7 @@ function defaultSettingsPayload_(){
     theme:localStorage.getItem('cc-theme-mode')||'system',
     scheduleDefaultView:localStorage.getItem('cc-planner-default')||'last',
     language:'hu',
-    detailedMode:localStorage.getItem('cc-detailed-mode')==='true',
+    detailedMode:false,
     avatarId:'',
     notifications:{
       new_training:true,
@@ -2255,7 +2693,7 @@ function collectSettingsUi_(){
     theme:document.getElementById('settingsThemeMode')?.value||'system',
     scheduleDefaultView:document.getElementById('settingsDefaultView')?.value||'last',
     language:document.getElementById('settingsLanguage')?.value||'hu',
-    detailedMode:!!document.getElementById('settingsDetailToggle')?.checked,
+    detailedMode:false,
     avatarId:currentAvatarId||'',
     notifications
   };
@@ -2273,7 +2711,6 @@ function applySettingsUi_(value){
   currentPlayerSettings=settings;
   const map={settingsThemeMode:settings.theme||'system',settingsDefaultView:settings.scheduleDefaultView||'last',settingsLanguage:settings.language||'hu'};
   Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id); if(el) el.value=val;});
-  const detail=document.getElementById('settingsDetailToggle'); if(detail) detail.checked=!!settings.detailedMode;
   if(PLAYER_AVATAR_IDS.has(String(settings.avatarId||''))) currentAvatarId=String(settings.avatarId);
   else currentAvatarId='';
   avatarPickerMode=currentAvatarId ? 'avatar' : 'monogram';
@@ -2286,9 +2723,9 @@ async function savePlayerSettingsNow_(){
   currentPlayerSettings=settings;
   localStorage.setItem('cc-theme-mode',settings.theme);
   localStorage.setItem('cc-planner-default',settings.scheduleDefaultView);
-  localStorage.setItem('cc-detailed-mode',settings.detailedMode?'true':'false');
+  localStorage.removeItem('cc-detailed-mode');
   applyThemePreference_(settings.theme);
-  detailedMode=settings.detailedMode;
+  detailedMode=false;
 
   if(SUPABASE_ENABLED && ccSupabase && currentPlayerData?.playerId){
     const {error}=await ccSupabase.from('player_settings').upsert({
@@ -2314,18 +2751,12 @@ document.getElementById('openSettingsBtn')?.addEventListener('click',()=>{
   // Merge it over any older remote settings before the dialog opens.
   const source=currentPlayerSettings||defaultSettingsPayload_();
   applySettingsUi_({...source,theme:currentThemePreference_()});
-  settingsDialog.showModal();
+  ccOpenDialog_(settingsDialog);
   ccFocusPanelTitle_(settingsDialog,'settingsDialogTitle');
 });
 document.getElementById('closeSettingsBtn')?.addEventListener('click',async()=>{
   try{ await savePlayerSettingsNow_(); }catch(err){ console.warn(err); }
-  settingsDialog.close();
-});
-document.getElementById('settingsDetailToggle')?.addEventListener('change',e=>{
-  detailedMode=e.target.checked;
-  localStorage.setItem('cc-detailed-mode', detailedMode ? 'true' : 'false');
-  scheduleSettingsSave_();
-  renderEvents(); renderPlanner();
+  ccCloseDialog_(settingsDialog);
 });
 document.getElementById('settingsDefaultView')?.addEventListener('change',e=>{
   localStorage.setItem('cc-planner-default',e.target.value);
@@ -2414,6 +2845,20 @@ function eventNoteSection_(e, archived){
     </details>`;
 }
 
+function eventDialogDetails_(e){
+  const court=compactCourtLabel_(e);
+  if(e.matchKind==='away'){
+    const venue=String(e.place||'').trim();
+    const address=String(e.address||'').trim();
+    return `<div class="event-dialog-details event-dialog-location">
+      ${venue?`<p><b>Helyszín:</b> ${venue}</p>`:''}
+      ${address?`<div class="event-dialog-address-row"><span><b>Cím:</b> ${address}</span>${mapLink(e)}</div>`:''}
+      ${e.meeting?`<p><b>Találkozó:</b> ${e.meeting}</p>`:''}
+    </div>`;
+  }
+  return `<div class="event-dialog-details event-dialog-location compact-home-location"><p><b>Pálya:</b> ${court}</p></div>`;
+}
+
 function openEventDialog(eventId){
   const e=events.find(x=>x.id===eventId); if(!e) return;
   const archived=isPast(e);
@@ -2427,14 +2872,14 @@ function openEventDialog(eventId){
       </div>
       <strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong>
     </div>
-    ${detailedMode?`<div class="event-dialog-details"><p><b>Helyszín:</b> ${e.place||'–'}</p>${e.address?`<p>${e.address} ${mapLink(e)}</p>`:''}${e.meeting?`<p><b>Találkozó:</b> ${e.meeting}</p>`:''}</div>`:''}
+    ${eventDialogDetails_(e)}
     <div class="event-dialog-slider">${plannerStatusControls(e,archived)}</div>
     ${eventNoteSection_(e,archived)}
     ${eventDialogRoster(e)}`;
-  if(!eventDialog.open) eventDialog.showModal();
+  ccOpenDialog_(eventDialog);
   bindSliderDrag();
 }
-document.getElementById('closeEventDialogBtn')?.addEventListener('click',()=>eventDialog.close());
+document.getElementById('closeEventDialogBtn')?.addEventListener('click',()=>ccCloseDialog_(eventDialog));
 document.getElementById('eventDialogContent')?.addEventListener('click',e=>{
   const saveBtn=e.target.closest('[data-event-note-save]');
   if(saveBtn){
@@ -2458,7 +2903,7 @@ document.getElementById('eventDialogContent')?.addEventListener('click',e=>{
   const b=e.target.closest('[data-slider-action]'); if(!b) return;
   const ev=events.find(x=>x.id===b.dataset.id); if(!ev || isPast(ev)) return;
   if(b.dataset.sliderAction==='yes') setYes(ev);
-  else if(b.dataset.sliderAction==='no'){ eventDialog.close(); askCancel(ev); return; }
+  else if(b.dataset.sliderAction==='no'){ ccCloseDialog_(eventDialog,()=>askCancel(ev)); return; }
   else neutralizeEvent(ev);
   setTimeout(()=>openEventDialog(ev.id),0);
 });
@@ -2468,8 +2913,7 @@ function enableBackdropDismiss(dialog, onClose){
   if(!dialog) return;
   dialog.addEventListener('click',e=>{
     if(e.target!==dialog) return;
-    dialog.close();
-    if(typeof onClose==='function') onClose();
+    ccCloseDialog_(dialog,onClose);
   });
 }
 
@@ -2481,6 +2925,9 @@ enableBackdropDismiss(document.getElementById('cancelDialog'),()=>{
   const note=document.getElementById('cancelNote');
   if(note) note.value='';
 });
+
+[notificationsDialog,settingsDialog,eventDialog,cancelDialog,document.getElementById('logoutDialog')].forEach(ccBindDialogMotion_);
+[notificationsDialog,settingsDialog].forEach(ccBindPanelSheetMotion_);
 
 /* PLAYER CORE V2 — dual backend adapter.
    Stable UI stays unchanged. DATA_BACKEND='supabase' switches only auth/data. */
@@ -2567,6 +3014,9 @@ function normalizeApiEvent(x){
     color:x.color||'',
     place:x.venue||'',
     address:x.address||'',
+    court:x.court||'',
+    startsAt:x.startsAt||x.starts_at||'',
+    endsAt:x.endsAt||x.ends_at||'',
     meeting:x.meetingTime ? `${x.meetingTime}${x.meetingPlace?' • '+x.meetingPlace:''}` : '',
     month:x.monthKey||'',
     status:x.myStatus || null,
@@ -2944,13 +3394,13 @@ function ccOpenLogoutDialog_(){
   if(!dialog) return;
   ccSetLogoutStatus_('');
   ccSetLogoutBusy_(false);
-  if(typeof dialog.showModal==='function' && !dialog.open) dialog.showModal();
+  ccOpenDialog_(dialog);
 }
 
 function ccCloseLogoutDialog_(){
   if(ccLogoutBusy) return;
   const dialog=ccLogoutDialog_();
-  if(dialog?.open) dialog.close();
+  if(dialog?.open) ccCloseDialog_(dialog);
 }
 
 async function ccLogoutSupabase_(scope){

@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=15.16-swipe-red-tail">
+  <link rel="stylesheet" href="./styles.css?v=15.22-touch-scroll-fix">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -421,10 +421,6 @@
             <div class="avatar-picker-grid" id="avatarPickerGrid" role="listbox" aria-label="Profilavatar kiválasztása"></div>
           </div>
         </div>
-        <label class="switch-row">
-          <span><b>Részletes eseményadatok</b><small>Helyszín, találkozó és Maps-link megjelenítése.</small></span>
-          <input type="checkbox" id="settingsDetailToggle">
-        </label>
       </div>
 
       <div class="settings-section">
@@ -437,6 +433,18 @@
             <option value="calendar">Naptár</option>
           </select>
         </label>
+        <div class="calendar-export-card">
+          <div class="calendar-export-copy">
+            <b>Naptár export</b>
+            <small>Az aktuális csapat összes betöltött edzését és meccsét egy szabványos .ics naptárfájlba teszi.</small>
+          </div>
+          <div class="calendar-export-actions">
+            <button class="ghost-btn calendar-export-btn" id="calendarExportAppleBtn" type="button">Apple Naptár / iPhone</button>
+            <button class="ghost-btn calendar-export-btn" id="calendarExportGoogleBtn" type="button">Google Calendar</button>
+          </div>
+          <small class="calendar-export-note">Egyszeri export: a későbbi Club Control-módosítások nem frissítik automatikusan a már importált eseményeket.</small>
+          <div class="calendar-export-status" id="calendarExportStatus" role="status" aria-live="polite"></div>
+        </div>
       </div>
 
       <div class="settings-section">
@@ -459,7 +467,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.16</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.22</b></div>
       </div>
     </div>
   </dialog>
@@ -503,6 +511,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
-  <script src="./app.js?v=15.16-swipe-red-tail"></script>
+  <script src="./app.js?v=15.22-touch-scroll-fix"></script>
 </body>
 </html>
