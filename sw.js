@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-23-slider-courts';
+const CACHE='club-control-player-v2-3-10-24-mobile-grid-v2';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

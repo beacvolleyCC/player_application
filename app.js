@@ -38,7 +38,7 @@ let avatarPickerMode = 'monogram';
 
 
 // ---------------------------------------------------------------------------
-// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.23
+// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.24
 // Shared motion primitives only. Business/data behavior stays unchanged.
 // ---------------------------------------------------------------------------
 const CC_MOTION_V1=Object.freeze({
@@ -450,8 +450,15 @@ function inferredTeamCourt_(e){
   // inherit a Bogdánfy court fallback.
   if(e?.matchKind==='away') return '';
 
-  const teamName=String(currentTeamData?.teamName||currentTeamData?.name||'')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const renderedTeamName=document.getElementById('teamTitle')?.textContent || '';
+  const teamName=String(
+    currentTeamData?.teamName ||
+    currentTeamData?.name ||
+    currentTeamData?.displayName ||
+    currentPlayerData?.teamName ||
+    renderedTeamName ||
+    ''
+  ).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const start=eventStart(e);
   const weekday=(start instanceof Date && !Number.isNaN(start.getTime())) ? start.getDay() : null;
   const isWomen2=teamName.includes('noi ii') || teamName.includes('noi 2');
@@ -479,6 +486,10 @@ function compactCourtLabel_(e){
     if(m) return `${m[1]}. pálya`;
     return raw;
   };
+  // Club operations defined these weekly slots as fixed. For local BEAC
+  // events they take precedence over stale/missing imported court metadata.
+  const inferred=normalize(inferredTeamCourt_(e));
+  if(inferred) return inferred;
   const direct=normalize(e.court);
   if(direct) return direct;
   const place=String(e.place||'').trim();
@@ -486,8 +497,6 @@ function compactCourtLabel_(e){
   if(m) return normalize(m[1]);
   const loose=place.match(/(\d+\.?\s*pálya)/i);
   if(loose) return normalize(loose[1]);
-  const inferred=normalize(inferredTeamCourt_(e));
-  if(inferred) return inferred;
   return '–';
 }
 function compactCourtMeta_(e){
@@ -503,7 +512,7 @@ function eventCard(e){
     ? [e.date,e.day,e.time].filter(Boolean).join(' • ')
     : [e.date,e.day,e.time,court].filter(Boolean).join(' • ');
   const awayLine=isAway && e.address
-    ? `<div class="away-location event-away-compact"><span class="away-address">${e.address}</span><span class="away-card-actions">${mapLink(e,'Google Maps ↗','map-card-link')}<strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></span></div>`
+    ? `<div class="away-location event-away-compact"><span class="away-address">${e.address}</span></div>`
     : '';
   const autoAbsence = archived && e.status===null
     ? `<div class="auto-absence">Automatikus hiányzás a lezáráskor</div>` : '';
@@ -519,7 +528,7 @@ function eventCard(e){
           ${awayLine}
           ${autoAbsence}
         </div>
-        ${isAway?'':`<div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>`}
+        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
       </div>
 
       <div class="slider-wrap">
@@ -1203,21 +1212,23 @@ function renderGridMatrix(rows){
     const archived=isPast(e);
     const count=(e.yes||[]).length;
     const monthKey=monthKeyFromDate(eventDateObj(e));
-    // Do not put a month divider above the very first visible event.
-    // The default Menetrend should start directly with the current/next event.
     const divider=(rowIndex>0 && monthKey!==lastMonth)
-      ? `<tr class="matrix-month-divider"><td colspan="${2+people.length}">${monthDividerHtml_(e)}</td></tr>`
+      ? `<tr class="matrix-month-divider"><td colspan="${1+people.length}">${monthDividerHtml_(e)}</td></tr>`
       : '';
     lastMonth=monthKey;
 
-    return divider+`<tr class="${archived?'matrix-past-row':''} ${rowIndex===anchorIndex?'matrix-current-anchor':''}" data-grid-event="${e.id}">
-      <th class="matrix-event-side sticky-matrix-col">
-        <button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
+    const eventButton=archived
+      ? `<div class="matrix-event-side-btn matrix-event-closed" aria-label="${typeLabel(e)} · ${e.title} · lezárt esemény">
           <span class="matrix-side-icon">${typeIcon(e)}</span>
-          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day} · ${e.time}</small></span>
-        </button>
-      </th>
-      <td class="matrix-count-cell"><strong class="${attendanceCountClass(count)}">${count}</strong></td>
+          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small><span class="matrix-inline-count ${attendanceCountClass(count)}">${count} fő</span></span>
+        </div>`
+      : `<button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
+          <span class="matrix-side-icon">${typeIcon(e)}</span>
+          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day}</small><span class="matrix-inline-count ${attendanceCountClass(count)}">${count} fő</span></span>
+        </button>`;
+
+    return divider+`<tr class="${archived?'matrix-past-row':''} ${rowIndex===anchorIndex?'matrix-current-anchor':''}" data-grid-event="${e.id}">
+      <th class="matrix-event-side sticky-matrix-col">${eventButton}</th>
       ${people.map(person=>{
         const mine=person.id==='__ME__';
         const st=personStatusForEvent(e,person);
@@ -1228,14 +1239,14 @@ function renderGridMatrix(rows){
     </tr>`;
   }).join('');
 
-  return `<div class="matrix-scroll" id="matrixScroll"><table class="season-matrix transposed-matrix">
+  return `<div class="matrix-scroll matrix-mobile-v2" id="matrixScroll"><table class="season-matrix transposed-matrix">
     <thead>
       <tr>
         <th class="matrix-event-side sticky-matrix-col">Alkalom</th>
-        <th class="matrix-count-head">Fő</th>
         ${people.map(person=>{
           const mine=person.id==='__ME__';
-          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${escapeHtml_(person.name)}"><span class="grid-player-head-inner">${person.avatarId?`<span class="grid-player-avatar">${avatarMarkup_(person.avatarId,'grid-player-avatar-svg')}</span>`:''}<span class="grid-player-label">${escapeHtml_(gridGivenName(person))}</span></span></th>`;
+          const label=mine ? 'Én' : gridGivenName(person);
+          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${escapeHtml_(person.name)}"><span class="grid-player-head-inner">${person.avatarId?`<span class="grid-player-avatar">${avatarMarkup_(person.avatarId,'grid-player-avatar-svg')}</span>`:''}<span class="grid-player-label">${escapeHtml_(label)}</span></span></th>`;
         }).join('')}
       </tr>
     </thead>
@@ -1278,8 +1289,33 @@ function safeEventColor_(e){
   if(e?.matchKind==='home') return '#3f8f55';
   return '#4687c7';
 }
+function matchSetScore_(e){
+  const raw=String(e?.setScore||e?.resultScore||e?.result||e?.score||'').trim();
+  const m=raw.match(/^\s*([0-3])\s*[-–:]\s*([0-3])\s*$/);
+  if(m) return `${m[1]}–${m[2]}`;
+  const home=Number(e?.homeSets);
+  const away=Number(e?.awaySets);
+  if(Number.isFinite(home) && Number.isFinite(away) && home>=0 && home<=3 && away>=0 && away<=3) return `${home}–${away}`;
+  return '';
+}
+function matchOutcome_(e){
+  const score=matchSetScore_(e);
+  const m=score.match(/(\d+)–(\d+)/);
+  if(!m) return '';
+  const a=Number(m[1]),b=Number(m[2]);
+  if(a===b) return '';
+  const teamWon=e.matchKind==='away' ? b>a : a>b;
+  return teamWon ? 'win' : 'loss';
+}
 function calendarEventChip(e){
-  return `<button class="calendar-event ${cardClass(e)}" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">${typeIcon(e)}<span>${e.time.split('–')[0]}</span><b>${e.type==='Edzés'?'Edzés':(e.matchKind==='home'?'Hazai':'Idegen')}</b></button>`;
+  const archived=isPast(e);
+  const score=e.type==='Meccs' ? matchSetScore_(e) : '';
+  const outcome=archived && e.type==='Meccs' ? matchOutcome_(e) : '';
+  const classes=['calendar-event',cardClass(e),archived?'calendar-event-past':'',archived&&e.type==='Edzés'?'calendar-event-past-training':'',outcome?`calendar-result-${outcome}`:''].filter(Boolean).join(' ');
+  const label=e.type==='Edzés'?'Edzés':(score || (e.matchKind==='home'?'Hazai':'Idegen'));
+  const inner=`${typeIcon(e)}<span>${e.time.split('–')[0]}</span><b>${label}</b>`;
+  if(archived) return `<div class="${classes}" aria-label="${typeLabel(e)} · ${e.title} · lezárt">${inner}</div>`;
+  return `<button class="${classes}" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">${inner}</button>`;
 }
 function isTodayDate(dateObj){
   const now=new Date();
@@ -1320,7 +1356,7 @@ function renderCardSchedule(rows){
       ? [e.day,e.time].filter(Boolean).join(' • ')
       : [e.day,e.time,court].filter(Boolean).join(' • ');
     const awayQuick=e.matchKind==='away' && e.address
-      ? `<small class="planner-away-location">${e.address}</small>${mapLink(e,'Google Maps ↗','planner-map-link')}`
+      ? `<small class="planner-away-location">${e.address}</small>`
       : '';
     return `<div class="planner-row planner-event-open ${cardClass(e)} ${archived?'archived-row':''}" data-open-event="${e.id}" data-event-id="${e.id}">
       <div class="planner-icon bare-icon">${typeIcon(e)}</div>
@@ -1443,7 +1479,17 @@ function renderPlanner(){
   if(jumpBtn) jumpBtn.hidden=plannerMode!=='grid';
 
   updatePlannerFilterButton_();
-  const rows=filteredPlannerEvents();
+  let rows=filteredPlannerEvents();
+  if(plannerMode==='calendar' && (document.getElementById('plannerPeriodFilter')?.value || 'upcoming')==='upcoming'){
+    const mf=document.getElementById('monthFilter')?.value || 'all';
+    const tf=document.getElementById('typeFilter')?.value || 'all';
+    rows=events.filter(e=>{
+      if(mf!=='all' && e.month!==mf) return false;
+      if(tf!=='all' && e.type!==tf) return false;
+      if(missingOnly && e.status!==null) return false;
+      return true;
+    });
+  }
   const defaultView=document.getElementById('settingsDefaultView');
   if(defaultView) defaultView.value=localStorage.getItem('cc-planner-default') || 'last';
 
@@ -2086,7 +2132,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231020').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231024').catch(()=>{}));
 }
 
 
@@ -2126,12 +2172,14 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
         ? event.target.closest('.matrix-scroll, .planner-scroll-viewport')
         : null;
 
+    const inPlannerGrid=plannerMode==='grid' && !!event.target?.closest?.('#plannerView');
     if(
       window.scrollY>1 ||
       running ||
       !event.touches ||
       !event.touches.length ||
-      (plannerScroller && plannerScroller.scrollTop>1)
+      plannerScroller ||
+      inPlannerGrid
     ){
       startY=null;
       return;
@@ -2299,6 +2347,15 @@ function bindSliderDrag(){
         if(commit) applyFromThisSlider(state);
       },delay);
     };
+    const setTapVisualState_=state=>{
+      slider.classList.remove('yes','none','no');
+      slider.classList.add(state);
+      const card=slider.closest('.event-card');
+      if(card){
+        card.classList.remove('status-yes','status-none','status-no');
+        card.classList.add(state==='yes'?'status-yes':(state==='no'?'status-no':'status-none'));
+      }
+    };
     const finishTapSnap=state=>{
       const current=normalizedState();
       if(state===current) return;
@@ -2312,6 +2369,7 @@ function bindSliderDrag(){
 
       const g=geometry();
       const target=stateLeft(state,g);
+      setTapVisualState_(state);
       slider.classList.remove('cc-slider-dragging','cc-slider-snapping');
       slider.classList.add('cc-slider-tap-snapping');
       setFreeLeft(target);
@@ -2469,7 +2527,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231020');
+    return await navigator.serviceWorker.register('./sw.js?v=231024');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -3113,6 +3171,9 @@ function normalizeApiEvent(x){
     startsAt:x.startsAt||x.starts_at||'',
     endsAt:x.endsAt||x.ends_at||'',
     meeting:x.meetingTime ? `${x.meetingTime}${x.meetingPlace?' • '+x.meetingPlace:''}` : '',
+    setScore:x.setScore||x.set_score||x.resultScore||x.result_score||x.result||x.score||'',
+    homeSets:x.homeSets??x.home_sets??null,
+    awaySets:x.awaySets??x.away_sets??null,
     month:x.monthKey||'',
     status:x.myStatus || null,
     note:x.myNote||'',

@@ -1,125 +1,80 @@
-CLUB CONTROL PLAYER — V2.3.10.23
-CLUB CONTROL MOTION SYSTEM V1
+CLUB CONTROL PLAYER — V2.3.10.24
+MOBILE GRID V2 + EVENT CARD / COURT / GESTURE PATCH
 
 BASELINE
-- Direct base: V2.3.10.19 HOME_COURTS.
-- V2.3.10.19 itself was rebuilt from the V2.3.10.16 stable rollback, preserving the iOS/Android notification-swipe fixes.
-- Scope of this build is motion / interaction quality only. Existing event, calendar-export, auth, push, attendance, payment, team and home-court behavior is retained.
+- Direct base: Player V2.3.10.23.
+- Retains Motion System v1, calendar export, away navigation detail view, push/in-app notifications, attendance, fees, auth and Supabase business logic.
+- No SQL/schema change.
 
-FIX / INCLUDED — MOTION SYSTEM V1
-1) Shared timing/easing tokens
-- Micro interactions: 140 ms (system range: 120–160 ms).
-- Normal UI transitions: 210 ms (system range: 180–240 ms).
-- Structural token: 280 ms (system range: 240–320 ms).
-- Standard easing: cubic-bezier(.2,0,0,1).
-- Enter easing: cubic-bezier(.2,.8,.2,1).
-- Exit easing: cubic-bezier(.4,0,1,1).
-- Dialog/detail open: 200 ms.
-- Dialog/detail close: 160 ms.
-- Drag release snap: 200 ms with a restrained spring curve.
-- Skeleton -> content crossfade: 100 ms.
+INCLUDED
+1) Mobile Grid v2
+- Menetrend grid now has one sticky left column only: Alkalom.
+- Separate sticky Fő column removed from the grid structure.
+- Headcount is shown inside the event cell.
+- Own player column is first after Alkalom and labelled Én.
+- Remaining player columns use stable fixed widths.
+- One native #matrixScroll surface owns both X and Y scrolling.
+- Month separators no longer participate in sticky geometry.
+- Archived grid event labels are inert/non-clickable when past rows are explicitly shown.
 
-2) Event cards / controls
-- Event cards use a 0.985 press scale, with a faster press and slightly slower release.
-- Buttons use small transform-only press feedback; no layout dimensions are animated.
-- Roster expansion now transitions instead of popping open/closed.
-- Filter panels use the shared normal timing and restrained vertical enter/exit movement.
-- Disclosure triangles/toggles use the shared motion tokens.
+2) Pull-to-refresh isolation
+- Pull-to-refresh never arms from the Menetrend grid surface.
+- Grid pan/scroll gestures remain owned by the matrix.
 
-3) Attendance slider
-- Replaced threshold-only swipe behavior with true draggable behavior.
-- Slider follows the pointer 1:1 horizontally within clamped bounds.
-- First 8 px are reserved for direction arbitration so vertical page scrolling is not hijacked.
-- While dragging: transition = none.
-- On release: projected pointer velocity + nearest-state calculation chooses Jövök / Nincs jelzés / Nem jövök.
-- Thumb snaps to the resolved state over 200 ms.
-- Existing save / cancellation-note business behavior is unchanged.
+3) Event card cleanup
+- Google Maps link removed from normal event cards and normal Menetrend rows.
+- Google Maps route remains in the shared event detail dialog for away matches.
+- Headcount is always a stable right-side element for training/home/away cards.
+- Away address remains visible in compact cards.
 
-4) Bottom navigation
-- No page-slide animation is used.
-- The active indicator travels between the three nav items.
-- Icon gets only a small move/scale change.
-- Label opacity/emphasis transitions with the active state.
-- Reduced-motion mode restores a static active icon highlight.
+4) Weekly BEAC court rules
+Fixed weekly local court allocation now takes priority over stale/missing event court metadata:
+- BEAC Női I.: Tuesday 1. pálya; Friday 3. pálya
+- BEAC Női II.: Tuesday 2. pálya; Friday 1. pálya
+- BEAC Férfi: Monday 3. pálya; Wednesday 2. pálya
+- Away matches never inherit Bogdánfy court allocation.
+- Team detection also falls back to the actually rendered Player header team name.
 
-5) Dialogs / panels
-- Event, cancellation, logout, Settings and Notifications use opacity + 16 px translate on enter.
-- Close is deliberately quicker than open.
-- Escape/backdrop/X close routes use the same close motion instead of abrupt native close.
-- On mobile, Settings and Notifications panel headers can be dragged downward.
-- Drag follows the finger 1:1; sufficient distance/velocity closes the panel, otherwise it snaps back.
-- Desktop panel behavior remains unchanged.
+5) Attendance tap transition
+- Drag behavior from V2.3.10.23 is retained.
+- Tap still advances at most one state.
+- During a tap snap, slider/card visual state is updated immediately before persistence.
+- This removes the first Jövök -> Nincs jelzés green/white flash.
+- Tap snap remains fast and non-overshooting.
 
-6) Menetrend scrolling
-- Native X/Y scrolling remains authoritative.
-- overscroll-behavior: contain.
-- touch-action: pan-x pan-y.
-- Scroll-container/table dimensions are explicitly excluded from motion transitions.
-- No scrollTop animation or scroll-time height change was introduced.
+6) Calendar past events
+- In Calendar mode, the default upcoming period keeps historical events available in past dates/months.
+- Past items are inert/non-clickable.
+- Past trainings use subdued gray treatment.
+- Past matches can show set result when the backend provides a set-score/result field.
+- Past match win = pale green; loss = pale red.
+- No result is invented when the backend does not supply set result data.
 
-7) Loading -> content
-- Notification inbox gets a lightweight skeleton only when no previous content is available.
-- Real notification content crossfades in over 100 ms.
-- Silent refresh with existing notifications does not flash the skeleton/empty state.
-
-8) Reduced motion
-- prefers-reduced-motion: reduce is applied app-wide.
-- Non-essential transforms/animations collapse to effectively instant state changes.
-- Refresh spinner and skeleton shimmer stop moving.
-- Native scrolling remains available.
-
-RETAINED FROM V2.3.10.19
-- Compact contextual training/home/away event information.
-- Away Google Maps routing from event.address.
-- One-time Apple/iPhone + Google Calendar .ics export.
+RETAINED
+- Apple/iPhone + Google Calendar one-time ICS export.
 - Europe/Budapest ICS timezone.
-- BEAC home court fallback:
-  * BEAC Női I.: Tuesday -> 1. pálya; Friday -> 3. pálya
-  * BEAC Női II.: Tuesday -> 2. pálya; Friday -> 1. pálya
-  * BEAC Férfi: Monday -> 3. pálya; Wednesday -> 2. pálya
-  * explicit event.court always wins; away matches never inherit this fallback.
-- V2.3.10.16 browser-native notification swipe and red-tail fix.
+- Motion System v1 and prefers-reduced-motion.
+- V2.3.10.16 native notification swipe/iOS red-tail corrections.
+- V2.3.10.22 matrix native-touch foundation.
+- V2.3.10.23 adjacent tap/flick slider behavior.
 
-JAVÍTANDÓ / PHYSICAL QA BEFORE PRODUCTION
-- iPhone PWA: attendance drag vs vertical page scroll; Settings/Notifications pull-down panel; notification native swipe; bottom-nav indicator; dialog open/close; reduced motion.
-- Android PWA: same interaction smoke, especially pointer drag and native notification swipe coexistence.
-- Desktop: hover/press, filters, dialogs, bottom navigation, keyboard/Escape/focus flow.
-- Real imported away match + real home match compact display.
-- Calendar export smoke remains required from V2.3.10.19.
-
-TELEPÍTÉS
+INSTALL
 Replace only:
 - index.html
 - app.js
 - styles.css
 - sw.js
 
+Do NOT replace production config.js.
 NO SQL REQUIRED.
-Do not rerun 047–053, MGR001 or MGR002.
+Do not rerun migrations 047–053, MGR001 or MGR002.
 
-Build:
-Player V2.3.10.23
-
-
-V2.3.10.22 targeted UI adjustment:
-- Removed legacy minimum-height from Edzések event-card header.
-- One-line venue/court cards now collapse naturally instead of leaving unused space above the attendance slider.
-- Motion System v1 and business logic unchanged.
-
-
-V2.3.10.22 touch/grid correction:
-- Attendance slider drag starts from the full track, including all three labels/buttons.
-- Horizontal drag uses 1:1 thumb tracking; normal taps remain unchanged.
-- Menetrend grid has exactly one native X/Y scroll surface: #matrixScroll.
-- Sticky header + Alkalom + Fő are anchored inside that same scroll surface.
-- Pull-to-refresh no longer competes while the matrix is internally scrolled.
-- Mobile event headcount no longer creates a second empty CSS-grid row.
-
-
-V2.3.10.23 slider/court correction:
-- Tap/click advances at most one attendance state at a time.
-- Short momentum flick also advances at most one state.
-- A deliberate full drag may still cross two states.
-- Tap snap uses a fast 135ms non-overshooting ease-out animation.
-- Weekly court fallbacks: Női I Tue=1/Fri=3; Női II Tue=2/Fri=1; Férfi Mon=3/Wed=2.
-- Explicit event.court still wins; away matches never inherit Bogdánfy court fallbacks.
+PHYSICAL QA BEFORE PRODUCTION
+- iPhone PWA: grid pan X/Y from header, event rows and player cells.
+- Confirm no pull-to-refresh appears while touching/panning grid.
+- Confirm Alkalom remains stable and player widths do not collapse at different scroll positions.
+- Slider: first Jövök -> Nincs jelzés tap has no flash/jump.
+- Training cards display correct fixed weekly court by team/day.
+- Away normal card has address + headcount, but no Maps link.
+- Away detail dialog still opens Google Maps route.
+- Calendar: past training inert/gray; past match inert and result-colored only if result data exists.

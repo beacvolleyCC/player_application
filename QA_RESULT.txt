@@ -1,21 +1,37 @@
-CLUB CONTROL PLAYER V2.3.10.23 — QA RESULT
+CLUB CONTROL PLAYER V2.3.10.24 — QA RESULT
 
 TARGETED SCOPE
-- Attendance slider adjacent-state tap/flick behavior + tap snap motion
-- Weekly team court fallback correction
-- Preserve V2.3.10.22 grid touch fix and Motion System v1
+- Mobile Grid v2 structural simplification
+- Pull-to-refresh isolation from Menetrend grid
+- Weekly court rule priority + robust team-name fallback
+- Maps link detail-only
+- Stable event-card headcount alignment
+- First tap slider visual flash correction
+- Past calendar events inert + optional set-result presentation
 
 STATIC QA
-- JS syntax: PASS (node --check)
-- Service worker syntax: PASS (node --check)
-- Build/cache version: updated to V2.3.10.23
-- No SQL/schema changes
+- app.js syntax: PASS (node --check)
+- sw.js syntax: PASS (node --check)
+- CSS brace count: PASS
+- Build label/cache key/query versions: updated to V2.3.10.24
+- Grid markup contains no matrix-count-head / matrix-count-cell: PASS
+- Normal card / planner row contains no Google Maps mapLink(): PASS
+- Event detail dialog retains Google Maps mapLink(): PASS
+- Pull-to-refresh blocks planner grid touch origin: PASS
+- Weekly court mapping code includes Női I Tue=1/Fri=3, Női II Tue=2/Fri=1, Férfi Mon=3/Wed=2: PASS
+- No SQL/schema changes: PASS
 
-PHYSICAL QA STILL REQUIRED
-- iPhone PWA: tap Jövök -> tap Nem jövök should stop at Nincs jelzés first; second tap reaches Nem jövök.
-- iPhone PWA: short flick from Jövök must stop at Nincs jelzés; deliberate drag may reach Nem jövök.
-- Verify court fallback on Női I / Női II / Férfi weekly sessions.
-- Re-smoke Menetrend grid X/Y scroll from V2.3.10.22.
-- Adjacent tap state-transition helper cases: PASS
-- Flick cap vs deliberate full-drag helper cases: PASS
-- Weekly court mapping/static integration checks: PASS
+AUTOMATED VISUAL BROWSER QA
+- Browser process was available, but local/file navigation is blocked by this execution environment administrator policy.
+- Therefore no automated Chromium visual PASS is claimed.
+
+PHYSICAL QA REQUIRED
+- iPhone PWA grid X/Y scroll and sticky Alkalom behavior.
+- Verify no large blank band appears in any horizontal/vertical matrix position.
+- Verify player columns never collapse or change width.
+- Verify pull-to-refresh never appears from a grid gesture.
+- Verify card headcount alignment on training/home/away events.
+- Verify Maps is absent on normal card and present in away detail.
+- Verify all fixed weekly court values with real team bootstrap data.
+- Verify first Jövök -> Nincs jelzés tap transition.
+- Verify calendar past-event styling and non-clickability.
