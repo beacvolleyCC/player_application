@@ -7912,3 +7912,349 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
   background:#151412 !important;
   color:#f3eee4 !important;
 }
+
+
+/* ========================================================================== 
+   PLAYER V2.3.10.26B — OLD COMPACT GRID + STABLE FREEZE WIDTHS
+   Restore the proven compact Player matrix geometry. Only scroll/sticky
+   stability changes: fixed colgroup widths prevent Fő / frozen panes shrinking.
+   ========================================================================== */
+#plannerView .matrix-mobile-v2.matrix-freeze-v3{
+  --cc-grid-event-w:118px !important;
+  --cc-grid-count-w:36px !important;
+  --cc-grid-own-w:88px !important;
+  --cc-grid-player-w:42px !important;
+  --cc-grid-head-h:44px !important;
+  --cc-grid-row-h:44px !important;
+  overflow:auto !important;
+  touch-action:pan-x pan-y !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior:contain !important;
+}
+
+#plannerView .matrix-freeze-v3 .transposed-matrix{
+  width:max-content !important;
+  min-width:max-content !important;
+  table-layout:fixed !important;
+  border-collapse:separate !important;
+  border-spacing:0 !important;
+}
+#plannerView .matrix-freeze-v3 col.matrix-col-event{width:var(--cc-grid-event-w) !important;}
+#plannerView .matrix-freeze-v3 col.matrix-col-count{width:var(--cc-grid-count-w) !important;}
+#plannerView .matrix-freeze-v3 col.matrix-col-own{width:var(--cc-grid-own-w) !important;}
+#plannerView .matrix-freeze-v3 col.matrix-col-player{width:var(--cc-grid-player-w) !important;}
+
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-event-side{
+  box-sizing:border-box !important;
+  width:var(--cc-grid-event-w) !important;
+  min-width:var(--cc-grid-event-w) !important;
+  max-width:var(--cc-grid-event-w) !important;
+  height:var(--cc-grid-row-h) !important;
+  min-height:var(--cc-grid-row-h) !important;
+  max-height:var(--cc-grid-row-h) !important;
+  padding:4px 7px !important;
+  left:0 !important;
+  position:sticky !important;
+  z-index:10 !important;
+  background:var(--card) !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-head,
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-count-cell{
+  box-sizing:border-box !important;
+  width:var(--cc-grid-count-w) !important;
+  min-width:var(--cc-grid-count-w) !important;
+  max-width:var(--cc-grid-count-w) !important;
+  height:var(--cc-grid-row-h) !important;
+  min-height:var(--cc-grid-row-h) !important;
+  max-height:var(--cc-grid-row-h) !important;
+  padding:0 2px !important;
+  position:sticky !important;
+  left:var(--cc-grid-event-w) !important;
+  z-index:9 !important;
+  background:var(--card) !important;
+  box-shadow:1px 0 0 #a7834c !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-player-head,
+#plannerView .matrix-freeze-v3 .transposed-matrix .matrix-cell{
+  box-sizing:border-box !important;
+  width:var(--cc-grid-player-w) !important;
+  min-width:var(--cc-grid-player-w) !important;
+  max-width:var(--cc-grid-player-w) !important;
+  height:var(--cc-grid-row-h) !important;
+  min-height:var(--cc-grid-row-h) !important;
+  max-height:var(--cc-grid-row-h) !important;
+  padding:0 2px !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix .current-player-head,
+#plannerView .matrix-freeze-v3 .transposed-matrix .current-player-cell{
+  width:var(--cc-grid-own-w) !important;
+  min-width:var(--cc-grid-own-w) !important;
+  max-width:var(--cc-grid-own-w) !important;
+}
+
+#plannerView .matrix-freeze-v3 .transposed-matrix thead th{
+  height:var(--cc-grid-head-h) !important;
+  min-height:var(--cc-grid-head-h) !important;
+  max-height:var(--cc-grid-head-h) !important;
+  position:sticky !important;
+  top:0 !important;
+  z-index:12 !important;
+  padding:2px !important;
+  background:var(--card) !important;
+  border-bottom:2px solid #a7834c !important;
+}
+#plannerView .matrix-freeze-v3 .transposed-matrix thead .matrix-event-side{z-index:16 !important;}
+#plannerView .matrix-freeze-v3 .transposed-matrix thead .matrix-count-head{z-index:15 !important;}
+
+/* Restore old compact event typography. */
+#plannerView .matrix-freeze-v3 .matrix-event-side-btn{
+  display:flex !important;
+  align-items:center !important;
+  gap:5px !important;
+  width:100% !important;
+  min-width:0 !important;
+  padding:0 !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-side-icon{
+  flex:0 0 18px !important;
+  width:18px !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-event-copy{
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-event-copy b{
+  display:block !important;
+  font-size:9px !important;
+  line-height:1.05 !important;
+  font-weight:900 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-event-copy small{
+  display:block !important;
+  margin-top:2px !important;
+  max-width:76px !important;
+  font-size:7px !important;
+  line-height:1.05 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+/* Old compact player header: avatar + short name without increasing cell width. */
+#plannerView .matrix-freeze-v3 .grid-player-head-inner{
+  height:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:1px !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+#plannerView .matrix-freeze-v3 .grid-player-avatar{
+  width:18px !important;
+  height:18px !important;
+  min-width:18px !important;
+  min-height:18px !important;
+  display:block !important;
+  overflow:hidden !important;
+}
+#plannerView .matrix-freeze-v3 .grid-player-avatar-svg{
+  width:18px !important;
+  height:18px !important;
+}
+#plannerView .matrix-freeze-v3 .grid-player-label{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  font-size:7.5px !important;
+  line-height:1 !important;
+  font-weight:900 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  text-align:center !important;
+}
+#plannerView .matrix-freeze-v3 .current-player-head .grid-player-label{font-size:9px !important;}
+
+#plannerView .matrix-freeze-v3 .matrix-count-cell strong{
+  font-size:10px !important;
+  line-height:1 !important;
+  font-weight:950 !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-status{
+  font-size:14px !important;
+  line-height:1 !important;
+}
+
+/* Own control remains usable inside the compact old 86/88px own column. */
+#plannerView .matrix-freeze-v3 .matrix-control{
+  width:74px !important;
+  min-width:74px !important;
+  max-width:74px !important;
+  height:28px !important;
+  margin:0 auto !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-control button{
+  width:24.666px !important;
+  min-width:24.666px !important;
+  height:26px !important;
+  padding:0 !important;
+  font-size:11px !important;
+}
+
+/* Keep the old RSVP cell fills. */
+#plannerView .matrix-freeze-v3 .matrix-cell.matrix-yes{background:#e9f5eb !important;}
+#plannerView .matrix-freeze-v3 .matrix-cell.matrix-no{background:#fae9e8 !important;}
+#plannerView .matrix-freeze-v3 .matrix-cell.matrix-none{background:var(--card) !important;}
+#plannerView .matrix-freeze-v3 .matrix-cell.matrix-yes .matrix-status{color:var(--green) !important;}
+#plannerView .matrix-freeze-v3 .matrix-cell.matrix-no .matrix-status{color:var(--red) !important;}
+.dark #plannerView .matrix-freeze-v3 .matrix-cell.matrix-yes{background:#17291c !important;}
+.dark #plannerView .matrix-freeze-v3 .matrix-cell.matrix-no{background:#301a18 !important;}
+
+#plannerView .matrix-freeze-v3 .matrix-month-divider td{
+  height:18px !important;
+  min-height:18px !important;
+  max-height:18px !important;
+  padding:0 6px !important;
+}
+#plannerView .matrix-freeze-v3 .matrix-month-divider .month-divider{
+  margin:0 !important;
+  font-size:7px !important;
+}
+
+@media(max-width:760px){
+  #plannerView .matrix-mobile-v2.matrix-freeze-v3{
+    --cc-grid-event-w:112px !important;
+    --cc-grid-count-w:34px !important;
+    --cc-grid-own-w:86px !important;
+    --cc-grid-player-w:38px !important;
+    --cc-grid-head-h:42px !important;
+    --cc-grid-row-h:42px !important;
+  }
+  #plannerView .matrix-freeze-v3 .matrix-event-copy small{max-width:70px !important;}
+  #plannerView .matrix-freeze-v3 .matrix-count-cell strong{font-size:9.5px !important;}
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26C — NOTIFICATION SWIPE MOTION SYSTEM v1
+   Row-swipe actions, not a horizontal scroller.
+   - fixed action layer under the row
+   - 8px deadzone + direction lock
+   - direct finger tracking, no transition during drag
+   - 80px normal reveal + rubber-band beyond reveal
+   - distance + velocity close/open/full-swipe resolution
+   - one open row at a time; outside tap / list scroll closes it
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-action-width:80px !important;
+  --cc-notification-progress:0;
+  position:relative !important;
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  border:1px solid var(--line) !important;
+  border-radius:12px !important;
+  box-sizing:border-box !important;
+  background:transparent !important;
+  touch-action:pan-y !important;
+  overscroll-behavior:none !important;
+  scroll-snap-type:none !important;
+  -webkit-overflow-scrolling:auto !important;
+  -webkit-mask:none !important;
+  mask:none !important;
+  isolation:isolate;
+  contain:layout paint;
+}
+.notification-swipe-row::-webkit-scrollbar{display:none !important;}
+.notification-swipe-action{
+  position:absolute !important;
+  z-index:1 !important;
+  inset:0 !important;
+  width:100% !important;
+  min-width:100% !important;
+  height:auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  padding:0 14px 0 calc(100% - var(--cc-swipe-action-width)) !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:#b3261e !important;
+  color:#fff !important;
+  opacity:clamp(0,var(--cc-notification-progress),1) !important;
+  visibility:visible !important;
+  pointer-events:none !important;
+  transform:none !important;
+  transition:opacity .08s linear !important;
+  box-sizing:border-box !important;
+  font-size:11px !important;
+  font-weight:900 !important;
+  white-space:nowrap;
+}
+.dark .notification-swipe-action{background:#8f2d27 !important;}
+.notification-item-card{
+  position:relative !important;
+  z-index:2 !important;
+  display:grid !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  box-sizing:border-box !important;
+  border:0 !important;
+  border-radius:11px !important;
+  background:var(--card) !important;
+  transform:translate3d(var(--cc-notification-x,0px),0,0) !important;
+  transition:
+    transform 220ms cubic-bezier(.22,1,.36,1),
+    background .12s ease !important;
+  will-change:transform;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  touch-action:pan-y !important;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+}
+.notification-swipe-row.swiping .notification-item-card{
+  transition:none !important;
+}
+.notification-swipe-row.is-snapping .notification-item-card{
+  transition:transform 220ms cubic-bezier(.22,1,.36,1) !important;
+}
+.notification-swipe-row.is-dismissing .notification-item-card{
+  pointer-events:none !important;
+  transition:transform 190ms cubic-bezier(.22,1,.36,1) !important;
+}
+.notification-swipe-row.is-dismissing .notification-swipe-action,
+.notification-swipe-row.is-full-swipe .notification-swipe-action,
+.notification-swipe-row.swiping .notification-swipe-action,
+.notification-swipe-row[data-swipe-open="1"] .notification-swipe-action{
+  opacity:1 !important;
+}
+.notification-swipe-row[data-swipe-open="1"] .notification-swipe-action{
+  pointer-events:auto !important;
+}
+.notification-row-collapsing{
+  min-height:0 !important;
+  overflow:hidden !important;
+  transition:
+    height 160ms cubic-bezier(.4,0,.2,1),
+    opacity 140ms ease,
+    margin 160ms ease !important;
+}
+@media(prefers-reduced-motion:reduce){
+  .notification-item-card,
+  .notification-swipe-action,
+  .notification-row-collapsing{
+    transition-duration:.01ms !important;
+  }
+}

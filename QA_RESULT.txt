@@ -1,11 +1,21 @@
-PLAYER V2.3.10.26 FULL REPO PACKAGE
+PLAYER V2.3.10.26C QA
 
-PACKAGE CHECK: PASS
-- index.html present
-- app.js present
-- styles.css present
-- sw.js present
-- complete current Player runtime set copied from V2.3.10.26 working package
+PASS: app.js syntax (node --check)
+PASS: sw.js syntax (node --check)
+PASS: index.html unchanged from V2.3.10.26B
+PASS: old compact grid dimensions retained (112/34/86/38/42)
+PASS: green/red grid status styling retained
+PASS: Notification Swipe Motion v1 8px deadzone
+PASS: horizontal/vertical direction lock
+PASS: direct drag without transition
+PASS: 80px reveal
+PASS: rubber-band resistance after reveal
+PASS: distance + velocity close/open/full-swipe logic
+PASS: one-open-row policy
+PASS: outside-tap close
+PASS: notification-list scroll close
+PASS: revealed action tap dismiss
+PASS: full-swipe dismiss
+PASS: service-worker cache version bumped
 
-NOTE
-Physical iPhone / Android / desktop smoke remains the production release gate.
+Live iPhone/PWA gesture smoke remains required after deploy.

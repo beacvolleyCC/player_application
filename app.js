@@ -1239,6 +1239,11 @@ function renderGridMatrix(rows){
   }).join('');
 
   return `<div class="matrix-scroll matrix-mobile-v2 matrix-freeze-v3" id="matrixScroll"><table class="season-matrix transposed-matrix">
+    <colgroup>
+      <col class="matrix-col-event">
+      <col class="matrix-col-count">
+      ${people.map(person=>`<col class="${person.id==='__ME__'?'matrix-col-own':'matrix-col-player'}">`).join('')}
+    </colgroup>
     <thead>
       <tr>
         <th class="matrix-event-side sticky-matrix-col">Alkalom</th>
@@ -1246,7 +1251,7 @@ function renderGridMatrix(rows){
         ${people.map(person=>{
           const mine=person.id==='__ME__';
           const label=mine ? 'Én' : gridGivenName(person);
-          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${escapeHtml_(person.name)}"><span class="grid-player-head-inner"><span class="grid-player-label">${escapeHtml_(label)}</span></span></th>`;
+          return `<th class="matrix-player-head ${mine?'current-player-head':''}" title="${escapeHtml_(person.name)}"><span class="grid-player-head-inner">${person.avatarId?`<span class="grid-player-avatar">${avatarMarkup_(person.avatarId,'grid-player-avatar-svg')}</span>`:''}<span class="grid-player-label">${escapeHtml_(label)}</span></span></th>`;
         }).join('')}
       </tr>
     </thead>
@@ -1846,7 +1851,7 @@ function ccNotificationItemHtml_(item){
         <span class="notification-item-meta">${escapeHtml_(ccNotificationTypeLabel_(item.type))}</span>
       </span>
     </button>
-    <div class="notification-swipe-action" aria-hidden="true">Eltüntetés</div>
+    <button type="button" class="notification-swipe-action" data-notification-dismiss="${escapeHtml_(item.id)}" aria-label="Értesítés eltüntetése">Eltüntetés</button>
   </div>`;
 }
 function renderNotificationInbox_(){
@@ -1952,107 +1957,246 @@ async function ccOpenNotification_(id){
   else if(view==='schedule') switchView('plannerView');
   if(eventId && events.some(e=>String(e.id)===String(eventId))) window.setTimeout(()=>openEventDialog(String(eventId)),CC_MOTION_V1.exit+50);
 }
+let ccOpenNotificationSwipeRow_=null;
+let ccNotificationSwipeGlobalBound_=false;
+
+function ccCloseNotificationSwipeRow_(row,{animate=true}={}){
+  if(!row || !row.isConnected) return;
+  const card=row.querySelector('.notification-item-card');
+  if(!card) return;
+  row.classList.remove('swiping','is-full-swipe','is-dismissing');
+  if(animate) row.classList.add('is-snapping');
+  else row.classList.remove('is-snapping');
+  card.style.setProperty('--cc-notification-x','0px');
+  row.dataset.swipeOpen='0';
+  if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
+  if(animate){
+    window.setTimeout(()=>row?.classList.remove('is-snapping'),250);
+  }
+}
+
+function ccBindNotificationSwipeGlobals_(){
+  if(ccNotificationSwipeGlobalBound_) return;
+  ccNotificationSwipeGlobalBound_=true;
+
+  // Only one row may remain open. Tapping anywhere else closes it first.
+  document.addEventListener('pointerdown',event=>{
+    const open=ccOpenNotificationSwipeRow_;
+    if(!open || !open.isConnected) return;
+    if(open.contains(event.target)) return;
+    ccCloseNotificationSwipeRow_(open);
+  },true);
+
+  // Scrolling the notification panel behaves like iOS Mail: any revealed
+  // row closes before/while the list moves vertically.
+  document.addEventListener('scroll',event=>{
+    const open=ccOpenNotificationSwipeRow_;
+    if(!open || !open.isConnected || open.classList.contains('swiping')) return;
+    const target=event.target;
+    if(target===document || target===window || target?.closest?.('#notificationsDialog')){
+      ccCloseNotificationSwipeRow_(open);
+    }
+  },true);
+}
+
 function ccBindNotificationSwipes_(){
+  ccBindNotificationSwipeGlobals_();
+
   document.querySelectorAll('.notification-swipe-row').forEach(row=>{
     if(row.dataset.swipeBound==='1') return;
     row.dataset.swipeBound='1';
+    row.dataset.swipeOpen='0';
 
     const card=row.querySelector('.notification-item-card');
+    const action=row.querySelector('.notification-swipe-action');
     const id=row.dataset.notificationId;
-    if(!card || !id) return;
+    if(!card || !action || !id) return;
 
-    // Browser-native swipe for iOS/Android PWAs.
-    // The row itself is a horizontal scroller. Safari/Chrome own the drag,
-    // momentum and axis arbitration; JS never moves the card during touch.
-    // CSS Scroll Snap settles either at 0 (keep) or at maxScroll (dismiss).
+    const DEADZONE=8;
+    const REVEAL=80;
+    const OPEN_THRESHOLD=REVEAL*0.44;
+    const OPEN_VELOCITY=-0.34;      // px/ms
+    const CLOSE_VELOCITY=0.34;
+    const FULL_VELOCITY=-0.95;
+    const SNAP_MS=220;
+
+    let active=false;
+    let axis='';
+    let pointerId=null;
+    let startX=0,startY=0;
+    let startOffset=0;
+    let currentOffset=0;
+    let lastX=0,lastT=0,velocityX=0;
+    let raf=0;
     let dismissing=false;
-    let settleTimer=0;
-    let lastScrollAt=0;
-    let maxSeenScroll=0;
-    let touchActive=false;
+    let suppressClickUntil=0;
 
-    const maxScroll_=()=>Math.max(0,row.scrollWidth-row.clientWidth);
+    const rowWidth=()=>Math.max(1,row.getBoundingClientRect().width||card.getBoundingClientRect().width||1);
+    const fullThreshold=()=>Math.max(REVEAL+48,Math.min(rowWidth()*0.58,240));
+    const getOffset=()=>{
+      const raw=Number.parseFloat(getComputedStyle(card).getPropertyValue('--cc-notification-x'));
+      return Number.isFinite(raw)?Math.max(0,-raw):0;
+    };
     const haptic=()=>{ try{ navigator.vibrate?.(8); }catch(_){ } };
+
+    const paint=offset=>{
+      currentOffset=Math.max(0,offset);
+      cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(()=>{
+        card.style.setProperty('--cc-notification-x',`${-currentOffset}px`);
+        row.style.setProperty('--cc-notification-progress',String(Math.min(1,currentOffset/REVEAL)));
+        row.classList.toggle('is-full-swipe',currentOffset>=fullThreshold());
+      });
+    };
+
+    const resistedOffset=raw=>{
+      if(raw<=0) return 0;
+      if(raw<=REVEAL) return raw;
+      // iOS-like rubber band after the normal reveal width. It still permits
+      // a deliberate full swipe, but becomes progressively heavier.
+      const extra=raw-REVEAL;
+      return REVEAL + extra*0.38/(1+extra/360);
+    };
+
+    const snapTo=offset=>{
+      row.classList.remove('swiping','is-full-swipe');
+      row.classList.add('is-snapping');
+      paint(offset);
+      row.dataset.swipeOpen=offset>0?'1':'0';
+      if(offset>0){
+        if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
+          ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_);
+        }
+        ccOpenNotificationSwipeRow_=row;
+      }else if(ccOpenNotificationSwipeRow_===row){
+        ccOpenNotificationSwipeRow_=null;
+      }
+      window.setTimeout(()=>row?.classList.remove('is-snapping'),SNAP_MS+30);
+    };
 
     const commitDismiss=()=>{
       if(dismissing) return;
       dismissing=true;
-      clearTimeout(settleTimer);
-      row.classList.add('is-native-dismissing');
+      active=false;
+      row.classList.remove('swiping','is-snapping');
+      row.classList.add('is-dismissing');
+      if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
       haptic();
-      // No red-tail animation: the list is re-rendered immediately once the
-      // browser has finished its native snap at the dismiss position.
-      ccDismissNotification_(id);
+
+      const w=rowWidth();
+      card.style.setProperty('--cc-notification-x',`${-(w+24)}px`);
+      row.style.height=`${row.getBoundingClientRect().height}px`;
+      row.style.opacity='1';
+      suppressClickUntil=performance.now()+500;
+
+      window.setTimeout(()=>{
+        row.classList.add('notification-row-collapsing');
+        requestAnimationFrame(()=>{
+          row.style.height='0px';
+          row.style.opacity='0';
+          row.style.marginBlock='0';
+        });
+      },SNAP_MS-40);
+      window.setTimeout(()=>ccDismissNotification_(id),SNAP_MS+170);
     };
 
-    const settle=()=>{
-      if(dismissing || touchActive) return;
-      const max=maxScroll_();
-      if(max<=1) return;
-      const left=Math.max(0,row.scrollLeft);
+    const finishGesture=()=>{
+      if(!active || dismissing) return;
+      active=false;
+      try{ if(pointerId!==null) card.releasePointerCapture?.(pointerId); }catch(_){ }
+      pointerId=null;
 
-      // With mandatory snapping the final resting positions are 0 or max.
-      // Use a small tolerance for sub-pixel / Safari rounding.
-      if(left>=max-6 || (left/max)>=0.88){
-        commitDismiss();
+      if(axis!=='x'){
+        axis='';
+        row.classList.remove('swiping');
         return;
       }
 
-      // If Safari ended between snap points for any reason, leave the row to
-      // the browser's snap engine. Never force a JS transform/scroll animation.
-      maxSeenScroll=left<=2?0:maxSeenScroll;
+      suppressClickUntil=performance.now()+280;
+      const offset=currentOffset;
+      const full=offset>=fullThreshold() || (velocityX<=FULL_VELOCITY && offset>REVEAL*1.12);
+      if(full){
+        commitDismiss();
+      }else if(velocityX>=CLOSE_VELOCITY){
+        snapTo(0);
+      }else if(offset>=OPEN_THRESHOLD || velocityX<=OPEN_VELOCITY){
+        snapTo(REVEAL);
+      }else{
+        snapTo(0);
+      }
+      axis='';
     };
 
-    const scheduleSettle=()=>{
-      clearTimeout(settleTimer);
-      // iOS 18 has no reliable Element.scrollend. Scroll events continue
-      // through momentum/snap, so this fires only after they stop.
-      settleTimer=window.setTimeout(settle,110);
-    };
+    action.addEventListener('click',event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      commitDismiss();
+    });
 
-    row.addEventListener('touchstart',()=>{
-      touchActive=true;
-      clearTimeout(settleTimer);
-    },{passive:true});
+    card.addEventListener('pointerdown',event=>{
+      if(dismissing || event.button>0) return;
+      if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
+        ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_);
+      }
+      active=true;
+      axis='';
+      pointerId=event.pointerId;
+      startX=lastX=event.clientX;
+      startY=event.clientY;
+      lastT=performance.now();
+      velocityX=0;
+      startOffset=getOffset();
+      currentOffset=startOffset;
+      row.classList.remove('is-snapping','is-full-swipe');
+    });
 
-    row.addEventListener('scroll',()=>{
-      if(dismissing) return;
-      lastScrollAt=performance.now();
-      maxSeenScroll=Math.max(maxSeenScroll,Math.max(0,row.scrollLeft));
-      scheduleSettle();
-    },{passive:true});
+    card.addEventListener('pointermove',event=>{
+      if(!active || event.pointerId!==pointerId || dismissing) return;
+      const dx=event.clientX-startX;
+      const dy=event.clientY-startY;
 
-    // Newer browsers can finish without the debounce; iOS 18 uses fallback.
-    if('onscrollend' in row){
-      row.addEventListener('scrollend',()=>{
-        clearTimeout(settleTimer);
-        settle();
-      },{passive:true});
-    }
+      if(!axis){
+        if(Math.abs(dx)<DEADZONE && Math.abs(dy)<DEADZONE) return;
+        if(Math.abs(dy)>Math.abs(dx)*1.12){
+          axis='y';
+          active=false;
+          return;
+        }
+        axis='x';
+        try{ card.setPointerCapture?.(event.pointerId); }catch(_){ }
+        row.classList.add('swiping');
+      }
+      if(axis!=='x') return;
+
+      // Horizontal drag owns the gesture after direction lock.
+      event.preventDefault();
+      const now=performance.now();
+      const dt=Math.max(1,now-lastT);
+      const inst=(event.clientX-lastX)/dt;
+      velocityX=velocityX*0.66+inst*0.34;
+      lastX=event.clientX;
+      lastT=now;
+
+      const raw=startOffset-dx;
+      paint(resistedOffset(raw));
+    },{passive:false});
+
+    card.addEventListener('pointerup',finishGesture);
+    card.addEventListener('pointercancel',()=>{
+      if(!active) return;
+      active=false;
+      row.classList.remove('swiping');
+      snapTo(startOffset>=OPEN_THRESHOLD?REVEAL:0);
+    });
 
     card.addEventListener('click',event=>{
-      const recentlyScrolled=(performance.now()-lastScrollAt)<260;
-      if(dismissing || row.scrollLeft>2 || maxSeenScroll>3 || recentlyScrolled){
+      if(dismissing || performance.now()<suppressClickUntil || getOffset()>2){
         event.preventDefault();
-        // Once native snap has fully returned to rest, allow the next real tap.
-        if(row.scrollLeft<=2 && !recentlyScrolled) maxSeenScroll=0;
+        event.stopPropagation();
         return;
       }
       ccOpenNotification_(id);
     });
-
-    // Reset the gesture memory after the browser has snapped back to rest.
-    row.addEventListener('touchend',()=>{
-      touchActive=false;
-      scheduleSettle();
-      window.setTimeout(()=>{
-        if(!dismissing && row.scrollLeft<=2) maxSeenScroll=0;
-      },220);
-    },{passive:true});
-    row.addEventListener('touchcancel',()=>{
-      touchActive=false;
-      scheduleSettle();
-    },{passive:true});
   });
 }
 
