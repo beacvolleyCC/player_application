@@ -1,4 +1,4 @@
-CLUB CONTROL PLAYER — V2.3.10.22
+CLUB CONTROL PLAYER — V2.3.10.23
 CLUB CONTROL MOTION SYSTEM V1
 
 BASELINE
@@ -74,10 +74,10 @@ RETAINED FROM V2.3.10.19
 - One-time Apple/iPhone + Google Calendar .ics export.
 - Europe/Budapest ICS timezone.
 - BEAC home court fallback:
-  * BEAC Férfi Monday home match -> 3. pálya
-  * BEAC Női I. Friday home match -> 3. pálya
-  * BEAC Női II. Tuesday home match -> 2. pálya
-  * explicit event.court always wins.
+  * BEAC Női I.: Tuesday -> 1. pálya; Friday -> 3. pálya
+  * BEAC Női II.: Tuesday -> 2. pálya; Friday -> 1. pálya
+  * BEAC Férfi: Monday -> 3. pálya; Wednesday -> 2. pálya
+  * explicit event.court always wins; away matches never inherit this fallback.
 - V2.3.10.16 browser-native notification swipe and red-tail fix.
 
 JAVÍTANDÓ / PHYSICAL QA BEFORE PRODUCTION
@@ -98,7 +98,7 @@ NO SQL REQUIRED.
 Do not rerun 047–053, MGR001 or MGR002.
 
 Build:
-Player V2.3.10.22
+Player V2.3.10.23
 
 
 V2.3.10.22 targeted UI adjustment:
@@ -114,3 +114,12 @@ V2.3.10.22 touch/grid correction:
 - Sticky header + Alkalom + Fő are anchored inside that same scroll surface.
 - Pull-to-refresh no longer competes while the matrix is internally scrolled.
 - Mobile event headcount no longer creates a second empty CSS-grid row.
+
+
+V2.3.10.23 slider/court correction:
+- Tap/click advances at most one attendance state at a time.
+- Short momentum flick also advances at most one state.
+- A deliberate full drag may still cross two states.
+- Tap snap uses a fast 135ms non-overshooting ease-out animation.
+- Weekly court fallbacks: Női I Tue=1/Fri=3; Női II Tue=2/Fri=1; Férfi Mon=3/Wed=2.
+- Explicit event.court still wins; away matches never inherit Bogdánfy court fallbacks.

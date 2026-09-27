@@ -6882,11 +6882,13 @@ body.dark #settingsDialog #pushDisableBtn{
   --cc-motion-enter:200ms;
   --cc-motion-exit:160ms;
   --cc-motion-snap:200ms;
+  --cc-motion-tap-snap:135ms;
   --cc-motion-skeleton:100ms;
   --cc-ease-standard:cubic-bezier(.2,0,0,1);
   --cc-ease-enter:cubic-bezier(.2,.8,.2,1);
   --cc-ease-exit:cubic-bezier(.4,0,1,1);
   --cc-ease-snap:cubic-bezier(.18,.9,.24,1.06);
+  --cc-ease-tap-snap:cubic-bezier(.2,.8,.2,1);
 }
 
 /* Micro interactions: tactile, transform-only, no layout reflow. */
@@ -6978,6 +6980,10 @@ body.dark #settingsDialog #pushDisableBtn{
 .attendance-slider.cc-slider-snapping .slider-thumb{
   left:var(--cc-slider-left) !important;
   transition:left var(--cc-motion-snap) var(--cc-ease-snap) !important;
+}
+.attendance-slider.cc-slider-tap-snapping .slider-thumb{
+  left:var(--cc-slider-left) !important;
+  transition:left var(--cc-motion-tap-snap) var(--cc-ease-tap-snap) !important;
 }
 .attendance-slider.cc-slider-dragging{cursor:grabbing;}
 
@@ -7186,7 +7192,7 @@ dialog.cc-sheet-snapping .dialog-card{
 
 
 /* ==========================================================
-   PLAYER V2.3.10.22 — TOUCH INPUT + SINGLE GRID SCROLLER FIX
+   PLAYER V2.3.10.23 — ADJACENT TAP/FLICK + WEEKLY COURTS
    - whole attendance track is draggable, including label buttons
    - horizontal slider drag is reserved for the component; vertical pan stays native
    - matrixScroll is the one native X/Y grid scroller on iOS/PWA

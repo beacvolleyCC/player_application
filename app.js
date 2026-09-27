@@ -38,7 +38,7 @@ let avatarPickerMode = 'monogram';
 
 
 // ---------------------------------------------------------------------------
-// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.22
+// CLUB CONTROL MOTION SYSTEM V1 — Player V2.3.10.23
 // Shared motion primitives only. Business/data behavior stays unchanged.
 // ---------------------------------------------------------------------------
 const CC_MOTION_V1=Object.freeze({
@@ -48,6 +48,7 @@ const CC_MOTION_V1=Object.freeze({
   enter:200,
   exit:160,
   snap:200,
+  tapSnap:135,
   skeleton:100,
   directionLock:8
 });
@@ -444,20 +445,29 @@ function mapLink(e,label='Útvonaltervezés ↗',extraClass=''){
   const cls=['map-link','map-nav-link',extraClass].filter(Boolean).join(' ');
   return `<a class="${cls}" href="https://www.google.com/maps/dir/?api=1&destination=${destination}" target="_blank" rel="noopener noreferrer" aria-label="Útvonaltervezés ehhez a címhez a Google Mapsben">${label}</a>`;
 }
-function inferredHomeMatchCourt_(e){
-  if(e?.type!=='Meccs' || e?.matchKind!=='home') return '';
+function inferredTeamCourt_(e){
+  // Away matches use the venue/address from the imported event and must never
+  // inherit a Bogdánfy court fallback.
+  if(e?.matchKind==='away') return '';
+
   const teamName=String(currentTeamData?.teamName||currentTeamData?.name||'')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const start=eventStart(e);
   const weekday=(start instanceof Date && !Number.isNaN(start.getTime())) ? start.getDay() : null;
+  const isWomen2=teamName.includes('noi ii') || teamName.includes('noi 2');
+  const isWomen1=!isWomen2 && (teamName.includes('noi i') || teamName.includes('noi 1'));
+  const isMen=teamName.includes('ferfi');
 
-  // 2026/27 BEAC home-match slots supplied by club operations.
-  // Monday: BEAC Férfi — court 3
-  // Tuesday: BEAC Női II. — court 2
-  // Friday: BEAC Női I. — court 3
-  if(teamName.includes('ferfi') && weekday===1) return '3. pálya';
-  if(teamName.includes('noi ii') && weekday===2) return '2. pálya';
-  if((teamName.includes('noi i') || teamName.includes('noi 1')) && !teamName.includes('noi ii') && weekday===5) return '3. pálya';
+  // 2026/27 fixed BEAC weekly court allocation supplied by club operations.
+  // BEAC Női I.: Tuesday court 1, Friday court 3
+  // BEAC Női II.: Tuesday court 2, Friday court 1
+  // BEAC Férfi: Monday court 3, Wednesday court 2
+  if(isWomen1 && weekday===2) return '1. pálya';
+  if(isWomen1 && weekday===5) return '3. pálya';
+  if(isWomen2 && weekday===2) return '2. pálya';
+  if(isWomen2 && weekday===5) return '1. pálya';
+  if(isMen && weekday===1) return '3. pálya';
+  if(isMen && weekday===3) return '2. pálya';
   return '';
 }
 function compactCourtLabel_(e){
@@ -476,7 +486,7 @@ function compactCourtLabel_(e){
   if(m) return normalize(m[1]);
   const loose=place.match(/(\d+\.?\s*pálya)/i);
   if(loose) return normalize(loose[1]);
-  const inferred=normalize(inferredHomeMatchCourt_(e));
+  const inferred=normalize(inferredTeamCourt_(e));
   if(inferred) return inferred;
   return '–';
 }
@@ -1332,7 +1342,7 @@ function scrollPlannerToNearest(rows, behavior='auto'){
   if(!next) return;
 
   if(plannerMode==='grid'){
-    // V2.3.10.22: the matrix itself is the ONE native X/Y scroll surface.
+    // V2.3.10.23: the matrix itself is the ONE native X/Y scroll surface.
     // Keeping sticky header + sticky left columns inside the same scroller is
     // substantially more reliable in iOS/PWA than nested overflow containers.
     const scroller=document.getElementById('matrixScroll');
@@ -1394,7 +1404,7 @@ function syncPlannerGridViewport_(){
 
   if(!plannerView?.classList.contains('active') || !viewport || !bottomNav) return;
 
-  // V2.3.10.22: never create nested scroll containers. The outer viewport is
+  // V2.3.10.23: never create nested scroll containers. The outer viewport is
   // layout-only; #matrixScroll owns both axes in grid mode.
   viewport.style.removeProperty('height');
   viewport.style.removeProperty('max-height');
@@ -2232,6 +2242,10 @@ function bindSliderDrag(){
     let startX=0,startY=0,startLeft=0,currentLeft=0,lastX=0,lastT=0,velocityX=0;
     let suppressClick=false;
 
+    const states=['yes','none','no'];
+    const normalizedState=()=>event.status==='yes'?'yes':(event.status==='no'?'no':'none');
+    const stateIndex=state=>Math.max(0,states.indexOf(state));
+    const actionState=action=>action==='yes'?'yes':(action==='no'?'no':'none');
     const geometry=()=>{
       const thumbWidth=thumb.getBoundingClientRect().width || Math.max(20,slider.clientWidth/3-4);
       const min=2;
@@ -2243,6 +2257,11 @@ function bindSliderDrag(){
       const points=[['yes',g.min],['none',g.mid],['no',g.max]];
       return points.reduce((best,item)=>Math.abs(item[1]-left)<Math.abs(best[1]-left)?item:best,points[0])[0];
     };
+    const adjacentToward=(from,requested)=>{
+      const fromIndex=stateIndex(from),requestedIndex=stateIndex(requested);
+      if(fromIndex===requestedIndex) return from;
+      return states[fromIndex+Math.sign(requestedIndex-fromIndex)];
+    };
     const setFreeLeft=left=>{
       currentLeft=left;
       slider.style.setProperty('--cc-slider-left',`${left.toFixed(1)}px`);
@@ -2251,29 +2270,84 @@ function bindSliderDrag(){
       active=false; locked=false; pointerId=null; velocityX=0;
       slider.classList.remove('cc-slider-dragging');
     };
+    const applyFromThisSlider=state=>{
+      const insideEventDialog=!!slider.closest('#eventDialog');
+      if(state==='yes'){
+        setYes(event);
+        if(insideEventDialog) setTimeout(()=>openEventDialog(event.id),0);
+        return;
+      }
+      if(state==='no'){
+        if(insideEventDialog && eventDialog?.open){
+          ccCloseDialog_(eventDialog,()=>askCancel(event));
+        }else askCancel(event);
+        return;
+      }
+      neutralizeEvent(event);
+      if(insideEventDialog) setTimeout(()=>openEventDialog(event.id),0);
+    };
     const finishSnap=(state,commit=true)=>{
       const g=geometry();
       const target=stateLeft(state,g);
-      slider.classList.remove('cc-slider-dragging');
+      slider.classList.remove('cc-slider-dragging','cc-slider-tap-snapping');
       slider.classList.add('cc-slider-snapping');
       setFreeLeft(target);
       const delay=ccPrefersReducedMotion_()?0:CC_MOTION_V1.snap;
       window.setTimeout(()=>{
         slider.classList.remove('cc-slider-snapping');
         slider.style.removeProperty('--cc-slider-left');
-        if(commit) applySliderState(event,state);
+        if(commit) applyFromThisSlider(state);
+      },delay);
+    };
+    const finishTapSnap=state=>{
+      const current=normalizedState();
+      if(state===current) return;
+
+      // Preserve the existing confirmation before visually leaving a confirmed
+      // "Jövök" state. A cancelled confirmation leaves the thumb untouched.
+      if(current==='yes' && state==='none'){
+        const ok=confirm('Már jelezted, hogy jössz. Biztosan visszaállítod „Nincs jelzés” állapotra?');
+        if(!ok) return;
+      }
+
+      const g=geometry();
+      const target=stateLeft(state,g);
+      slider.classList.remove('cc-slider-dragging','cc-slider-snapping');
+      slider.classList.add('cc-slider-tap-snapping');
+      setFreeLeft(target);
+      const delay=ccPrefersReducedMotion_()?0:CC_MOTION_V1.tapSnap;
+      window.setTimeout(()=>{
+        slider.classList.remove('cc-slider-tap-snapping');
+        slider.style.removeProperty('--cc-slider-left');
+        if(state==='none' && current==='yes'){
+          persist(event,null,event.note||'');
+          renderEvents();
+          renderPlanner();
+          if(slider.closest('#eventDialog')) setTimeout(()=>openEventDialog(event.id),0);
+        }else{
+          applyFromThisSlider(state);
+        }
       },delay);
     };
 
-    // A drag normally ends over one of the three real buttons. Suppress only
-    // the synthetic click that follows a completed drag; normal taps still use
-    // the existing button/click business logic unchanged.
+    // Taps are intentionally one-step only. Example: Jövök -> Nincs jelzés ->
+    // Nem jövök. A user may still drag the thumb manually across two segments.
     slider.addEventListener('click',e=>{
-      if(!suppressClick) return;
-      suppressClick=false;
+      if(suppressClick){
+        suppressClick=false;
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation?.();
+        return;
+      }
+      const button=e.target.closest('[data-slider-action]');
+      if(!button || !slider.contains(button)) return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation?.();
+      const current=normalizedState();
+      const requested=actionState(button.dataset.sliderAction);
+      finishTapSnap(adjacentToward(current,requested));
     },true);
 
     slider.addEventListener('pointerdown',e=>{
@@ -2281,7 +2355,7 @@ function bindSliderDrag(){
       const g=geometry();
       active=true; locked=false; pointerId=e.pointerId;
       startX=e.clientX; startY=e.clientY;
-      startLeft=stateLeft(event.status||'none',g); currentLeft=startLeft;
+      startLeft=stateLeft(normalizedState(),g); currentLeft=startLeft;
       lastX=e.clientX; lastT=performance.now(); velocityX=0;
       setFreeLeft(startLeft);
       slider.setPointerCapture?.(e.pointerId);
@@ -2317,9 +2391,31 @@ function bindSliderDrag(){
       try{slider.releasePointerCapture?.(e.pointerId);}catch(_){ }
       const wasLocked=locked;
       const g=geometry();
+      const startState=normalizedState();
+      const directState=stateFromLeft(currentLeft,g);
       const projected=Math.min(g.max,Math.max(g.min,currentLeft+velocityX*120));
-      const state=wasLocked?stateFromLeft(projected,g):(event.status||'none');
-      if(wasLocked) suppressClick=true;
+      let state=startState;
+
+      if(wasLocked){
+        const directDelta=stateIndex(directState)-stateIndex(startState);
+        if(Math.abs(directDelta)>=2){
+          // A deliberate full-width drag may cross both state boundaries.
+          state=directState;
+        }else{
+          // Momentum/flick may advance only one state. This prevents a short
+          // flick from jumping directly Jövök <-> Nem jövök.
+          const projectedState=stateFromLeft(projected,g);
+          const projectedDelta=stateIndex(projectedState)-stateIndex(startState);
+          state=Math.abs(projectedDelta)>1
+            ? states[stateIndex(startState)+Math.sign(projectedDelta)]
+            : projectedState;
+        }
+      }
+
+      if(wasLocked){
+        suppressClick=true;
+        window.setTimeout(()=>{ suppressClick=false; },350);
+      }
       cleanup();
       if(wasLocked) finishSnap(state,true);
       else slider.style.removeProperty('--cc-slider-left');
@@ -2328,13 +2424,12 @@ function bindSliderDrag(){
     slider.addEventListener('pointercancel',e=>{
       if(!active || e.pointerId!==pointerId) return;
       try{slider.releasePointerCapture?.(e.pointerId);}catch(_){ }
-      const original=event.status||'none';
+      const original=normalizedState();
       cleanup();
       finishSnap(original,false);
     });
   });
 }
-
 
 
 // ---------------------------------------------------------------------------

@@ -1,27 +1,21 @@
-CLUB CONTROL PLAYER V2.3.10.22 — QA RESULT
+CLUB CONTROL PLAYER V2.3.10.23 — QA RESULT
 
-TARGETED FIX SCOPE
-- attendance slider pointer/touch drag
-- Menetrend grid native X/Y scroll ownership
-- compact event-card headcount row
+TARGETED SCOPE
+- Attendance slider adjacent-state tap/flick behavior + tap snap motion
+- Weekly team court fallback correction
+- Preserve V2.3.10.22 grid touch fix and Motion System v1
 
-PASS — static / structural
-- app.js syntax
-- sw.js syntax
-- duplicate HTML IDs: none
-- build/cache/version markers consistent
-- full-track slider pointer binding present; old button exclusion removed
-- matrixScroll is the single grid overflow owner in final high-specificity CSS
-- pull-to-refresh checks the active internal grid scroller
-- mobile headcount forced back to row 1 / right column
+STATIC QA
+- JS syntax: PASS (node --check)
+- Service worker syntax: PASS (node --check)
+- Build/cache version: updated to V2.3.10.23
+- No SQL/schema changes
 
-PASS — isolated Chromium interaction harness
-- drag started directly on the center slider BUTTON
-- cc-slider-dragging activated and --cc-slider-left changed during movement
-- release to the right committed the `no` state
-- matrix viewport: clientWidth 368 px / scrollWidth 690 px in 390 px mobile viewport
-- matrix scrollLeft changed 0 -> 180 while outer planner viewport stayed at 0
-
-NOT CLAIMED
-- These harnesses verify the corrected interaction model, but they are not a substitute for physical Safari/PWA behavior.
-- Physical iPhone PWA + Android + desktop smoke remains required before production approval.
+PHYSICAL QA STILL REQUIRED
+- iPhone PWA: tap Jövök -> tap Nem jövök should stop at Nincs jelzés first; second tap reaches Nem jövök.
+- iPhone PWA: short flick from Jövök must stop at Nincs jelzés; deliberate drag may reach Nem jövök.
+- Verify court fallback on Női I / Női II / Férfi weekly sessions.
+- Re-smoke Menetrend grid X/Y scroll from V2.3.10.22.
+- Adjacent tap state-transition helper cases: PASS
+- Flick cap vs deliberate full-drag helper cases: PASS
+- Weekly court mapping/static integration checks: PASS
