@@ -8661,3 +8661,32 @@ dialog[open]:focus{
   outline:none !important;
   box-shadow:none !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26K — MEDICAL STATUS + FILTER TYPE LOCK
+   Scope locked: no notification swipe/grid/business changes.
+   ========================================================== */
+/* One typography contract for every Player filter surface. */
+#eventFilterPanel .filter-grid label>span,
+#plannerFilterPanel .filter-grid label>span,
+#eventFilterPanel .custom-date-range label>span,
+#plannerFilterPanel .custom-date-range label>span{
+  font-weight:600 !important;
+}
+#eventFilterPanel select,
+#plannerFilterPanel select,
+#eventFilterPanel input,
+#plannerFilterPanel input,
+.filter-bar select{
+  font-weight:400 !important;
+}
+.filter-reset-btn{
+  font-weight:500 !important;
+}
+/* Medical status is computed from the canonical profile date in Europe/Budapest. */
+#profileMedicalRow[data-medical-state="ok"] #profileMedical{color:var(--green) !important;}
+#profileMedicalRow[data-medical-state="warn"] #profileMedical{color:#9a6800 !important;}
+#profileMedicalRow[data-medical-state="expired"] #profileMedical{color:var(--red) !important;}
+#profileMedicalRow[data-medical-state="empty"] #profileMedical{color:var(--muted) !important;}
+.dark #profileMedicalRow[data-medical-state="warn"] #profileMedical{color:#e2b654 !important;}

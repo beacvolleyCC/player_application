@@ -70,6 +70,38 @@ function ccBlurPointerControl_(el){
   requestAnimationFrame(()=>{try{el.blur()}catch(_){}});
 }
 
+
+function ccDateOnlyUtc_(value){
+  const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(!m) return null;
+  return Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]));
+}
+function ccBudapestTodayUtc_(){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit'})
+    .formatToParts(new Date()).reduce((acc,p)=>{if(p.type!=='literal')acc[p.type]=p.value;return acc;},{});
+  return Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day));
+}
+function ccMedicalStatus_(value){
+  const raw=String(value||'').trim();
+  const dateUtc=ccDateOnlyUtc_(raw);
+  if(dateUtc===null) return {state:'empty',label:'Nincs adat',display:'Nincs adat',days:null};
+  const days=Math.round((dateUtc-ccBudapestTodayUtc_())/86400000);
+  const displayDate=raw.slice(0,10).replace(/-/g,'.')+'.';
+  if(days<0) return {state:'expired',label:'Lejárt',display:`${displayDate} · Lejárt`,days};
+  if(days===0) return {state:'warn',label:'Ma jár le',display:`${displayDate} · Ma jár le`,days};
+  if(days<=30) return {state:'warn',label:'Hamarosan lejár',display:`${displayDate} · ${days} nap`,days};
+  return {state:'ok',label:'Érvényes',display:displayDate,days};
+}
+function ccRenderMedicalStatus_(value){
+  const row=document.getElementById('profileMedicalRow');
+  const el=document.getElementById('profileMedical');
+  if(!row||!el) return;
+  const info=ccMedicalStatus_(value);
+  row.dataset.medicalState=info.state;
+  el.textContent=info.display;
+  el.title=info.days===null?'Nincs rögzített sportorvosi dátum':`${info.label}${info.days!==null?` · ${Math.abs(info.days)} nap`:''}`;
+}
+
 const ccDialogCloseTimers_=new WeakMap();
 function ccDialogMotionCleanup_(dialog){
   if(!dialog) return;
@@ -3471,7 +3503,7 @@ function applyBootstrap(j){
     setRow('profileJerseySizeRow','profileJerseySize',j.player.jerseySize,true);
     setRow('profileShortsSizeRow','profileShortsSize',j.player.shortsSize,true);
     setRow('profileLicenseRow','profileLicense',j.player.licenseNo,false);
-    setRow('profileMedicalRow','profileMedical',j.player.medicalValidUntil,false);
+    ccRenderMedicalStatus_(j.player.medicalValidUntil);
   }
 
   const accountEmail=document.getElementById('settingsAccountEmail');

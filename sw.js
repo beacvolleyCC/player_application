@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26j-focus-selection-regression-lock';
+const CACHE='club-control-player-v2-3-10-26k-medical-filter-type-lock';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
