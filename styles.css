@@ -8559,3 +8559,43 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
     transition:none !important;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26H — FILTER STABILITY / 11X MOTION QA
+   Native select/popover stability first: no geometry motion on filter surfaces.
+   ========================================================== */
+#eventFilterPanel,
+#plannerFilterPanel{
+  transform:none !important;
+  max-height:none !important;
+  overflow:visible !important;
+  transition:none !important;
+  will-change:auto !important;
+  contain:none !important;
+}
+#eventFilterPanel.is-collapsed,
+#plannerFilterPanel.is-collapsed{
+  display:none !important;
+  max-height:none !important;
+  opacity:1 !important;
+  transform:none !important;
+  margin:0 !important;
+  pointer-events:none !important;
+}
+#eventFilterPanel:not(.is-collapsed),
+#plannerFilterPanel:not(.is-collapsed){
+  display:block !important;
+  opacity:1 !important;
+  transform:none !important;
+  pointer-events:auto !important;
+}
+/* Keep motion only on the indicator; the panel itself must not move under a native select. */
+#eventFilterBtn .filter-funnel,
+#plannerFilterBtn .filter-funnel{
+  transition:transform 140ms cubic-bezier(.22,1,.36,1) !important;
+}
+@media (prefers-reduced-motion: reduce){
+  #eventFilterBtn .filter-funnel,
+  #plannerFilterBtn .filter-funnel{transition:none !important;}
+}
