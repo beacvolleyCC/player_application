@@ -8456,3 +8456,54 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
 @media(prefers-reduced-motion:reduce){
   .notification-swipe-row{scroll-behavior:auto !important;}
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26F — ONE-WAY SWIPE + HARD STICKY EDGES
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-action-width:80px !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  overscroll-behavior-x:none !important;
+  overscroll-behavior-inline:none !important;
+  scroll-snap-type:none !important;
+  scroll-behavior:auto !important;
+  touch-action:pan-x pan-y !important;
+}
+/* Extra native scroll runway makes a true 50%-of-row destructive threshold
+   possible while keeping the visible action itself compact. */
+.notification-swipe-row::after{
+  content:"";
+  flex:0 0 calc(100% - var(--cc-swipe-action-width)) !important;
+  width:calc(100% - var(--cc-swipe-action-width)) !important;
+  min-width:calc(100% - var(--cc-swipe-action-width)) !important;
+  background:#b3261e !important;
+  align-self:stretch;
+}
+.dark .notification-swipe-row::after{background:#8f2d27 !important;}
+.notification-item-card,
+.notification-swipe-action{
+  scroll-snap-align:none !important;
+  scroll-snap-stop:normal !important;
+}
+.notification-swipe-row.is-native-dismissing{
+  pointer-events:none !important;
+}
+.notification-swipe-row.is-native-dismissing .notification-item-card{
+  opacity:.72 !important;
+}
+@media(prefers-reduced-motion:reduce){
+  .notification-swipe-row{scroll-behavior:auto !important;}
+}
+
+/* Matrix hard-edge lock: no local rubber-band at left/top/right/bottom.
+   Sticky geometry stays the legacy compact geometry; only boundary behavior changes. */
+#plannerView #plannerList:has(.transposed-matrix) #matrixScroll{
+  overscroll-behavior:none !important;
+  overscroll-behavior-x:none !important;
+  overscroll-behavior-y:none !important;
+  -webkit-overflow-scrolling:touch !important;
+  touch-action:pan-x pan-y !important;
+  overflow-anchor:none !important;
+}

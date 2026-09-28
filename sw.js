@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26e-native-scroll-swipe-v1';
+const CACHE='club-control-player-v2-3-10-26f-one-way-swipe-sticky-lock';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

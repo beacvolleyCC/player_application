@@ -1623,6 +1623,61 @@ plannerList.addEventListener('wheel',event=>{
   }
 },{passive:true});
 
+
+/* PLAYER NATIVE SCROLL & SWIPE v1.1 — matrix edge lock.
+   The matrix keeps native X/Y scrolling. JS only cancels outward rubber-band
+   at the four physical edges so sticky left/top cells remain visually pinned. */
+(function installMatrixBoundaryLock_(){
+  let state=null;
+
+  plannerList.addEventListener('touchstart',event=>{
+    const scroller=event.target?.closest?.('#matrixScroll');
+    const t=event.touches?.[0];
+    if(!scroller || !t){ state=null; return; }
+    state={
+      scroller,
+      startX:t.clientX,startY:t.clientY,
+      lastX:t.clientX,lastY:t.clientY,
+      axis:''
+    };
+  },{passive:true});
+
+  plannerList.addEventListener('touchmove',event=>{
+    if(!state || !state.scroller?.isConnected) return;
+    const t=event.touches?.[0];
+    if(!t) return;
+
+    const totalX=t.clientX-state.startX;
+    const totalY=t.clientY-state.startY;
+    const dx=t.clientX-state.lastX;
+    const dy=t.clientY-state.lastY;
+    state.lastX=t.clientX;
+    state.lastY=t.clientY;
+
+    if(!state.axis && Math.max(Math.abs(totalX),Math.abs(totalY))>6){
+      state.axis=Math.abs(totalX)>Math.abs(totalY)?'x':'y';
+    }
+
+    const scroller=state.scroller;
+    const maxX=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+    const maxY=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+    const atLeft=scroller.scrollLeft<=0.5;
+    const atRight=scroller.scrollLeft>=maxX-0.5;
+    const atTop=scroller.scrollTop<=0.5;
+    const atBottom=scroller.scrollTop>=maxY-0.5;
+
+    if(state.axis==='x'){
+      if((atLeft && dx>0) || (atRight && dx<0)) event.preventDefault();
+    }else if(state.axis==='y'){
+      if((atTop && dy>0) || (atBottom && dy<0)) event.preventDefault();
+    }
+  },{passive:false});
+
+  const clear=()=>{ state=null; };
+  plannerList.addEventListener('touchend',clear,{passive:true});
+  plannerList.addEventListener('touchcancel',clear,{passive:true});
+})();
+
 document.querySelector('#cancelDialog button[value="cancel"]')?.addEventListener('click',ev=>{
   ev.preventDefault();
   ccCloseDialog_(cancelDialog,()=>{
@@ -1957,42 +2012,71 @@ async function ccOpenNotification_(id){
 let ccOpenNotificationSwipeRow_=null;
 let ccNotificationSwipeGlobalBound_=false;
 
-/* PLAYER NATIVE SCROLL & SWIPE v1
-   Notification rows are real horizontal scroll containers.
-   Safari/iOS owns drag, momentum and axis arbitration; JS only manages
-   CLOSED/OPEN row state and the explicit archive action. */
+/* PLAYER NATIVE SCROLL & SWIPE v1.1
+   - native horizontal scrolling; no JS translate/frame-by-frame drag
+   - CLOSED state cannot rubber-band to the right
+   - short left swipe can reveal the explicit action
+   - crossing 50% of the row and releasing dismisses automatically */
 function ccNotificationSwipeOpenLeft_(row){
   const raw=getComputedStyle(row).getPropertyValue('--cc-swipe-action-width');
   const parsed=Number.parseFloat(raw);
   return Number.isFinite(parsed) ? parsed : 80;
 }
+function ccNotificationSwipeDeleteThreshold_(row){
+  return Math.max(ccNotificationSwipeOpenLeft_(row), row.clientWidth*0.5);
+}
 function ccCloseNotificationSwipeRow_(row,{animate=true}={}){
-  if(!row || !row.isConnected) return;
+  if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
   row.dataset.swipeOpen='0';
   row.classList.remove('is-open');
+  row.dataset.swipeSettling='1';
   try{ row.scrollTo({left:0,behavior:animate?'smooth':'auto'}); }
   catch(_){ row.scrollLeft=0; }
+  window.setTimeout(()=>{ if(row?.isConnected) row.dataset.swipeSettling='0'; },animate?190:0);
   if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
 }
-function ccOpenNotificationSwipeRowNative_(row){
-  if(!row || !row.isConnected) return;
+function ccOpenNotificationSwipeRowNative_(row,{animate=true}={}){
+  if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
   if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
     ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_,{animate:true});
   }
   row.dataset.swipeOpen='1';
   row.classList.add('is-open');
   ccOpenNotificationSwipeRow_=row;
-}
-function ccSyncNotificationSwipeState_(row){
-  if(!row || !row.isConnected) return;
   const openLeft=ccNotificationSwipeOpenLeft_(row);
-  if(row.scrollLeft >= openLeft*0.55){
-    ccOpenNotificationSwipeRowNative_(row);
-  }else{
-    row.dataset.swipeOpen='0';
-    row.classList.remove('is-open');
-    if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
+  row.dataset.swipeSettling='1';
+  try{ row.scrollTo({left:openLeft,behavior:animate?'smooth':'auto'}); }
+  catch(_){ row.scrollLeft=openLeft; }
+  window.setTimeout(()=>{ if(row?.isConnected) row.dataset.swipeSettling='0'; },animate?190:0);
+}
+function ccDismissNotificationSwipeRow_(row,id){
+  if(!row || !row.isConnected || !id || row.dataset.swipeDismissing==='1') return;
+  row.dataset.swipeDismissing='1';
+  row.dataset.swipeOpen='0';
+  row.classList.remove('is-open');
+  row.classList.add('is-native-dismissing');
+  if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
+
+  const maxLeft=Math.max(0,row.scrollWidth-row.clientWidth);
+  try{ row.scrollTo({left:maxLeft,behavior:'smooth'}); }
+  catch(_){ row.scrollLeft=maxLeft; }
+  window.setTimeout(()=>ccDismissNotification_(id),170);
+}
+function ccSettleNotificationSwipe_(row,id){
+  if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
+  const left=Math.max(0,row.scrollLeft);
+  const openLeft=ccNotificationSwipeOpenLeft_(row);
+  const deleteAt=ccNotificationSwipeDeleteThreshold_(row);
+
+  if(left>=deleteAt){
+    ccDismissNotificationSwipeRow_(row,id);
+    return;
   }
+  if(left>=openLeft*0.48){
+    ccOpenNotificationSwipeRowNative_(row,{animate:true});
+    return;
+  }
+  ccCloseNotificationSwipeRow_(row,{animate:true});
 }
 function ccBindNotificationSwipeGlobals_(){
   if(ccNotificationSwipeGlobalBound_) return;
@@ -2005,8 +2089,7 @@ function ccBindNotificationSwipeGlobals_(){
     ccCloseNotificationSwipeRow_(open,{animate:true});
   },true);
 
-  // A vertical list scroll closes any revealed action, without taking over
-  // the user's gesture or changing the list's native momentum.
+  // Vertical list scrolling closes an exposed action without taking over the gesture.
   const dialog=document.getElementById('notificationsDialog');
   dialog?.addEventListener('scroll',()=>{
     const open=ccOpenNotificationSwipeRow_;
@@ -2021,6 +2104,8 @@ function ccBindNotificationSwipes_(){
     if(row.dataset.swipeBound==='1') return;
     row.dataset.swipeBound='1';
     row.dataset.swipeOpen='0';
+    row.dataset.swipeDismissing='0';
+    row.dataset.swipeSettling='0';
 
     const card=row.querySelector('.notification-item-card');
     const action=row.querySelector('.notification-swipe-action');
@@ -2028,35 +2113,90 @@ function ccBindNotificationSwipes_(){
     if(!card || !action || !id) return;
 
     let scrollTimer=0;
+    let gestureActive=false;
     let pointerStartLeft=0;
     let pointerMoved=false;
+    let touchStartX=0;
+    let touchStartY=0;
+    let touchLastX=0;
+    let touchLastY=0;
+    let touchAxis='';
 
-    const settle=()=>ccSyncNotificationSwipeState_(row);
+    const settle=()=>{
+      clearTimeout(scrollTimer);
+      if(!gestureActive && row.dataset.swipeSettling!=='1') ccSettleNotificationSwipe_(row,id);
+    };
     const scheduleSettle=()=>{
       clearTimeout(scrollTimer);
-      scrollTimer=window.setTimeout(settle,90);
+      if(gestureActive || row.dataset.swipeSettling==='1') return;
+      scrollTimer=window.setTimeout(settle,75);
     };
 
-    row.addEventListener('scroll',scheduleSettle,{passive:true});
+    row.addEventListener('scroll',()=>{
+      if(Math.abs(row.scrollLeft-pointerStartLeft)>3) pointerMoved=true;
+      scheduleSettle();
+    },{passive:true});
     if('onscrollend' in row){
       row.addEventListener('scrollend',settle,{passive:true});
     }
 
     row.addEventListener('pointerdown',()=>{
+      gestureActive=true;
       pointerStartLeft=row.scrollLeft;
       pointerMoved=false;
       if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
         ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_,{animate:true});
       }
     },{passive:true});
-    row.addEventListener('pointermove',()=>{
-      if(Math.abs(row.scrollLeft-pointerStartLeft)>3) pointerMoved=true;
+    row.addEventListener('pointerup',()=>{
+      gestureActive=false;
+      window.setTimeout(settle,0);
+    },{passive:true});
+    row.addEventListener('pointercancel',()=>{
+      gestureActive=false;
+      window.setTimeout(settle,0);
+    },{passive:true});
+
+    // iOS boundary guard: when CLOSED, a rightward swipe cannot pull the card
+    // past x=0. Rightward motion remains possible only to close an already-open row.
+    row.addEventListener('touchstart',event=>{
+      const t=event.touches?.[0];
+      if(!t) return;
+      gestureActive=true;
+      touchStartX=touchLastX=t.clientX;
+      touchStartY=touchLastY=t.clientY;
+      touchAxis='';
+    },{passive:true});
+    row.addEventListener('touchmove',event=>{
+      const t=event.touches?.[0];
+      if(!t) return;
+      const totalX=t.clientX-touchStartX;
+      const totalY=t.clientY-touchStartY;
+      const dx=t.clientX-touchLastX;
+      const dy=t.clientY-touchLastY;
+      touchLastX=t.clientX;
+      touchLastY=t.clientY;
+
+      if(!touchAxis && Math.max(Math.abs(totalX),Math.abs(totalY))>6){
+        touchAxis=Math.abs(totalX)>Math.abs(totalY)?'x':'y';
+      }
+      if(touchAxis==='x' && row.scrollLeft<=0.5 && dx>0 && Math.abs(dx)>=Math.abs(dy)){
+        event.preventDefault();
+      }
+    },{passive:false});
+    row.addEventListener('touchend',()=>{
+      gestureActive=false;
+      window.setTimeout(settle,0);
+    },{passive:true});
+    row.addEventListener('touchcancel',()=>{
+      gestureActive=false;
+      window.setTimeout(settle,0);
     },{passive:true});
 
     action.addEventListener('click',event=>{
       event.preventDefault();
       event.stopPropagation();
-      ccDismissNotification_(id);
+      ccDismissNotificationSwipeRow_(row,id);
     });
 
     card.addEventListener('click',event=>{
@@ -2147,7 +2287,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231024').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026f').catch(()=>{}));
 }
 
 
@@ -2542,7 +2682,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231024');
+    return await navigator.serviceWorker.register('./sw.js?v=231026f');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
