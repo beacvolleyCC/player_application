@@ -2096,7 +2096,7 @@ function ccNotificationSwipeScroll_(row,left,{animate=true}={}){
   row.dataset.swipeSettling='1';
   try{ scroller.scrollTo({left:Math.max(0,left),behavior:animate?'smooth':'auto'}); }
   catch(_){ scroller.scrollLeft=Math.max(0,left); }
-  window.setTimeout(()=>{ if(row?.isConnected) row.dataset.swipeSettling='0'; },animate?230:0);
+  window.setTimeout(()=>{ if(row?.isConnected) row.dataset.swipeSettling='0'; },animate?180:0);
 }
 function ccCloseNotificationSwipeRow_(row,{animate=true}={}){
   if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
@@ -2215,7 +2215,7 @@ function ccBindNotificationSwipes_(){
       if(gestureActive || row.dataset.swipeSettling==='1') return;
       ccSettleNotificationSwipe_(row,id);
     };
-    const scheduleSettle=(delay=125)=>{
+    const scheduleSettle=(delay=80)=>{
       clearTimeout(settleTimer);
       if(gestureActive || row.dataset.swipeSettling==='1') return;
       settleTimer=window.setTimeout(settle,delay);
@@ -2225,7 +2225,7 @@ function ccBindNotificationSwipes_(){
       if(Math.abs(scroller.scrollLeft-pointerStartLeft)>3) pointerMoved=true;
       // Do not fight iOS momentum. Each momentum scroll event pushes the
       // fallback settle further out until the native movement is really done.
-      scheduleSettle(135);
+      scheduleSettle(85);
     },{passive:true});
     if('onscrollend' in scroller){
       scroller.addEventListener('scrollend',()=>scheduleSettle(0),{passive:true});
@@ -2242,11 +2242,11 @@ function ccBindNotificationSwipes_(){
     },{passive:true});
     row.addEventListener('pointerup',()=>{
       gestureActive=false;
-      scheduleSettle(110);
+      scheduleSettle(70);
     },{passive:true});
     row.addEventListener('pointercancel',()=>{
       gestureActive=false;
-      scheduleSettle(110);
+      scheduleSettle(70);
     },{passive:true});
 
     // CLOSED state is one-way: rightward finger motion cannot pull the card
@@ -2280,11 +2280,11 @@ function ccBindNotificationSwipes_(){
     },{passive:false});
     row.addEventListener('touchend',()=>{
       gestureActive=false;
-      scheduleSettle(120);
+      scheduleSettle(75);
     },{passive:true});
     row.addEventListener('touchcancel',()=>{
       gestureActive=false;
-      scheduleSettle(120);
+      scheduleSettle(75);
     },{passive:true});
 
     action.addEventListener('click',event=>{

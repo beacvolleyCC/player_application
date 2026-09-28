@@ -8842,3 +8842,32 @@ dialog[open]:focus{
   }
 }
 
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26N — iOS SWIPE LAYER FIX
+   Fixes 26M regression:
+   - swipe scroller receives touch/pointer input again
+   - card/scroller fully covers the red action while CLOSED
+   - action rises above the transparent runway only in OPEN state
+   ========================================================== */
+.notification-swipe-scroll{
+  z-index:2 !important;
+  pointer-events:auto !important;
+}
+.notification-swipe-row .notification-item-card{
+  position:relative !important;
+  z-index:2 !important;
+}
+.notification-swipe-action{
+  z-index:1 !important;
+  pointer-events:none !important;
+}
+.notification-swipe-row[data-swipe-open="1"] .notification-swipe-action{
+  z-index:3 !important;
+  pointer-events:auto !important;
+}
+.notification-swipe-row[data-swipe-open="0"] .notification-swipe-action{
+  z-index:1 !important;
+  pointer-events:none !important;
+}
