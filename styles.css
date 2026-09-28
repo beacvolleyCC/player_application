@@ -8871,3 +8871,103 @@ dialog[open]:focus{
   z-index:1 !important;
   pointer-events:none !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O — iOS PROGRESS SWIPE LOCK
+   - read items stay opaque (no red bleed-through)
+   - red underlay fades 0→1 by 50%, then 1→0 by full swipe
+   - card stays opaque to 50%, then fades to 0 by full swipe
+   - partial release always returns CLOSED; no persistent action-open state
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-progress:0;
+  --cc-swipe-red-alpha:0;
+  --cc-swipe-card-alpha:1;
+  --cc-swipe-action-alpha:0;
+  position:relative !important;
+  overflow:hidden !important;
+  background:var(--soft) !important;
+  isolation:isolate !important;
+}
+.notification-swipe-row::before{
+  content:"" !important;
+  display:block !important;
+  position:absolute !important;
+  inset:0 !important;
+  z-index:0 !important;
+  border-radius:inherit !important;
+  background:#b3261e !important;
+  opacity:var(--cc-swipe-red-alpha) !important;
+  pointer-events:none !important;
+  transition:none !important;
+}
+.dark .notification-swipe-row::before{
+  background:#8f2d27 !important;
+}
+.notification-swipe-scroll{
+  position:relative !important;
+  z-index:2 !important;
+  pointer-events:auto !important;
+  background:transparent !important;
+  scroll-snap-type:none !important;
+  scroll-behavior:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+.notification-swipe-row .notification-item-card,
+.notification-swipe-row.is-read .notification-item-card,
+.notification-swipe-row.is-native-dismissing .notification-item-card{
+  position:relative !important;
+  z-index:2 !important;
+  opacity:var(--cc-swipe-card-alpha) !important;
+  transform:none !important;
+  transition:none !important;
+}
+.notification-swipe-row.is-unread .notification-item-card{
+  background:var(--card) !important;
+}
+.notification-swipe-row.is-read .notification-item-card{
+  background:var(--soft) !important;
+}
+.notification-swipe-row.is-read .notification-item-content{
+  opacity:.68 !important;
+}
+.notification-swipe-row.is-read .notification-item-dot{
+  background:var(--line) !important;
+  opacity:1 !important;
+}
+.notification-swipe-action,
+.notification-swipe-row[data-swipe-open="0"] .notification-swipe-action,
+.notification-swipe-row[data-swipe-open="1"] .notification-swipe-action{
+  z-index:1 !important;
+  background:transparent !important;
+  opacity:var(--cc-swipe-action-alpha) !important;
+  visibility:visible !important;
+  pointer-events:none !important;
+  transition:none !important;
+}
+.notification-swipe-runway{
+  background:transparent !important;
+}
+.notification-swipe-row.is-native-dismissing{
+  pointer-events:none !important;
+  opacity:1 !important;
+  transition:none !important;
+}
+.notification-swipe-row.is-native-collapsing{
+  opacity:0 !important;
+  margin-top:0 !important;
+  margin-bottom:0 !important;
+  border-top-width:0 !important;
+  border-bottom-width:0 !important;
+  transition:height 190ms cubic-bezier(.22,1,.36,1),
+             max-height 190ms cubic-bezier(.22,1,.36,1),
+             opacity 150ms ease,
+             margin 190ms cubic-bezier(.22,1,.36,1),
+             border-width 190ms cubic-bezier(.22,1,.36,1) !important;
+}
+@media(prefers-reduced-motion:reduce){
+  .notification-swipe-row.is-native-collapsing{
+    transition:none !important;
+  }
+}

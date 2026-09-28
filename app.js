@@ -2073,47 +2073,93 @@ function ccNotificationSwipeScroller_(row){
   return row?.querySelector?.('.notification-swipe-scroll') || null;
 }
 
-/* PLAYER NATIVE SCROLL & SWIPE v1.3 — iOS ACTION-LAYER MODEL
-   - the card is the only surface that scrolls horizontally
-   - the red action layer stays fixed underneath, so reveal grows continuously
-   - no frame-by-frame JS drag and no snap fight during iOS momentum
-   - JS decides only after the native scroll has actually settled
-   - CLOSED cannot rubber-band to the right
-   - short swipe settles to a compact reveal; ~28% release dismisses */
-function ccNotificationSwipeOpenLeft_(row){
-  const raw=getComputedStyle(row).getPropertyValue('--cc-swipe-action-width');
-  const parsed=Number.parseFloat(raw);
-  return Number.isFinite(parsed) ? parsed : 74;
+/* PLAYER NATIVE SCROLL & SWIPE v1.4 — iOS PROGRESS MODEL
+   - native horizontal scroll owns the finger tracking
+   - JS only reads scroll progress to drive red/card opacity
+   - no settle timer while the finger is down
+   - release below commit threshold returns CLOSED
+   - release just beyond half (or a decisive flick near half) dismisses
+   - no persistent half-open action state */
+function ccNotificationSwipeScroller_(row){
+  return row?.querySelector?.('.notification-swipe-scroll') || null;
 }
-function ccNotificationSwipeDeleteThreshold_(row){
-  const reveal=ccNotificationSwipeOpenLeft_(row);
-  return Math.max(reveal*1.28, Math.min(row.clientWidth*0.28, 128));
+function ccClamp01_(value){
+  const n=Number(value)||0;
+  return Math.max(0,Math.min(1,n));
 }
-function ccNotificationSwipeScroll_(row,left,{animate=true}={}){
+function ccNotificationSwipeProgress_(row){
+  const scroller=ccNotificationSwipeScroller_(row);
+  if(!scroller) return 0;
+  const width=Math.max(1,row.clientWidth||scroller.clientWidth||1);
+  return ccClamp01_(Math.max(0,scroller.scrollLeft)/width);
+}
+function ccUpdateNotificationSwipeVisual_(row){
+  if(!row?.isConnected) return;
+  const progress=ccNotificationSwipeProgress_(row);
+  // iOS-like envelope: red emerges from the base background, is fully red at
+  // half travel, then fades away again as the whole row is committed/dismissed.
+  const redAlpha=progress<=0.5
+    ? ccClamp01_(progress/0.5)
+    : ccClamp01_(1-((progress-0.5)/0.5));
+  // The notification itself remains fully opaque through the first half,
+  // then fades progressively until it has completely left the row.
+  const cardAlpha=progress<=0.5
+    ? 1
+    : ccClamp01_(1-((progress-0.5)/0.5));
+  const actionAlpha=redAlpha;
+  row.style.setProperty('--cc-swipe-progress',progress.toFixed(4));
+  row.style.setProperty('--cc-swipe-red-alpha',redAlpha.toFixed(4));
+  row.style.setProperty('--cc-swipe-card-alpha',cardAlpha.toFixed(4));
+  row.style.setProperty('--cc-swipe-action-alpha',actionAlpha.toFixed(4));
+}
+function ccCancelNotificationSwipeAnimation_(row){
+  if(!row) return;
+  row._ccSwipeAnimToken=(row._ccSwipeAnimToken||0)+1;
+  row.dataset.swipeAnimating='0';
+}
+function ccAnimateNotificationSwipeTo_(row,target,duration=180,onDone){
   if(!row?.isConnected) return;
   const scroller=ccNotificationSwipeScroller_(row);
   if(!scroller) return;
-  row.dataset.swipeSettling='1';
-  try{ scroller.scrollTo({left:Math.max(0,left),behavior:animate?'smooth':'auto'}); }
-  catch(_){ scroller.scrollLeft=Math.max(0,left); }
-  window.setTimeout(()=>{ if(row?.isConnected) row.dataset.swipeSettling='0'; },animate?180:0);
+  ccCancelNotificationSwipeAnimation_(row);
+  const token=row._ccSwipeAnimToken;
+  const start=Math.max(0,scroller.scrollLeft);
+  const end=Math.max(0,target);
+  const delta=end-start;
+  if(Math.abs(delta)<0.5 || window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches){
+    scroller.scrollLeft=end;
+    ccUpdateNotificationSwipeVisual_(row);
+    onDone?.();
+    return;
+  }
+  row.dataset.swipeAnimating='1';
+  const t0=performance.now();
+  const ease=t=>1-Math.pow(1-t,3);
+  const step=now=>{
+    if(!row?.isConnected || row._ccSwipeAnimToken!==token) return;
+    const t=ccClamp01_((now-t0)/Math.max(1,duration));
+    scroller.scrollLeft=start+(delta*ease(t));
+    ccUpdateNotificationSwipeVisual_(row);
+    if(t<1){
+      requestAnimationFrame(step);
+    }else{
+      row.dataset.swipeAnimating='0';
+      onDone?.();
+    }
+  };
+  requestAnimationFrame(step);
 }
 function ccCloseNotificationSwipeRow_(row,{animate=true}={}){
   if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
   row.dataset.swipeOpen='0';
   row.classList.remove('is-open');
-  ccNotificationSwipeScroll_(row,0,{animate});
-  if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
-}
-function ccOpenNotificationSwipeRowNative_(row,{animate=true}={}){
-  if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
-  if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
-    ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_,{animate:true});
+  if(animate) ccAnimateNotificationSwipeTo_(row,0,165);
+  else{
+    const scroller=ccNotificationSwipeScroller_(row);
+    if(scroller) scroller.scrollLeft=0;
+    ccUpdateNotificationSwipeVisual_(row);
   }
-  row.dataset.swipeOpen='1';
-  row.classList.add('is-open');
-  ccOpenNotificationSwipeRow_=row;
-  ccNotificationSwipeScroll_(row,ccNotificationSwipeOpenLeft_(row),{animate});
+  if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
 }
 function ccDismissNotificationSwipeRow_(row,id){
   if(!row || !row.isConnected || !id || row.dataset.swipeDismissing==='1') return;
@@ -2122,66 +2168,39 @@ function ccDismissNotificationSwipeRow_(row,id){
   row.classList.remove('is-open');
   if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
 
-  const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const startHeight=Math.max(1,row.getBoundingClientRect().height);
   row.style.height=`${startHeight}px`;
   row.style.maxHeight=`${startHeight}px`;
+  const target=Math.max(1,row.clientWidth||ccNotificationSwipeScroller_(row)?.clientWidth||1);
 
-  if(reduceMotion){
-    row.classList.add('is-native-dismissing','is-native-collapsing');
-    window.setTimeout(()=>ccDismissNotification_(id),40);
-    return;
-  }
-
-  // Keep the native scroll exactly where the finger left it. The card then
-  // finishes its travel over the fixed red layer with one short CSS motion.
-  row.classList.add('is-native-dismissing');
-  window.setTimeout(()=>{
+  ccAnimateNotificationSwipeTo_(row,target,190,()=>{
     if(!row?.isConnected) return;
-    row.classList.add('is-native-collapsing');
+    row.classList.add('is-native-dismissing','is-native-collapsing');
     row.style.height='0px';
     row.style.maxHeight='0px';
-  },185);
-  window.setTimeout(()=>ccDismissNotification_(id),390);
+    window.setTimeout(()=>ccDismissNotification_(id),205);
+  });
 }
-function ccSettleNotificationSwipe_(row,id){
-  if(!row || !row.isConnected || row.dataset.swipeDismissing==='1' || row.dataset.swipeSettling==='1') return;
-  const scroller=ccNotificationSwipeScroller_(row);
-  if(!scroller) return;
-  const left=Math.max(0,scroller.scrollLeft);
-  const openLeft=ccNotificationSwipeOpenLeft_(row);
-  const deleteAt=ccNotificationSwipeDeleteThreshold_(row);
-
-  if(left>=deleteAt){
+function ccCommitNotificationSwipe_(row,id,{velocity=0,distance=0}={}){
+  if(!row?.isConnected || row.dataset.swipeDismissing==='1') return;
+  const width=Math.max(1,row.clientWidth||1);
+  const left=Math.max(0,ccNotificationSwipeScroller_(row)?.scrollLeft||0);
+  const travelled=Math.max(left,Math.max(0,distance));
+  const commitAt=width*0.54;
+  const flickAt=width*0.44;
+  const decisiveFlick=travelled>=flickAt && velocity<=-0.34;
+  if(travelled>=commitAt || decisiveFlick){
     ccDismissNotificationSwipeRow_(row,id);
-    return;
+  }else{
+    ccCloseNotificationSwipeRow_(row,{animate:true});
   }
-  if(left>=Math.min(openLeft*0.42,30)){
-    ccOpenNotificationSwipeRowNative_(row,{animate:true});
-    return;
-  }
-  ccCloseNotificationSwipeRow_(row,{animate:true});
 }
 function ccBindNotificationSwipeGlobals_(){
   if(ccNotificationSwipeGlobalBound_) return;
   ccNotificationSwipeGlobalBound_=true;
-
-  document.addEventListener('pointerdown',event=>{
-    const open=ccOpenNotificationSwipeRow_;
-    if(!open || !open.isConnected) return;
-    if(open.contains(event.target)) return;
-    ccCloseNotificationSwipeRow_(open,{animate:true});
-  },true);
-
-  const dialog=document.getElementById('notificationsDialog');
-  let verticalCloseTimer=0;
-  dialog?.addEventListener('scroll',()=>{
-    clearTimeout(verticalCloseTimer);
-    verticalCloseTimer=window.setTimeout(()=>{
-      const open=ccOpenNotificationSwipeRow_;
-      if(open?.isConnected) ccCloseNotificationSwipeRow_(open,{animate:false});
-    },90);
-  },{passive:true,capture:true});
+  // There is intentionally no persistent OPEN state in v1.4. A partial swipe
+  // always returns closed on release, so outside-tap/vertical-scroll closing is
+  // no longer needed.
 }
 
 function ccBindNotificationSwipes_(){
@@ -2192,7 +2211,7 @@ function ccBindNotificationSwipes_(){
     row.dataset.swipeBound='1';
     row.dataset.swipeOpen='0';
     row.dataset.swipeDismissing='0';
-    row.dataset.swipeSettling='0';
+    row.dataset.swipeAnimating='0';
 
     const scroller=ccNotificationSwipeScroller_(row);
     const card=row.querySelector('.notification-item-card');
@@ -2200,101 +2219,120 @@ function ccBindNotificationSwipes_(){
     const id=row.dataset.notificationId;
     if(!scroller || !card || !action || !id) return;
 
-    let settleTimer=0;
-    let gestureActive=false;
-    let pointerStartLeft=0;
+    let touchActive=false;
+    let pointerActive=false;
     let pointerMoved=false;
+    let pointerStartLeft=0;
+    let pointerStartX=0;
+    let pointerLastX=0;
+    let pointerLastT=0;
+    let pointerVelocity=0;
     let touchStartX=0;
     let touchStartY=0;
     let touchLastX=0;
     let touchLastY=0;
+    let touchLastT=0;
+    let touchVelocity=0;
     let touchAxis='';
 
-    const settle=()=>{
-      clearTimeout(settleTimer);
-      if(gestureActive || row.dataset.swipeSettling==='1') return;
-      ccSettleNotificationSwipe_(row,id);
-    };
-    const scheduleSettle=(delay=80)=>{
-      clearTimeout(settleTimer);
-      if(gestureActive || row.dataset.swipeSettling==='1') return;
-      settleTimer=window.setTimeout(settle,delay);
-    };
+    ccUpdateNotificationSwipeVisual_(row);
 
     scroller.addEventListener('scroll',()=>{
       if(Math.abs(scroller.scrollLeft-pointerStartLeft)>3) pointerMoved=true;
-      // Do not fight iOS momentum. Each momentum scroll event pushes the
-      // fallback settle further out until the native movement is really done.
-      scheduleSettle(85);
+      ccUpdateNotificationSwipeVisual_(row);
     },{passive:true});
-    if('onscrollend' in scroller){
-      scroller.addEventListener('scrollend',()=>scheduleSettle(0),{passive:true});
-    }
 
-    row.addEventListener('pointerdown',()=>{
-      gestureActive=true;
-      pointerStartLeft=scroller.scrollLeft;
+    // Pointer handling is only for mouse/stylus. iOS touch gestures are owned
+    // exclusively by touchstart/touchend so pointercancel cannot falsely settle
+    // a row while the user's finger is still down.
+    row.addEventListener('pointerdown',event=>{
+      if(event.pointerType==='touch') return;
+      pointerActive=true;
       pointerMoved=false;
-      clearTimeout(settleTimer);
-      if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
-        ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_,{animate:true});
-      }
+      pointerStartLeft=scroller.scrollLeft;
+      pointerStartX=pointerLastX=event.clientX;
+      pointerLastT=performance.now();
+      pointerVelocity=0;
+      ccCancelNotificationSwipeAnimation_(row);
     },{passive:true});
-    row.addEventListener('pointerup',()=>{
-      gestureActive=false;
-      scheduleSettle(70);
+    row.addEventListener('pointermove',event=>{
+      if(event.pointerType==='touch' || !pointerActive) return;
+      const now=performance.now();
+      const dt=Math.max(1,now-pointerLastT);
+      pointerVelocity=(event.clientX-pointerLastX)/dt;
+      pointerLastX=event.clientX;
+      pointerLastT=now;
     },{passive:true});
-    row.addEventListener('pointercancel',()=>{
-      gestureActive=false;
-      scheduleSettle(70);
+    row.addEventListener('pointerup',event=>{
+      if(event.pointerType==='touch' || !pointerActive) return;
+      pointerActive=false;
+      ccCommitNotificationSwipe_(row,id,{
+        velocity:pointerVelocity,
+        distance:Math.max(0,pointerStartX-event.clientX)
+      });
+    },{passive:true});
+    row.addEventListener('pointercancel',event=>{
+      if(event.pointerType==='touch' || !pointerActive) return;
+      pointerActive=false;
+      ccCloseNotificationSwipeRow_(row,{animate:true});
     },{passive:true});
 
-    // CLOSED state is one-way: rightward finger motion cannot pull the card
-    // beyond its resting edge. Rightward motion is still allowed to close an
-    // already revealed row.
     row.addEventListener('touchstart',event=>{
       const t=event.touches?.[0];
       if(!t) return;
-      gestureActive=true;
-      clearTimeout(settleTimer);
+      touchActive=true;
+      pointerMoved=false;
+      pointerStartLeft=scroller.scrollLeft;
+      ccCancelNotificationSwipeAnimation_(row);
       touchStartX=touchLastX=t.clientX;
       touchStartY=touchLastY=t.clientY;
+      touchLastT=performance.now();
+      touchVelocity=0;
       touchAxis='';
     },{passive:true});
     row.addEventListener('touchmove',event=>{
       const t=event.touches?.[0];
-      if(!t) return;
+      if(!t || !touchActive) return;
       const totalX=t.clientX-touchStartX;
       const totalY=t.clientY-touchStartY;
+      const now=performance.now();
+      const dt=Math.max(1,now-touchLastT);
       const dx=t.clientX-touchLastX;
       const dy=t.clientY-touchLastY;
+      touchVelocity=dx/dt;
       touchLastX=t.clientX;
       touchLastY=t.clientY;
+      touchLastT=now;
 
       if(!touchAxis && Math.max(Math.abs(totalX),Math.abs(totalY))>5){
         touchAxis=Math.abs(totalX)>Math.abs(totalY)?'x':'y';
       }
+      // CLOSED is one-way: block only the rightward rubber-band. Leftward
+      // movement stays entirely native.
       if(touchAxis==='x' && scroller.scrollLeft<=0.5 && dx>0 && Math.abs(dx)>=Math.abs(dy)){
         event.preventDefault();
       }
     },{passive:false});
     row.addEventListener('touchend',()=>{
-      gestureActive=false;
-      scheduleSettle(75);
+      if(!touchActive) return;
+      touchActive=false;
+      const distance=Math.max(0,touchStartX-touchLastX);
+      if(touchAxis==='x') ccCommitNotificationSwipe_(row,id,{velocity:touchVelocity,distance});
+      else ccCloseNotificationSwipeRow_(row,{animate:true});
     },{passive:true});
     row.addEventListener('touchcancel',()=>{
-      gestureActive=false;
-      scheduleSettle(75);
+      if(!touchActive) return;
+      touchActive=false;
+      ccCloseNotificationSwipeRow_(row,{animate:true});
     },{passive:true});
 
-    action.addEventListener('click',event=>{
-      event.preventDefault();
-      event.stopPropagation();
-      ccDismissNotificationSwipeRow_(row,id);
-    });
+    // Visual-only action surface in this full-swipe model. The destructive
+    // action commits on release past the threshold rather than staying open.
+    action.tabIndex=-1;
+    action.setAttribute('aria-hidden','true');
 
     card.addEventListener('click',event=>{
-      if(pointerMoved || scroller.scrollLeft>2){
+      if(pointerMoved || scroller.scrollLeft>2 || touchActive || pointerActive){
         event.preventDefault();
         event.stopPropagation();
         return;

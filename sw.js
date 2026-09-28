@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26n-medical-rollback-ios-swipe';
+const CACHE='club-control-player-v2-3-10-26o-ios-progress-swipe';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
