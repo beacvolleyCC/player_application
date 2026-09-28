@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26f-one-way-swipe-sticky-lock';
+const CACHE='club-control-player-v2-3-10-26g-micro-damping-soft-dismiss';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

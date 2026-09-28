@@ -1,18 +1,19 @@
-PLAYER V2.3.10.26F QA
+PLAYER V2.3.10.26G QA
 
 Static checks:
 - app.js syntax: PASS
 - sw.js syntax: PASS
-- CSS parse errors: 0
+- CSS brace/parser sanity: PASS
 - duplicate HTML ids: NONE
-- private secret marker scan: CLEAN
-- 50% notification dismissal threshold present: PASS
-- notification swipe contains no JS translate3d drag: PASS
-- right CLOSED-state boundary guard present: PASS
-- notification native scroll runway present: PASS
-- matrix edge boundary lock present: PASS
-- matrix overscroll-behavior:none final override: PASS
-- legacy compact 112/34/38/86 px mobile geometry preserved: PASS
-- month divider rendering preserved: PASS
+- config.js / manifest.webmanifest absent from patch: PASS
+- 35% notification dismissal threshold present: PASS
+- compact 68 px action width present: PASS
+- notification swipe contains no frame-by-frame JS translate drag: PASS
+- CLOSED-state rightward boundary guard preserved: PASS
+- softer dismiss class + delayed backend removal present: PASS
+- grid micro edge damping = 3 px present: PASS
+- legacy compact grid geometry preserved by scope: PASS
+- month divider rendering untouched: PASS
+- service worker/cache-bust version bumped to 26G: PASS
 
-Release gate still requires physical iPhone smoke test because iOS overscroll behavior is device/browser-level.
+Release gate still requires physical iPhone smoke test because native iOS momentum/overscroll behavior is device/browser-level.

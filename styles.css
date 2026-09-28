@@ -8507,3 +8507,55 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
   touch-action:pan-x pan-y !important;
   overflow-anchor:none !important;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26G — MICRO DAMPING + SOFTER DISMISS
+   Grid: ~3px native edge give before the boundary guard catches it.
+   Notifications: compact reveal, 35% destructive threshold, soft collapse.
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-action-width:68px !important;
+}
+.notification-swipe-action{
+  flex-basis:var(--cc-swipe-action-width) !important;
+  width:var(--cc-swipe-action-width) !important;
+  min-width:var(--cc-swipe-action-width) !important;
+  max-width:var(--cc-swipe-action-width) !important;
+  padding:0 5px !important;
+  font-size:10.5px !important;
+}
+.notification-swipe-row::after{
+  flex-basis:calc(100% - var(--cc-swipe-action-width)) !important;
+  width:calc(100% - var(--cc-swipe-action-width)) !important;
+  min-width:calc(100% - var(--cc-swipe-action-width)) !important;
+}
+.notification-swipe-row.is-native-dismissing{
+  overflow:hidden !important;
+  transform:translateZ(0);
+  opacity:1;
+  transition:opacity 150ms cubic-bezier(.22,1,.36,1),
+             height 190ms cubic-bezier(.22,1,.36,1),
+             max-height 190ms cubic-bezier(.22,1,.36,1),
+             margin 190ms cubic-bezier(.22,1,.36,1);
+}
+.notification-swipe-row.is-native-dismissing .notification-item-card{
+  opacity:.82 !important;
+  transition:opacity 130ms cubic-bezier(.22,1,.36,1) !important;
+}
+.notification-swipe-row.is-native-collapsing{
+  opacity:0 !important;
+  margin-top:0 !important;
+  margin-bottom:0 !important;
+  border-top-width:0 !important;
+  border-bottom-width:0 !important;
+}
+.notification-swipe-row.is-native-collapsing .notification-item-card{
+  opacity:0 !important;
+}
+@media(prefers-reduced-motion:reduce){
+  .notification-swipe-row.is-native-dismissing,
+  .notification-swipe-row.is-native-dismissing .notification-item-card{
+    transition:none !important;
+  }
+}

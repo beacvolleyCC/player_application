@@ -1638,7 +1638,9 @@ plannerList.addEventListener('wheel',event=>{
       scroller,
       startX:t.clientX,startY:t.clientY,
       lastX:t.clientX,lastY:t.clientY,
-      axis:''
+      axis:'',
+      edgeOutX:0,
+      edgeOutY:0
     };
   },{passive:true});
 
@@ -1666,10 +1668,23 @@ plannerList.addEventListener('wheel',event=>{
     const atTop=scroller.scrollTop<=0.5;
     const atBottom=scroller.scrollTop>=maxY-0.5;
 
+    const MICRO_EDGE_DAMPING_PX=3;
     if(state.axis==='x'){
-      if((atLeft && dx>0) || (atRight && dx<0)) event.preventDefault();
+      const outward=(atLeft && dx>0) || (atRight && dx<0);
+      if(outward){
+        state.edgeOutX+=Math.abs(dx);
+        if(state.edgeOutX>MICRO_EDGE_DAMPING_PX) event.preventDefault();
+      }else{
+        state.edgeOutX=0;
+      }
     }else if(state.axis==='y'){
-      if((atTop && dy>0) || (atBottom && dy<0)) event.preventDefault();
+      const outward=(atTop && dy>0) || (atBottom && dy<0);
+      if(outward){
+        state.edgeOutY+=Math.abs(dy);
+        if(state.edgeOutY>MICRO_EDGE_DAMPING_PX) event.preventDefault();
+      }else{
+        state.edgeOutY=0;
+      }
     }
   },{passive:false});
 
@@ -2012,18 +2027,19 @@ async function ccOpenNotification_(id){
 let ccOpenNotificationSwipeRow_=null;
 let ccNotificationSwipeGlobalBound_=false;
 
-/* PLAYER NATIVE SCROLL & SWIPE v1.1
+/* PLAYER NATIVE SCROLL & SWIPE v1.2
    - native horizontal scrolling; no JS translate/frame-by-frame drag
    - CLOSED state cannot rubber-band to the right
-   - short left swipe can reveal the explicit action
-   - crossing 50% of the row and releasing dismisses automatically */
+   - short left swipe reveals a compact explicit action
+   - crossing ~35% of the row and releasing dismisses automatically
+   - dismissal finishes with a short slide/fade/collapse instead of a hard jump */
 function ccNotificationSwipeOpenLeft_(row){
   const raw=getComputedStyle(row).getPropertyValue('--cc-swipe-action-width');
   const parsed=Number.parseFloat(raw);
-  return Number.isFinite(parsed) ? parsed : 80;
+  return Number.isFinite(parsed) ? parsed : 68;
 }
 function ccNotificationSwipeDeleteThreshold_(row){
-  return Math.max(ccNotificationSwipeOpenLeft_(row), row.clientWidth*0.5);
+  return Math.max(ccNotificationSwipeOpenLeft_(row)*1.35, row.clientWidth*0.35);
 }
 function ccCloseNotificationSwipeRow_(row,{animate=true}={}){
   if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
@@ -2057,10 +2073,27 @@ function ccDismissNotificationSwipeRow_(row,id){
   row.classList.add('is-native-dismissing');
   if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
 
+  const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const maxLeft=Math.max(0,row.scrollWidth-row.clientWidth);
-  try{ row.scrollTo({left:maxLeft,behavior:'smooth'}); }
+  const startHeight=Math.max(1,row.getBoundingClientRect().height);
+  row.style.height=`${startHeight}px`;
+  row.style.maxHeight=`${startHeight}px`;
+
+  try{ row.scrollTo({left:maxLeft,behavior:reduceMotion?'auto':'smooth'}); }
   catch(_){ row.scrollLeft=maxLeft; }
-  window.setTimeout(()=>ccDismissNotification_(id),170);
+
+  if(reduceMotion){
+    window.setTimeout(()=>ccDismissNotification_(id),40);
+    return;
+  }
+
+  window.setTimeout(()=>{
+    if(!row?.isConnected) return;
+    row.classList.add('is-native-collapsing');
+    row.style.height='0px';
+    row.style.maxHeight='0px';
+  },115);
+  window.setTimeout(()=>ccDismissNotification_(id),315);
 }
 function ccSettleNotificationSwipe_(row,id){
   if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
@@ -2072,7 +2105,7 @@ function ccSettleNotificationSwipe_(row,id){
     ccDismissNotificationSwipeRow_(row,id);
     return;
   }
-  if(left>=openLeft*0.48){
+  if(left>=openLeft*0.38){
     ccOpenNotificationSwipeRowNative_(row,{animate:true});
     return;
   }
@@ -2129,7 +2162,7 @@ function ccBindNotificationSwipes_(){
     const scheduleSettle=()=>{
       clearTimeout(scrollTimer);
       if(gestureActive || row.dataset.swipeSettling==='1') return;
-      scrollTimer=window.setTimeout(settle,75);
+      scrollTimer=window.setTimeout(settle,42);
     };
 
     row.addEventListener('scroll',()=>{
@@ -2177,7 +2210,7 @@ function ccBindNotificationSwipes_(){
       touchLastX=t.clientX;
       touchLastY=t.clientY;
 
-      if(!touchAxis && Math.max(Math.abs(totalX),Math.abs(totalY))>6){
+      if(!touchAxis && Math.max(Math.abs(totalX),Math.abs(totalY))>5){
         touchAxis=Math.abs(totalX)>Math.abs(totalY)?'x':'y';
       }
       if(touchAxis==='x' && row.scrollLeft<=0.5 && dx>0 && Math.abs(dx)>=Math.abs(dy)){
@@ -2287,7 +2320,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026f').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026g').catch(()=>{}));
 }
 
 
@@ -2682,7 +2715,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026f');
+    return await navigator.serviceWorker.register('./sw.js?v=231026g');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
