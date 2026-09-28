@@ -8664,8 +8664,8 @@ dialog[open]:focus{
 
 
 /* ==========================================================
-   PLAYER V2.3.10.26K — MEDICAL STATUS + FILTER TYPE LOCK
-   Scope locked: no notification swipe/grid/business changes.
+   PLAYER V2.3.10.26M — MEDICAL ROLLBACK + FILTER TYPE LOCK
+   Sportorvosi status patch removed; iOS action-layer swipe retained.
    ========================================================== */
 /* One typography contract for every Player filter surface. */
 #eventFilterPanel .filter-grid label>span,
@@ -8684,9 +8684,161 @@ dialog[open]:focus{
 .filter-reset-btn{
   font-weight:500 !important;
 }
-/* Medical status is computed from the canonical profile date in Europe/Budapest. */
-#profileMedicalRow[data-medical-state="ok"] #profileMedical{color:var(--green) !important;}
-#profileMedicalRow[data-medical-state="warn"] #profileMedical{color:#9a6800 !important;}
-#profileMedicalRow[data-medical-state="expired"] #profileMedical{color:var(--red) !important;}
-#profileMedicalRow[data-medical-state="empty"] #profileMedical{color:var(--muted) !important;}
-.dark #profileMedicalRow[data-medical-state="warn"] #profileMedical{color:#e2b654 !important;}
+.dark 
+/* ==========================================================
+   PLAYER V2.3.10.26L — iOS ACTION-LAYER NOTIFICATION SWIPE
+   Reference: native iOS notification swipe actions.
+   Outer row stays fixed; only an inner native scroll surface moves the card.
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-action-width:74px !important;
+  position:relative !important;
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  border:1px solid var(--line) !important;
+  border-radius:12px !important;
+  box-sizing:border-box !important;
+  background:#b3261e !important;
+  isolation:isolate !important;
+  contain:paint !important;
+}
+
+.notification-swipe-row::after{
+  content:none !important;
+  display:none !important;
+}
+.notification-swipe-scroll{
+  position:relative !important;
+  display:flex !important;
+  align-items:stretch !important;
+  width:100% !important;
+  max-width:100% !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  box-sizing:border-box !important;
+  background:transparent !important;
+  touch-action:pan-x pan-y !important;
+  overscroll-behavior-x:none !important;
+  overscroll-behavior-inline:none !important;
+  overscroll-behavior-y:auto !important;
+  scroll-snap-type:none !important;
+  scroll-behavior:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+  scrollbar-width:none !important;
+  pointer-events:none !important;
+}
+.notification-swipe-scroll::-webkit-scrollbar{
+  display:none !important;
+  width:0 !important;
+  height:0 !important;
+}
+.notification-swipe-row .notification-item-card{
+  position:relative !important;
+  z-index:2 !important;
+  flex:0 0 100% !important;
+  width:100% !important;
+  min-width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  border:0 !important;
+  border-radius:11px !important;
+  background:var(--card) !important;
+  transform:translateX(0) !important;
+  opacity:1 !important;
+  transition:background 120ms ease,opacity 120ms ease !important;
+  will-change:auto !important;
+  touch-action:auto !important;
+  pointer-events:auto !important;
+  user-select:none !important;
+  -webkit-user-select:none !important;
+  -webkit-touch-callout:none !important;
+  scroll-snap-align:none !important;
+}
+
+.notification-swipe-row.is-read .notification-item-card{
+  opacity:.7 !important;
+}
+.notification-swipe-runway{
+  position:relative !important;
+  z-index:0 !important;
+  display:block !important;
+  flex:0 0 100% !important;
+  width:100% !important;
+  min-width:100% !important;
+  align-self:stretch !important;
+  background:transparent !important;
+  pointer-events:none !important;
+}
+/* Fixed underlay. The visible red area grows exactly with the card travel. */
+.notification-swipe-action{
+  position:absolute !important;
+  z-index:1 !important;
+  top:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  left:auto !important;
+  width:var(--cc-swipe-action-width) !important;
+  min-width:var(--cc-swipe-action-width) !important;
+  max-width:var(--cc-swipe-action-width) !important;
+  height:auto !important;
+  display:grid !important;
+  place-items:center !important;
+  padding:0 6px !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:#b3261e !important;
+  color:#fff !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+  transform:none !important;
+  transition:none !important;
+  box-sizing:border-box !important;
+  font-size:10.5px !important;
+  font-weight:600 !important;
+  white-space:nowrap !important;
+}
+.dark .notification-swipe-row,
+.dark .notification-swipe-action{
+  background:#8f2d27 !important;
+}
+.notification-swipe-row.is-native-dismissing{
+  pointer-events:none !important;
+  opacity:1 !important;
+  transition:opacity 180ms cubic-bezier(.22,1,.36,1),
+             height 200ms cubic-bezier(.22,1,.36,1),
+             max-height 200ms cubic-bezier(.22,1,.36,1),
+             margin 200ms cubic-bezier(.22,1,.36,1),
+             border-width 200ms cubic-bezier(.22,1,.36,1) !important;
+}
+.notification-swipe-row.is-native-dismissing .notification-swipe-scroll{
+  overflow:hidden !important;
+}
+.notification-swipe-row.is-native-dismissing .notification-item-card{
+  transform:translateX(-100%) !important;
+  opacity:.62 !important;
+  transition:transform 185ms cubic-bezier(.22,1,.36,1),
+             opacity 165ms cubic-bezier(.22,1,.36,1) !important;
+}
+.notification-swipe-row.is-native-collapsing{
+  opacity:0 !important;
+  margin-top:0 !important;
+  margin-bottom:0 !important;
+  border-top-width:0 !important;
+  border-bottom-width:0 !important;
+}
+.notification-swipe-row.is-native-collapsing .notification-item-card{
+  opacity:0 !important;
+}
+@media(prefers-reduced-motion:reduce){
+  .notification-swipe-scroll,
+  .notification-swipe-row.is-native-dismissing,
+  .notification-swipe-row.is-native-dismissing .notification-item-card{
+    scroll-behavior:auto !important;
+    transition:none !important;
+  }
+}
+

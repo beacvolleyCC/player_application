@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26k-medical-filter-type-lock';
+const CACHE='club-control-player-v2-3-10-26m-medical-rollback-ios-swipe';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

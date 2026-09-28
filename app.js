@@ -71,37 +71,6 @@ function ccBlurPointerControl_(el){
 }
 
 
-function ccDateOnlyUtc_(value){
-  const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(!m) return null;
-  return Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]));
-}
-function ccBudapestTodayUtc_(){
-  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit'})
-    .formatToParts(new Date()).reduce((acc,p)=>{if(p.type!=='literal')acc[p.type]=p.value;return acc;},{});
-  return Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day));
-}
-function ccMedicalStatus_(value){
-  const raw=String(value||'').trim();
-  const dateUtc=ccDateOnlyUtc_(raw);
-  if(dateUtc===null) return {state:'empty',label:'Nincs adat',display:'Nincs adat',days:null};
-  const days=Math.round((dateUtc-ccBudapestTodayUtc_())/86400000);
-  const displayDate=raw.slice(0,10).replace(/-/g,'.')+'.';
-  if(days<0) return {state:'expired',label:'Lejárt',display:`${displayDate} · Lejárt`,days};
-  if(days===0) return {state:'warn',label:'Ma jár le',display:`${displayDate} · Ma jár le`,days};
-  if(days<=30) return {state:'warn',label:'Hamarosan lejár',display:`${displayDate} · ${days} nap`,days};
-  return {state:'ok',label:'Érvényes',display:displayDate,days};
-}
-function ccRenderMedicalStatus_(value){
-  const row=document.getElementById('profileMedicalRow');
-  const el=document.getElementById('profileMedical');
-  if(!row||!el) return;
-  const info=ccMedicalStatus_(value);
-  row.dataset.medicalState=info.state;
-  el.textContent=info.display;
-  el.title=info.days===null?'Nincs rögzített sportorvosi dátum':`${info.label}${info.days!==null?` · ${Math.abs(info.days)} nap`:''}`;
-}
-
 const ccDialogCloseTimers_=new WeakMap();
 function ccDialogMotionCleanup_(dialog){
   if(!dialog) return;
@@ -1980,15 +1949,18 @@ function ccNotificationTime_(value){
 function ccNotificationItemHtml_(item){
   const unread=!item.readAt;
   return `<div class="notification-swipe-row ${unread?'is-unread':'is-read'}" data-notification-id="${escapeHtml_(item.id)}">
-    <button type="button" class="notification-item-card" data-notification-open="${escapeHtml_(item.id)}">
-      <span class="notification-item-dot" aria-hidden="true"></span>
-      <span class="notification-item-content">
-        <span class="notification-item-top"><b>${escapeHtml_(item.title||'Értesítés')}</b><small>${escapeHtml_(ccNotificationTime_(item.createdAt))}</small></span>
-        ${item.body?`<span class="notification-item-body">${escapeHtml_(item.body)}</span>`:''}
-        <span class="notification-item-meta">${escapeHtml_(ccNotificationTypeLabel_(item.type))}</span>
-      </span>
-    </button>
     <button type="button" class="notification-swipe-action" data-notification-dismiss="${escapeHtml_(item.id)}" aria-label="Értesítés eltüntetése">Eltüntetés</button>
+    <div class="notification-swipe-scroll">
+      <button type="button" class="notification-item-card" data-notification-open="${escapeHtml_(item.id)}">
+        <span class="notification-item-dot" aria-hidden="true"></span>
+        <span class="notification-item-content">
+          <span class="notification-item-top"><b>${escapeHtml_(item.title||'Értesítés')}</b><small>${escapeHtml_(ccNotificationTime_(item.createdAt))}</small></span>
+          ${item.body?`<span class="notification-item-body">${escapeHtml_(item.body)}</span>`:''}
+          <span class="notification-item-meta">${escapeHtml_(ccNotificationTypeLabel_(item.type))}</span>
+        </span>
+      </button>
+      <span class="notification-swipe-runway" aria-hidden="true"></span>
+    </div>
   </div>`;
 }
 function renderNotificationInbox_(){
@@ -2097,28 +2069,40 @@ async function ccOpenNotification_(id){
 let ccOpenNotificationSwipeRow_=null;
 let ccNotificationSwipeGlobalBound_=false;
 
-/* PLAYER NATIVE SCROLL & SWIPE v1.2
-   - native horizontal scrolling; no JS translate/frame-by-frame drag
-   - CLOSED state cannot rubber-band to the right
-   - short left swipe reveals a compact explicit action
-   - crossing ~35% of the row and releasing dismisses automatically
-   - dismissal finishes with a short slide/fade/collapse instead of a hard jump */
+function ccNotificationSwipeScroller_(row){
+  return row?.querySelector?.('.notification-swipe-scroll') || null;
+}
+
+/* PLAYER NATIVE SCROLL & SWIPE v1.3 — iOS ACTION-LAYER MODEL
+   - the card is the only surface that scrolls horizontally
+   - the red action layer stays fixed underneath, so reveal grows continuously
+   - no frame-by-frame JS drag and no snap fight during iOS momentum
+   - JS decides only after the native scroll has actually settled
+   - CLOSED cannot rubber-band to the right
+   - short swipe settles to a compact reveal; ~28% release dismisses */
 function ccNotificationSwipeOpenLeft_(row){
   const raw=getComputedStyle(row).getPropertyValue('--cc-swipe-action-width');
   const parsed=Number.parseFloat(raw);
-  return Number.isFinite(parsed) ? parsed : 68;
+  return Number.isFinite(parsed) ? parsed : 74;
 }
 function ccNotificationSwipeDeleteThreshold_(row){
-  return Math.max(ccNotificationSwipeOpenLeft_(row)*1.35, row.clientWidth*0.35);
+  const reveal=ccNotificationSwipeOpenLeft_(row);
+  return Math.max(reveal*1.28, Math.min(row.clientWidth*0.28, 128));
+}
+function ccNotificationSwipeScroll_(row,left,{animate=true}={}){
+  if(!row?.isConnected) return;
+  const scroller=ccNotificationSwipeScroller_(row);
+  if(!scroller) return;
+  row.dataset.swipeSettling='1';
+  try{ scroller.scrollTo({left:Math.max(0,left),behavior:animate?'smooth':'auto'}); }
+  catch(_){ scroller.scrollLeft=Math.max(0,left); }
+  window.setTimeout(()=>{ if(row?.isConnected) row.dataset.swipeSettling='0'; },animate?230:0);
 }
 function ccCloseNotificationSwipeRow_(row,{animate=true}={}){
   if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
   row.dataset.swipeOpen='0';
   row.classList.remove('is-open');
-  row.dataset.swipeSettling='1';
-  try{ row.scrollTo({left:0,behavior:animate?'smooth':'auto'}); }
-  catch(_){ row.scrollLeft=0; }
-  window.setTimeout(()=>{ if(row?.isConnected) row.dataset.swipeSettling='0'; },animate?190:0);
+  ccNotificationSwipeScroll_(row,0,{animate});
   if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
 }
 function ccOpenNotificationSwipeRowNative_(row,{animate=true}={}){
@@ -2129,45 +2113,42 @@ function ccOpenNotificationSwipeRowNative_(row,{animate=true}={}){
   row.dataset.swipeOpen='1';
   row.classList.add('is-open');
   ccOpenNotificationSwipeRow_=row;
-  const openLeft=ccNotificationSwipeOpenLeft_(row);
-  row.dataset.swipeSettling='1';
-  try{ row.scrollTo({left:openLeft,behavior:animate?'smooth':'auto'}); }
-  catch(_){ row.scrollLeft=openLeft; }
-  window.setTimeout(()=>{ if(row?.isConnected) row.dataset.swipeSettling='0'; },animate?190:0);
+  ccNotificationSwipeScroll_(row,ccNotificationSwipeOpenLeft_(row),{animate});
 }
 function ccDismissNotificationSwipeRow_(row,id){
   if(!row || !row.isConnected || !id || row.dataset.swipeDismissing==='1') return;
   row.dataset.swipeDismissing='1';
   row.dataset.swipeOpen='0';
   row.classList.remove('is-open');
-  row.classList.add('is-native-dismissing');
   if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
 
   const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-  const maxLeft=Math.max(0,row.scrollWidth-row.clientWidth);
   const startHeight=Math.max(1,row.getBoundingClientRect().height);
   row.style.height=`${startHeight}px`;
   row.style.maxHeight=`${startHeight}px`;
 
-  try{ row.scrollTo({left:maxLeft,behavior:reduceMotion?'auto':'smooth'}); }
-  catch(_){ row.scrollLeft=maxLeft; }
-
   if(reduceMotion){
+    row.classList.add('is-native-dismissing','is-native-collapsing');
     window.setTimeout(()=>ccDismissNotification_(id),40);
     return;
   }
 
+  // Keep the native scroll exactly where the finger left it. The card then
+  // finishes its travel over the fixed red layer with one short CSS motion.
+  row.classList.add('is-native-dismissing');
   window.setTimeout(()=>{
     if(!row?.isConnected) return;
     row.classList.add('is-native-collapsing');
     row.style.height='0px';
     row.style.maxHeight='0px';
-  },115);
-  window.setTimeout(()=>ccDismissNotification_(id),315);
+  },185);
+  window.setTimeout(()=>ccDismissNotification_(id),390);
 }
 function ccSettleNotificationSwipe_(row,id){
-  if(!row || !row.isConnected || row.dataset.swipeDismissing==='1') return;
-  const left=Math.max(0,row.scrollLeft);
+  if(!row || !row.isConnected || row.dataset.swipeDismissing==='1' || row.dataset.swipeSettling==='1') return;
+  const scroller=ccNotificationSwipeScroller_(row);
+  if(!scroller) return;
+  const left=Math.max(0,scroller.scrollLeft);
   const openLeft=ccNotificationSwipeOpenLeft_(row);
   const deleteAt=ccNotificationSwipeDeleteThreshold_(row);
 
@@ -2175,7 +2156,7 @@ function ccSettleNotificationSwipe_(row,id){
     ccDismissNotificationSwipeRow_(row,id);
     return;
   }
-  if(left>=openLeft*0.38){
+  if(left>=Math.min(openLeft*0.42,30)){
     ccOpenNotificationSwipeRowNative_(row,{animate:true});
     return;
   }
@@ -2192,11 +2173,14 @@ function ccBindNotificationSwipeGlobals_(){
     ccCloseNotificationSwipeRow_(open,{animate:true});
   },true);
 
-  // Vertical list scrolling closes an exposed action without taking over the gesture.
   const dialog=document.getElementById('notificationsDialog');
+  let verticalCloseTimer=0;
   dialog?.addEventListener('scroll',()=>{
-    const open=ccOpenNotificationSwipeRow_;
-    if(open?.isConnected) ccCloseNotificationSwipeRow_(open,{animate:false});
+    clearTimeout(verticalCloseTimer);
+    verticalCloseTimer=window.setTimeout(()=>{
+      const open=ccOpenNotificationSwipeRow_;
+      if(open?.isConnected) ccCloseNotificationSwipeRow_(open,{animate:false});
+    },90);
   },{passive:true,capture:true});
 }
 
@@ -2210,12 +2194,13 @@ function ccBindNotificationSwipes_(){
     row.dataset.swipeDismissing='0';
     row.dataset.swipeSettling='0';
 
+    const scroller=ccNotificationSwipeScroller_(row);
     const card=row.querySelector('.notification-item-card');
     const action=row.querySelector('.notification-swipe-action');
     const id=row.dataset.notificationId;
-    if(!card || !action || !id) return;
+    if(!scroller || !card || !action || !id) return;
 
-    let scrollTimer=0;
+    let settleTimer=0;
     let gestureActive=false;
     let pointerStartLeft=0;
     let pointerMoved=false;
@@ -2226,46 +2211,52 @@ function ccBindNotificationSwipes_(){
     let touchAxis='';
 
     const settle=()=>{
-      clearTimeout(scrollTimer);
-      if(!gestureActive && row.dataset.swipeSettling!=='1') ccSettleNotificationSwipe_(row,id);
-    };
-    const scheduleSettle=()=>{
-      clearTimeout(scrollTimer);
+      clearTimeout(settleTimer);
       if(gestureActive || row.dataset.swipeSettling==='1') return;
-      scrollTimer=window.setTimeout(settle,42);
+      ccSettleNotificationSwipe_(row,id);
+    };
+    const scheduleSettle=(delay=125)=>{
+      clearTimeout(settleTimer);
+      if(gestureActive || row.dataset.swipeSettling==='1') return;
+      settleTimer=window.setTimeout(settle,delay);
     };
 
-    row.addEventListener('scroll',()=>{
-      if(Math.abs(row.scrollLeft-pointerStartLeft)>3) pointerMoved=true;
-      scheduleSettle();
+    scroller.addEventListener('scroll',()=>{
+      if(Math.abs(scroller.scrollLeft-pointerStartLeft)>3) pointerMoved=true;
+      // Do not fight iOS momentum. Each momentum scroll event pushes the
+      // fallback settle further out until the native movement is really done.
+      scheduleSettle(135);
     },{passive:true});
-    if('onscrollend' in row){
-      row.addEventListener('scrollend',settle,{passive:true});
+    if('onscrollend' in scroller){
+      scroller.addEventListener('scrollend',()=>scheduleSettle(0),{passive:true});
     }
 
     row.addEventListener('pointerdown',()=>{
       gestureActive=true;
-      pointerStartLeft=row.scrollLeft;
+      pointerStartLeft=scroller.scrollLeft;
       pointerMoved=false;
+      clearTimeout(settleTimer);
       if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
         ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_,{animate:true});
       }
     },{passive:true});
     row.addEventListener('pointerup',()=>{
       gestureActive=false;
-      window.setTimeout(settle,0);
+      scheduleSettle(110);
     },{passive:true});
     row.addEventListener('pointercancel',()=>{
       gestureActive=false;
-      window.setTimeout(settle,0);
+      scheduleSettle(110);
     },{passive:true});
 
-    // iOS boundary guard: when CLOSED, a rightward swipe cannot pull the card
-    // past x=0. Rightward motion remains possible only to close an already-open row.
+    // CLOSED state is one-way: rightward finger motion cannot pull the card
+    // beyond its resting edge. Rightward motion is still allowed to close an
+    // already revealed row.
     row.addEventListener('touchstart',event=>{
       const t=event.touches?.[0];
       if(!t) return;
       gestureActive=true;
+      clearTimeout(settleTimer);
       touchStartX=touchLastX=t.clientX;
       touchStartY=touchLastY=t.clientY;
       touchAxis='';
@@ -2283,17 +2274,17 @@ function ccBindNotificationSwipes_(){
       if(!touchAxis && Math.max(Math.abs(totalX),Math.abs(totalY))>5){
         touchAxis=Math.abs(totalX)>Math.abs(totalY)?'x':'y';
       }
-      if(touchAxis==='x' && row.scrollLeft<=0.5 && dx>0 && Math.abs(dx)>=Math.abs(dy)){
+      if(touchAxis==='x' && scroller.scrollLeft<=0.5 && dx>0 && Math.abs(dx)>=Math.abs(dy)){
         event.preventDefault();
       }
     },{passive:false});
     row.addEventListener('touchend',()=>{
       gestureActive=false;
-      window.setTimeout(settle,0);
+      scheduleSettle(120);
     },{passive:true});
     row.addEventListener('touchcancel',()=>{
       gestureActive=false;
-      window.setTimeout(settle,0);
+      scheduleSettle(120);
     },{passive:true});
 
     action.addEventListener('click',event=>{
@@ -2303,8 +2294,7 @@ function ccBindNotificationSwipes_(){
     });
 
     card.addEventListener('click',event=>{
-      // A swipe must never turn into an accidental open/deep-link tap.
-      if(pointerMoved || row.scrollLeft>2){
+      if(pointerMoved || scroller.scrollLeft>2){
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -2390,7 +2380,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026i').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026m').catch(()=>{}));
 }
 
 
@@ -2787,7 +2777,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026i');
+    return await navigator.serviceWorker.register('./sw.js?v=231026m');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -3503,7 +3493,7 @@ function applyBootstrap(j){
     setRow('profileJerseySizeRow','profileJerseySize',j.player.jerseySize,true);
     setRow('profileShortsSizeRow','profileShortsSize',j.player.shortsSize,true);
     setRow('profileLicenseRow','profileLicense',j.player.licenseNo,false);
-    ccRenderMedicalStatus_(j.player.medicalValidUntil);
+    setRow('profileMedicalRow','profileMedical',j.player.medicalValidUntil,false);
   }
 
   const accountEmail=document.getElementById('settingsAccountEmail');
