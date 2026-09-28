@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26h-filter-stability-11x';
+const CACHE='club-control-player-v2-3-10-26i-native-picker-fix-11x';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

@@ -8599,3 +8599,36 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
   #eventFilterBtn .filter-funnel,
   #plannerFilterBtn .filter-funnel{transition:none !important;}
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26I — NATIVE PICKER / FILTER HARDENING
+   11X review finding: iOS focus-zooms native controls below 16px.
+   Keep the surface compact, but never let a filter control trigger viewport zoom.
+   ========================================================= */
+#eventFilterPanel,
+#plannerFilterPanel{
+  position:relative !important;
+  z-index:6 !important;
+  isolation:isolate;
+}
+#eventFilterPanel select,
+#plannerFilterPanel select,
+#eventFilterPanel input,
+#plannerFilterPanel input{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+@media(max-width:760px){
+  #eventFilterPanel select,
+  #plannerFilterPanel select,
+  #eventFilterPanel input[type="date"],
+  #plannerFilterPanel input[type="date"]{
+    font-size:16px !important;
+    line-height:1.15 !important;
+  }
+  #eventFilterBtn,
+  #plannerFilterBtn{
+    touch-action:manipulation;
+  }
+}

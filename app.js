@@ -1727,6 +1727,26 @@ function toggleFilterPanel_(buttonId,panelId,force){
   btn.classList.toggle('filter-open',open);
 }
 
+/* V2.3.10.26I — native picker lifecycle guard.
+   iOS may still be closing its native select/date picker when change fires.
+   Do not mutate layout during that closing phase. */
+function ccAfterNativePicker_(control,callback){
+  let done=false;
+  let fallback=null;
+  const run=()=>{
+    if(done) return;
+    done=true;
+    if(fallback) clearTimeout(fallback);
+    requestAnimationFrame(()=>requestAnimationFrame(callback));
+  };
+  if(control && document.activeElement===control){
+    control.addEventListener('blur',()=>setTimeout(run,36),{once:true});
+    fallback=setTimeout(run,220);
+  }else{
+    fallback=setTimeout(run,48);
+  }
+}
+
 document.getElementById('eventFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('eventFilterBtn','eventFilterPanel'));
 ['eventPeriodFilter','eventTypeFilter','eventStatusFilter'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change',e=>{
@@ -1734,7 +1754,7 @@ document.getElementById('eventFilterBtn')?.addEventListener('click',()=>toggleFi
     if(id==='eventTypeFilter') homeFilters.type=e.target.value;
     if(id==='eventStatusFilter') homeFilters.status=e.target.value;
     localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
-    renderEvents();
+    ccAfterNativePicker_(e.target,renderEvents);
   });
 });
 ['eventDateFrom','eventDateTo'].forEach(id=>{
@@ -1742,7 +1762,7 @@ document.getElementById('eventFilterBtn')?.addEventListener('click',()=>toggleFi
     if(id==='eventDateFrom') homeFilters.from=e.target.value.trim();
     if(id==='eventDateTo') homeFilters.to=e.target.value.trim();
     localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
-    renderEvents();
+    ccAfterNativePicker_(e.target,renderEvents);
   });
 });
 document.getElementById('resetEventFiltersBtn')?.addEventListener('click',()=>{
@@ -1754,24 +1774,26 @@ document.getElementById('resetEventFiltersBtn')?.addEventListener('click',()=>{
 
 document.getElementById('plannerFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel'));
 ['plannerPeriodFilter','monthFilter','typeFilter'].forEach(id=>{
-  document.getElementById(id)?.addEventListener('change',()=>{
-    const rows=filteredPlannerEvents();
+  document.getElementById(id)?.addEventListener('change',e=>{
+    ccAfterNativePicker_(e.target,()=>{
+      const rows=filteredPlannerEvents();
 
-    if(plannerMode==='calendar'){
-      calendarCursor=initialCalendarCursor(rows);
-    }
+      if(plannerMode==='calendar'){
+        calendarCursor=initialCalendarCursor(rows);
+      }
 
-    renderPlanner();
+      renderPlanner();
 
-    // Default/upcoming always begins at the first visible event.
-    if(plannerMode==='grid'){
-      requestAnimationFrame(()=>{
-        const viewport=document.getElementById('plannerScrollViewport');
-        if(viewport) viewport.scrollTop=0;
-      });
-    }
+      // Default/upcoming always begins at the first visible event.
+      if(plannerMode==='grid'){
+        requestAnimationFrame(()=>{
+          const viewport=document.getElementById('plannerScrollViewport');
+          if(viewport) viewport.scrollTop=0;
+        });
+      }
 
-    toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);
+      toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);
+    });
   });
 });
 document.getElementById('missingOnlyBtn')?.addEventListener('click',e=>{
@@ -2320,7 +2342,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026g').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026i').catch(()=>{}));
 }
 
 
@@ -2361,13 +2383,15 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
         : null;
 
     const inPlannerGrid=plannerMode==='grid' && !!event.target?.closest?.('#plannerView');
+    const nativeControl=!!event.target?.closest?.('select,input,textarea,button,label,.filter-panel');
     if(
       window.scrollY>1 ||
       running ||
       !event.touches ||
       !event.touches.length ||
       plannerScroller ||
-      inPlannerGrid
+      inPlannerGrid ||
+      nativeControl
     ){
       startY=null;
       return;
@@ -2715,7 +2739,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026g');
+    return await navigator.serviceWorker.register('./sw.js?v=231026i');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
