@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26i-native-picker-fix-11x';
+const CACHE='club-control-player-v2-3-10-26j-focus-selection-regression-lock';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

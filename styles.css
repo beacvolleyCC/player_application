@@ -8632,3 +8632,32 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
     touch-action:manipulation;
   }
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26J — FOCUS / SELECTION REGRESSION LOCK
+   Touch/pointer activation never paints a focus frame.
+   Keyboard :focus-visible remains available for accessibility.
+   Dialog close X must not look selected on open.
+   ========================================================== */
+html:not(.cc-keyboard-nav) button:focus,
+html:not(.cc-keyboard-nav) button:focus-visible,
+html:not(.cc-keyboard-nav) select:focus,
+html:not(.cc-keyboard-nav) select:focus-visible,
+html:not(.cc-keyboard-nav) input:focus,
+html:not(.cc-keyboard-nav) input:focus-visible,
+html:not(.cc-keyboard-nav) [tabindex]:focus,
+html:not(.cc-keyboard-nav) [tabindex]:focus-visible{
+  outline:none !important;
+  box-shadow:none !important;
+}
+#eventFilterBtn:focus,
+#eventFilterBtn:focus-visible,
+#plannerFilterBtn:focus,
+#plannerFilterBtn:focus-visible,
+.dialog-x-btn:focus,
+.dialog-x-btn:focus-visible,
+dialog[open]:focus{
+  outline:none !important;
+  box-shadow:none !important;
+}

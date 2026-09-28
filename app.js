@@ -55,6 +55,21 @@ const CC_MOTION_V1=Object.freeze({
 const ccReducedMotionMedia_=window.matchMedia?.('(prefers-reduced-motion: reduce)');
 function ccPrefersReducedMotion_(){ return !!ccReducedMotionMedia_?.matches; }
 
+const ccRootFocus_=document.documentElement;
+function ccSetKeyboardNav_(on){ccRootFocus_.classList.toggle('cc-keyboard-nav',!!on)}
+window.addEventListener('keydown',event=>{if(event.key==='Tab'||event.key.startsWith('Arrow'))ccSetKeyboardNav_(true)},{capture:true});
+['pointerdown','mousedown','touchstart'].forEach(type=>window.addEventListener(type,()=>ccSetKeyboardNav_(false),{capture:true,passive:true}));
+function ccNeutralDialogFocus_(dialog){
+  if(!dialog)return;
+  ccSetKeyboardNav_(false);
+  if(!dialog.hasAttribute('tabindex'))dialog.setAttribute('tabindex','-1');
+  try{dialog.focus({preventScroll:true})}catch(_){try{dialog.focus()}catch(__){}}
+}
+function ccBlurPointerControl_(el){
+  if(!el||ccRootFocus_.classList.contains('cc-keyboard-nav'))return;
+  requestAnimationFrame(()=>{try{el.blur()}catch(_){}});
+}
+
 const ccDialogCloseTimers_=new WeakMap();
 function ccDialogMotionCleanup_(dialog){
   if(!dialog) return;
@@ -72,6 +87,7 @@ function ccOpenDialog_(dialog){
   dialog.classList.remove('cc-motion-closing');
   dialog.style.removeProperty('--cc-sheet-drag-y');
   if(typeof dialog.showModal==='function' && !dialog.open) dialog.showModal();
+  ccNeutralDialogFocus_(dialog);
   if(ccPrefersReducedMotion_()){
     dialog.classList.add('cc-motion-open');
     return;
@@ -1747,7 +1763,7 @@ function ccAfterNativePicker_(control,callback){
   }
 }
 
-document.getElementById('eventFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('eventFilterBtn','eventFilterPanel'));
+document.getElementById('eventFilterBtn')?.addEventListener('click',e=>{toggleFilterPanel_('eventFilterBtn','eventFilterPanel');ccBlurPointerControl_(e.currentTarget)});
 ['eventPeriodFilter','eventTypeFilter','eventStatusFilter'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change',e=>{
     if(id==='eventPeriodFilter') homeFilters.period=e.target.value;
@@ -1772,7 +1788,7 @@ document.getElementById('resetEventFiltersBtn')?.addEventListener('click',()=>{
   toggleFilterPanel_('eventFilterBtn','eventFilterPanel',true);
 });
 
-document.getElementById('plannerFilterBtn')?.addEventListener('click',()=>toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel'));
+document.getElementById('plannerFilterBtn')?.addEventListener('click',e=>{toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel');ccBlurPointerControl_(e.currentTarget)});
 ['plannerPeriodFilter','monthFilter','typeFilter'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change',e=>{
     ccAfterNativePicker_(e.target,()=>{

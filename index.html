@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=15.26i-native-picker-fix-11x">
+  <link rel="stylesheet" href="./styles.css?v=15.26j-native-picker-fix-11x">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -322,7 +322,7 @@
     </button>
   </nav>
 
-  <dialog id="notificationsDialog" class="cc-panel-dialog notifications-dialog" aria-labelledby="notificationsDialogTitle" aria-describedby="notificationsDialogSummary">
+  <dialog id="notificationsDialog" tabindex="-1" class="cc-panel-dialog notifications-dialog" aria-labelledby="notificationsDialogTitle" aria-describedby="notificationsDialogSummary">
     <div class="dialog-card cc-panel-card notifications-dialog-card">
       <button class="dialog-x-btn" id="closeNotificationsBtn" type="button" aria-label="Bezárás">×</button>
       <h3 id="notificationsDialogTitle" tabindex="-1">Értesítések</h3>
@@ -334,7 +334,7 @@
     </div>
   </dialog>
 
-  <dialog id="settingsDialog" class="cc-panel-dialog settings-dialog" aria-labelledby="settingsDialogTitle">
+  <dialog id="settingsDialog" tabindex="-1" class="cc-panel-dialog settings-dialog" aria-labelledby="settingsDialogTitle">
     <div class="dialog-card cc-panel-card settings-dialog-card">
       <button class="dialog-x-btn" id="closeSettingsBtn" type="button" aria-label="Bezárás">×</button>
       <h3 id="settingsDialogTitle" tabindex="-1">Beállítások</h3>
@@ -472,7 +472,7 @@
     </div>
   </dialog>
 
-  <dialog id="logoutDialog" class="account-action-dialog">
+  <dialog id="logoutDialog" tabindex="-1" class="account-action-dialog">
     <div class="dialog-card account-action-card">
       <button class="dialog-x-btn" id="closeLogoutDialogBtn" type="button" aria-label="Bezárás">×</button>
       <h3>Kijelentkezés</h3>
@@ -496,7 +496,7 @@
     </div>
   </dialog>
 
-  <dialog id="cancelDialog">
+  <dialog id="cancelDialog" tabindex="-1">
     <form method="dialog" class="dialog-card">
       <h3>Lemondás</h3>
       <p id="cancelEventTitle"></p>
@@ -511,6 +511,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
-  <script src="./app.js?v=15.26i-native-picker-fix-11x"></script>
+  <script src="./app.js?v=15.26j-native-picker-fix-11x"></script>
 </body>
 </html>
