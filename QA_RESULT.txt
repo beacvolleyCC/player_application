@@ -1,15 +1,12 @@
-PLAYER V2.3.10.26D QA
-- app.js syntax: PASS
-- sw.js syntax: PASS
-- legacy simple matrix wrapper restored: PASS
-- Grid-v2/v3 wrapper classes removed: PASS
-- colgroup removed: PASS
-- table-layout auto: PASS
-- mobile Alkalom 112px: PASS
-- mobile Fő 34px, sticky left 112px: PASS
-- mobile own 86px: PASS
-- mobile teammate 38px: PASS
-- RSVP green/red fills: PASS
-- Notification Swipe Motion v1 retained: PASS
-- config/manifest/icons untouched: PASS
-Physical iPhone Safari/PWA smoke remains required.
+PLAYER V2.3.10.26E STATIC QA
+PASS app.js syntax
+PASS sw.js syntax
+PASS notification swipe has no JS translate/frame-by-frame drag in active implementation
+PASS native overflow-x notification row
+PASS CSS scroll-snap CLOSED/OPEN
+PASS no automatic full-swipe destructive action
+PASS explicit Eltüntetés action
+PASS Menetrend grid retains native X/Y scrolling
+PASS no JS translate in grid renderer
+PASS existing grid geometry/month divider logic preserved from .26D
+DEVICE QA REQUIRED: iPhone PWA + Android + desktop

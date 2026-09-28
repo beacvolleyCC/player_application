@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26d-legacy-grid-stable';
+const CACHE='club-control-player-v2-3-10-26e-native-scroll-swipe-v1';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

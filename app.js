@@ -1957,43 +1957,61 @@ async function ccOpenNotification_(id){
 let ccOpenNotificationSwipeRow_=null;
 let ccNotificationSwipeGlobalBound_=false;
 
+/* PLAYER NATIVE SCROLL & SWIPE v1
+   Notification rows are real horizontal scroll containers.
+   Safari/iOS owns drag, momentum and axis arbitration; JS only manages
+   CLOSED/OPEN row state and the explicit archive action. */
+function ccNotificationSwipeOpenLeft_(row){
+  const raw=getComputedStyle(row).getPropertyValue('--cc-swipe-action-width');
+  const parsed=Number.parseFloat(raw);
+  return Number.isFinite(parsed) ? parsed : 80;
+}
 function ccCloseNotificationSwipeRow_(row,{animate=true}={}){
   if(!row || !row.isConnected) return;
-  const card=row.querySelector('.notification-item-card');
-  if(!card) return;
-  row.classList.remove('swiping','is-full-swipe','is-dismissing');
-  if(animate) row.classList.add('is-snapping');
-  else row.classList.remove('is-snapping');
-  card.style.setProperty('--cc-notification-x','0px');
   row.dataset.swipeOpen='0';
+  row.classList.remove('is-open');
+  try{ row.scrollTo({left:0,behavior:animate?'smooth':'auto'}); }
+  catch(_){ row.scrollLeft=0; }
   if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
-  if(animate){
-    window.setTimeout(()=>row?.classList.remove('is-snapping'),250);
+}
+function ccOpenNotificationSwipeRowNative_(row){
+  if(!row || !row.isConnected) return;
+  if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
+    ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_,{animate:true});
+  }
+  row.dataset.swipeOpen='1';
+  row.classList.add('is-open');
+  ccOpenNotificationSwipeRow_=row;
+}
+function ccSyncNotificationSwipeState_(row){
+  if(!row || !row.isConnected) return;
+  const openLeft=ccNotificationSwipeOpenLeft_(row);
+  if(row.scrollLeft >= openLeft*0.55){
+    ccOpenNotificationSwipeRowNative_(row);
+  }else{
+    row.dataset.swipeOpen='0';
+    row.classList.remove('is-open');
+    if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
   }
 }
-
 function ccBindNotificationSwipeGlobals_(){
   if(ccNotificationSwipeGlobalBound_) return;
   ccNotificationSwipeGlobalBound_=true;
 
-  // Only one row may remain open. Tapping anywhere else closes it first.
   document.addEventListener('pointerdown',event=>{
     const open=ccOpenNotificationSwipeRow_;
     if(!open || !open.isConnected) return;
     if(open.contains(event.target)) return;
-    ccCloseNotificationSwipeRow_(open);
+    ccCloseNotificationSwipeRow_(open,{animate:true});
   },true);
 
-  // Scrolling the notification panel behaves like iOS Mail: any revealed
-  // row closes before/while the list moves vertically.
-  document.addEventListener('scroll',event=>{
+  // A vertical list scroll closes any revealed action, without taking over
+  // the user's gesture or changing the list's native momentum.
+  const dialog=document.getElementById('notificationsDialog');
+  dialog?.addEventListener('scroll',()=>{
     const open=ccOpenNotificationSwipeRow_;
-    if(!open || !open.isConnected || open.classList.contains('swiping')) return;
-    const target=event.target;
-    if(target===document || target===window || target?.closest?.('#notificationsDialog')){
-      ccCloseNotificationSwipeRow_(open);
-    }
-  },true);
+    if(open?.isConnected) ccCloseNotificationSwipeRow_(open,{animate:false});
+  },{passive:true,capture:true});
 }
 
 function ccBindNotificationSwipes_(){
@@ -2009,185 +2027,41 @@ function ccBindNotificationSwipes_(){
     const id=row.dataset.notificationId;
     if(!card || !action || !id) return;
 
-    const DEADZONE=8;
-    const REVEAL=80;
-    const OPEN_THRESHOLD=REVEAL*0.44;
-    const OPEN_VELOCITY=-0.34;      // px/ms
-    const CLOSE_VELOCITY=0.34;
-    const FULL_VELOCITY=-0.95;
-    const SNAP_MS=220;
+    let scrollTimer=0;
+    let pointerStartLeft=0;
+    let pointerMoved=false;
 
-    let active=false;
-    let axis='';
-    let pointerId=null;
-    let startX=0,startY=0;
-    let startOffset=0;
-    let currentOffset=0;
-    let lastX=0,lastT=0,velocityX=0;
-    let raf=0;
-    let dismissing=false;
-    let suppressClickUntil=0;
-
-    const rowWidth=()=>Math.max(1,row.getBoundingClientRect().width||card.getBoundingClientRect().width||1);
-    const fullThreshold=()=>Math.max(REVEAL+48,Math.min(rowWidth()*0.58,240));
-    const getOffset=()=>{
-      const raw=Number.parseFloat(getComputedStyle(card).getPropertyValue('--cc-notification-x'));
-      return Number.isFinite(raw)?Math.max(0,-raw):0;
-    };
-    const haptic=()=>{ try{ navigator.vibrate?.(8); }catch(_){ } };
-
-    const paint=offset=>{
-      currentOffset=Math.max(0,offset);
-      cancelAnimationFrame(raf);
-      raf=requestAnimationFrame(()=>{
-        card.style.setProperty('--cc-notification-x',`${-currentOffset}px`);
-        row.style.setProperty('--cc-notification-progress',String(Math.min(1,currentOffset/REVEAL)));
-        row.classList.toggle('is-full-swipe',currentOffset>=fullThreshold());
-      });
+    const settle=()=>ccSyncNotificationSwipeState_(row);
+    const scheduleSettle=()=>{
+      clearTimeout(scrollTimer);
+      scrollTimer=window.setTimeout(settle,90);
     };
 
-    const resistedOffset=raw=>{
-      if(raw<=0) return 0;
-      if(raw<=REVEAL) return raw;
-      // iOS-like rubber band after the normal reveal width. It still permits
-      // a deliberate full swipe, but becomes progressively heavier.
-      const extra=raw-REVEAL;
-      return REVEAL + extra*0.38/(1+extra/360);
-    };
+    row.addEventListener('scroll',scheduleSettle,{passive:true});
+    if('onscrollend' in row){
+      row.addEventListener('scrollend',settle,{passive:true});
+    }
 
-    const snapTo=offset=>{
-      row.classList.remove('swiping','is-full-swipe');
-      row.classList.add('is-snapping');
-      paint(offset);
-      row.dataset.swipeOpen=offset>0?'1':'0';
-      if(offset>0){
-        if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
-          ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_);
-        }
-        ccOpenNotificationSwipeRow_=row;
-      }else if(ccOpenNotificationSwipeRow_===row){
-        ccOpenNotificationSwipeRow_=null;
+    row.addEventListener('pointerdown',()=>{
+      pointerStartLeft=row.scrollLeft;
+      pointerMoved=false;
+      if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
+        ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_,{animate:true});
       }
-      window.setTimeout(()=>row?.classList.remove('is-snapping'),SNAP_MS+30);
-    };
-
-    const commitDismiss=()=>{
-      if(dismissing) return;
-      dismissing=true;
-      active=false;
-      row.classList.remove('swiping','is-snapping');
-      row.classList.add('is-dismissing');
-      if(ccOpenNotificationSwipeRow_===row) ccOpenNotificationSwipeRow_=null;
-      haptic();
-
-      const w=rowWidth();
-      card.style.setProperty('--cc-notification-x',`${-(w+24)}px`);
-      row.style.height=`${row.getBoundingClientRect().height}px`;
-      row.style.opacity='1';
-      suppressClickUntil=performance.now()+500;
-
-      window.setTimeout(()=>{
-        row.classList.add('notification-row-collapsing');
-        requestAnimationFrame(()=>{
-          row.style.height='0px';
-          row.style.opacity='0';
-          row.style.marginBlock='0';
-        });
-      },SNAP_MS-40);
-      window.setTimeout(()=>ccDismissNotification_(id),SNAP_MS+170);
-    };
-
-    const finishGesture=()=>{
-      if(!active || dismissing) return;
-      active=false;
-      try{ if(pointerId!==null) card.releasePointerCapture?.(pointerId); }catch(_){ }
-      pointerId=null;
-
-      if(axis!=='x'){
-        axis='';
-        row.classList.remove('swiping');
-        return;
-      }
-
-      suppressClickUntil=performance.now()+280;
-      const offset=currentOffset;
-      const full=offset>=fullThreshold() || (velocityX<=FULL_VELOCITY && offset>REVEAL*1.12);
-      if(full){
-        commitDismiss();
-      }else if(velocityX>=CLOSE_VELOCITY){
-        snapTo(0);
-      }else if(offset>=OPEN_THRESHOLD || velocityX<=OPEN_VELOCITY){
-        snapTo(REVEAL);
-      }else{
-        snapTo(0);
-      }
-      axis='';
-    };
+    },{passive:true});
+    row.addEventListener('pointermove',()=>{
+      if(Math.abs(row.scrollLeft-pointerStartLeft)>3) pointerMoved=true;
+    },{passive:true});
 
     action.addEventListener('click',event=>{
       event.preventDefault();
       event.stopPropagation();
-      commitDismiss();
-    });
-
-    card.addEventListener('pointerdown',event=>{
-      if(dismissing || event.button>0) return;
-      if(ccOpenNotificationSwipeRow_ && ccOpenNotificationSwipeRow_!==row){
-        ccCloseNotificationSwipeRow_(ccOpenNotificationSwipeRow_);
-      }
-      active=true;
-      axis='';
-      pointerId=event.pointerId;
-      startX=lastX=event.clientX;
-      startY=event.clientY;
-      lastT=performance.now();
-      velocityX=0;
-      startOffset=getOffset();
-      currentOffset=startOffset;
-      row.classList.remove('is-snapping','is-full-swipe');
-    });
-
-    card.addEventListener('pointermove',event=>{
-      if(!active || event.pointerId!==pointerId || dismissing) return;
-      const dx=event.clientX-startX;
-      const dy=event.clientY-startY;
-
-      if(!axis){
-        if(Math.abs(dx)<DEADZONE && Math.abs(dy)<DEADZONE) return;
-        if(Math.abs(dy)>Math.abs(dx)*1.12){
-          axis='y';
-          active=false;
-          return;
-        }
-        axis='x';
-        try{ card.setPointerCapture?.(event.pointerId); }catch(_){ }
-        row.classList.add('swiping');
-      }
-      if(axis!=='x') return;
-
-      // Horizontal drag owns the gesture after direction lock.
-      event.preventDefault();
-      const now=performance.now();
-      const dt=Math.max(1,now-lastT);
-      const inst=(event.clientX-lastX)/dt;
-      velocityX=velocityX*0.66+inst*0.34;
-      lastX=event.clientX;
-      lastT=now;
-
-      const raw=startOffset-dx;
-      paint(resistedOffset(raw));
-    },{passive:false});
-
-    card.addEventListener('pointerup',finishGesture);
-    card.addEventListener('pointercancel',()=>{
-      if(!active) return;
-      active=false;
-      row.classList.remove('swiping');
-      snapTo(startOffset>=OPEN_THRESHOLD?REVEAL:0);
+      ccDismissNotification_(id);
     });
 
     card.addEventListener('click',event=>{
-      if(dismissing || performance.now()<suppressClickUntil || getOffset()>2){
+      // A swipe must never turn into an accidental open/deep-link tap.
+      if(pointerMoved || row.scrollLeft>2){
         event.preventDefault();
         event.stopPropagation();
         return;

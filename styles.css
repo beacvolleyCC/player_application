@@ -8361,3 +8361,98 @@ body.planner-grid-page-lock #plannerView .planner-scroll-tail{
     max-width:86px !important;
   }
 }
+
+/* ==========================================================
+   PLAYER V2.3.10.26E — PLAYER NATIVE SCROLL & SWIPE v1
+   Notifications: native horizontal scroll + CSS scroll snap.
+   No JS translate / frame-by-frame drag / full-swipe destructive action.
+   ========================================================== */
+.notification-swipe-row{
+  --cc-swipe-action-width:80px !important;
+  position:relative !important;
+  display:flex !important;
+  align-items:stretch !important;
+  width:100% !important;
+  max-width:100% !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  border:1px solid var(--line) !important;
+  border-radius:12px !important;
+  box-sizing:border-box !important;
+  background:#b3261e !important;
+  touch-action:auto !important;
+  overscroll-behavior-x:contain !important;
+  overscroll-behavior-y:auto !important;
+  scroll-snap-type:x mandatory !important;
+  scroll-behavior:smooth !important;
+  -webkit-overflow-scrolling:touch !important;
+  scrollbar-width:none !important;
+  isolation:isolate;
+  contain:paint;
+}
+.notification-swipe-row::-webkit-scrollbar{
+  display:none !important;
+  width:0 !important;
+  height:0 !important;
+}
+.notification-item-card{
+  position:relative !important;
+  z-index:2 !important;
+  flex:0 0 100% !important;
+  width:100% !important;
+  min-width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  border:0 !important;
+  border-radius:11px !important;
+  background:var(--card) !important;
+  transform:none !important;
+  transition:background .12s ease,opacity .12s ease !important;
+  will-change:auto !important;
+  touch-action:auto !important;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  scroll-snap-align:start !important;
+  scroll-snap-stop:always !important;
+}
+.notification-swipe-action{
+  position:relative !important;
+  z-index:1 !important;
+  inset:auto !important;
+  flex:0 0 var(--cc-swipe-action-width) !important;
+  width:var(--cc-swipe-action-width) !important;
+  min-width:var(--cc-swipe-action-width) !important;
+  max-width:var(--cc-swipe-action-width) !important;
+  height:auto !important;
+  display:grid !important;
+  place-items:center !important;
+  padding:0 8px !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:#b3261e !important;
+  color:#fff !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+  transform:none !important;
+  transition:none !important;
+  box-sizing:border-box !important;
+  font-size:11px !important;
+  font-weight:900 !important;
+  white-space:nowrap;
+  scroll-snap-align:end !important;
+  scroll-snap-stop:always !important;
+}
+.dark .notification-swipe-row,
+.dark .notification-swipe-action{background:#8f2d27 !important;}
+.notification-swipe-row.swiping,
+.notification-swipe-row.is-snapping,
+.notification-swipe-row.is-dismissing,
+.notification-swipe-row.is-full-swipe{
+  /* old Motion-v1 state classes are deliberately inert in Native v1 */
+}
+@media(prefers-reduced-motion:reduce){
+  .notification-swipe-row{scroll-behavior:auto !important;}
+}
