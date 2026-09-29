@@ -1734,6 +1734,10 @@ document.getElementById('confirmCancel').addEventListener('click',ev=>{
   renderPlanner();
 });
 
+const CC_FILTER_PANEL_PREF_PREFIX='cc-player-filter-open:';
+function ccFilterPanelPref_(panelId){
+  try{const v=localStorage.getItem(CC_FILTER_PANEL_PREF_PREFIX+panelId);return v==null?null:v==='1'}catch(_){return null}
+}
 function toggleFilterPanel_(buttonId,panelId,force){
   const btn=document.getElementById(buttonId), panel=document.getElementById(panelId);
   if(!btn || !panel) return;
@@ -1742,7 +1746,12 @@ function toggleFilterPanel_(buttonId,panelId,force){
   panel.setAttribute('aria-hidden',open?'false':'true');
   btn.setAttribute('aria-expanded',open?'true':'false');
   btn.classList.toggle('filter-open',open);
+  try{localStorage.setItem(CC_FILTER_PANEL_PREF_PREFIX+panelId,open?'1':'0')}catch(_){}
 }
+function ccRestoreFilterPanelPrefs_(){
+  [['eventFilterBtn','eventFilterPanel'],['plannerFilterBtn','plannerFilterPanel']].forEach(([buttonId,panelId])=>{const pref=ccFilterPanelPref_(panelId);if(pref!==null)toggleFilterPanel_(buttonId,panelId,pref)});
+}
+requestAnimationFrame(ccRestoreFilterPanelPrefs_);
 
 /* V2.3.10.26I — native picker lifecycle guard.
    iOS may still be closing its native select/date picker when change fires.

@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-ios-progress-swipe';
+const CACHE='club-control-player-v2-3-10-26o-p1-filter-state-lock';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

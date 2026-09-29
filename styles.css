@@ -8971,3 +8971,11 @@ dialog[open]:focus{
     transition:none !important;
   }
 }
+
+/* V2.3.10.26O-P1 — filter state parity only. Notification swipe lock untouched. */
+#eventFilterBtn .filter-icon-outline,#eventFilterBtn .filter-icon-filled,#plannerFilterBtn .filter-icon-outline,#plannerFilterBtn .filter-icon-filled{display:none!important}
+#eventFilterBtn .filter-funnel,#plannerFilterBtn .filter-funnel{position:relative;width:18px;height:16px;display:inline-block;font-size:0;line-height:0;transform:translateY(-1px);transition:transform 140ms ease-in-out!important}
+#eventFilterBtn .filter-funnel::before,#plannerFilterBtn .filter-funnel::before{content:"";position:absolute;inset:0;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M2 3 L22 3 L12 20.3 Z' fill='none' stroke='black' stroke-width='1.35'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M2 3 L22 3 L12 20.3 Z' fill='none' stroke='black' stroke-width='1.35'/%3E%3C/svg%3E") center/contain no-repeat}
+#eventFilterBtn.has-active-filter .filter-funnel::before,#plannerFilterBtn.has-active-filter .filter-funnel::before{background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M2 3 L22 3 L12 20.3 Z' fill='black'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M2 3 L22 3 L12 20.3 Z' fill='black'/%3E%3C/svg%3E") center/contain no-repeat}
+#eventFilterBtn.filter-open .filter-funnel,#plannerFilterBtn.filter-open .filter-funnel{transform:translateY(-1px) rotate(180deg)!important}
+@media(prefers-reduced-motion:reduce){#eventFilterBtn .filter-funnel,#plannerFilterBtn .filter-funnel{transition:none!important}}
