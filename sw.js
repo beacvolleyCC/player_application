@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p1-filter-state-lock';
+const CACHE='club-control-player-v2-3-10-26o-p2-nav-medical';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

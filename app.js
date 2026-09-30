@@ -1942,7 +1942,7 @@ function ccNotificationTypeLabel_(type){
   const map={
     new_training:'Új edzés',training_change:'Edzés változás',weekly_response_reminder:'Visszajelzés',
     same_day_response_reminder:'Mai edzés',new_match:'Új meccs',match_change:'Meccs változás',
-    payment:'Fizetés',test:'Teszt'
+    payment:'Fizetés',medical_expiry:'Sportorvosi',medical_appointment:'Sportorvosi időpont',test:'Teszt'
   };
   return map[String(type||'')]||'Értesítés';
 }
@@ -2376,6 +2376,129 @@ document.getElementById('openNotificationsBtn')?.addEventListener('click',openNo
 document.getElementById('closeNotificationsBtn')?.addEventListener('click',()=>ccCloseDialog_(notificationsDialog));
 renderNotificationShell_(0);
 
+let ccMedicalStatus_=null;
+let ccMedicalBusy_=false;
+
+function ccMedicalFormatDate_(value){
+  const raw=String(value||'').trim();
+  if(!raw) return '–';
+  const d=new Date(raw.length===10 ? `${raw}T12:00:00` : raw);
+  if(Number.isNaN(d.getTime())) return raw;
+  try{return new Intl.DateTimeFormat('hu-HU',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}catch(_){return raw}
+}
+function ccMedicalLocalInput_(value){
+  if(!value) return '';
+  const d=new Date(value); if(Number.isNaN(d.getTime())) return '';
+  try{
+    const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d);
+    const m=Object.fromEntries(parts.map(x=>[x.type,x.value]));
+    return `${m.year}-${m.month}-${m.day}T${m.hour}:${m.minute}`;
+  }catch(_){return ''}
+}
+function ccEnsureMedicalDialog_(){
+  let d=document.getElementById('medicalAppointmentDialog');
+  if(d) return d;
+  d=document.createElement('dialog');
+  d.id='medicalAppointmentDialog';
+  d.className='medical-appointment-dialog';
+  d.innerHTML=`<form method="dialog" class="medical-appointment-card" data-no-page-swipe>
+    <div class="medical-appointment-head"><div><small>SPORTORVOSI</small><h3 id="medicalAppointmentTitle" tabindex="-1">Következő vizsgálat</h3></div><button type="button" class="medical-close" id="medicalAppointmentClose" aria-label="Bezárás">×</button></div>
+    <p class="medical-expiry-copy" id="medicalAppointmentExpiry"></p>
+    <label class="medical-field"><span>Mikor mész sportorvoshoz?</span><input id="medicalAppointmentAt" type="datetime-local"></label>
+    <label class="medical-field"><span>Helyszín <em>opcionális</em></span><input id="medicalAppointmentLocation" type="text" maxlength="160" placeholder="pl. Sportorvosi rendelő"></label>
+    <p class="medical-help">A vizsgálati időpont külön adat. Nem módosítja a sportorvosi érvényesség dátumát.</p>
+    <div class="medical-dialog-status" id="medicalAppointmentStatus" aria-live="polite"></div>
+    <div class="medical-appointment-actions"><button type="button" class="ghost-btn" id="medicalAppointmentClear">Időpont törlése</button><button type="button" class="status-btn" id="medicalAppointmentSave">Mentés</button></div>
+  </form>`;
+  document.body.appendChild(d);
+  d.querySelector('#medicalAppointmentClose')?.addEventListener('click',()=>ccCloseDialog_(d));
+  d.querySelector('#medicalAppointmentSave')?.addEventListener('click',ccSaveMedicalAppointment_);
+  d.querySelector('#medicalAppointmentClear')?.addEventListener('click',()=>ccSaveMedicalAppointment_({clear:true}));
+  d.addEventListener('click',e=>{if(e.target===d)ccCloseDialog_(d)});
+  return d;
+}
+function ccRenderMedicalAction_(){
+  const row=document.getElementById('profileMedicalRow');
+  if(!row) return;
+  row.classList.toggle('medical-window-active',!!ccMedicalStatus_?.appointmentActive);
+  const expiry=document.getElementById('profileMedical'),days=Number(ccMedicalStatus_?.daysLeft);
+  if(expiry){expiry.classList.remove('ok','medical-expiry-soon','medical-expiry-critical','medical-expiry-expired');if(Number.isFinite(days)){if(days<0)expiry.classList.add('medical-expiry-expired');else if(days<=30)expiry.classList.add('medical-expiry-critical');else if(days<=92)expiry.classList.add('medical-expiry-soon');else expiry.classList.add('ok')}}
+  let btn=document.getElementById('profileMedicalAppointmentBtn');
+  if(!ccMedicalStatus_?.appointmentActive){btn?.remove();return}
+  if(!btn){
+    btn=document.createElement('button');btn.type='button';btn.id='profileMedicalAppointmentBtn';btn.className='profile-medical-action';
+    btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();ccOpenMedicalAppointment_()});row.appendChild(btn);
+  }
+  btn.textContent=ccMedicalStatus_?.appointmentAt ? `Vizsgálat: ${ccMedicalFormatDate_(ccMedicalStatus_.appointmentAt)}` : 'Időpont beállítása';
+  btn.setAttribute('aria-label',btn.textContent);
+}
+async function ccLoadMedicalStatus_(){
+  if(!SUPABASE_ENABLED||!ccSupabase||!ccSupabaseSession){ccMedicalStatus_=null;ccRenderMedicalAction_();return}
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_medical_status_v1');
+    if(error){
+      const msg=String(error.message||'');
+      if(/cc_player_medical_status_v1|function .* does not exist|schema cache/i.test(msg)){ccMedicalStatus_=null;ccRenderMedicalAction_();return}
+      throw error;
+    }
+    ccMedicalStatus_=typeof data==='string'?JSON.parse(data):(data||null);
+    ccRenderMedicalAction_();
+  }catch(error){console.warn('Sportorvosi időpont modul nem érhető el:',error);ccMedicalStatus_=null;ccRenderMedicalAction_()}
+}
+function ccOpenMedicalAppointment_(){
+  if(!ccMedicalStatus_?.appointmentActive) return;
+  const d=ccEnsureMedicalDialog_();
+  const exp=d.querySelector('#medicalAppointmentExpiry');
+  if(exp) exp.textContent=`Jelenlegi érvényesség: ${ccMedicalFormatDate_(ccMedicalStatus_.medicalValidUntil)}${Number.isFinite(Number(ccMedicalStatus_.daysLeft))?` · ${Number(ccMedicalStatus_.daysLeft)} nap`:''}`;
+  const at=d.querySelector('#medicalAppointmentAt');if(at)at.value=ccMedicalLocalInput_(ccMedicalStatus_.appointmentAt);
+  const loc=d.querySelector('#medicalAppointmentLocation');if(loc)loc.value=String(ccMedicalStatus_.location||'');
+  const clear=d.querySelector('#medicalAppointmentClear');if(clear)clear.hidden=!ccMedicalStatus_.appointmentAt;
+  const st=d.querySelector('#medicalAppointmentStatus');if(st)st.textContent='';
+  ccOpenDialog_(d);ccFocusPanelTitle_(d,'medicalAppointmentTitle');
+}
+async function ccSaveMedicalAppointment_(options={}){
+  if(ccMedicalBusy_||!ccSupabase)return;
+  const d=ccEnsureMedicalDialog_(),at=d.querySelector('#medicalAppointmentAt'),loc=d.querySelector('#medicalAppointmentLocation'),st=d.querySelector('#medicalAppointmentStatus');
+  const value=options.clear?'':String(at?.value||'');
+  if(!options.clear&&!value){if(st)st.textContent='Adj meg dátumot és időpontot.';return}
+  ccMedicalBusy_=true;d.classList.add('is-saving');if(st)st.textContent='Mentés…';
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_medical_appointment_save_v1',{p_appointment_local:value,p_location:options.clear?'':String(loc?.value||'')});
+    if(error)throw error;
+    ccMedicalStatus_=typeof data==='string'?JSON.parse(data):(data||null);ccRenderMedicalAction_();
+    if(st)st.textContent=options.clear?'Az időpont törölve.':'Az időpont elmentve.';
+    window.setTimeout(()=>ccCloseDialog_(d),450);
+  }catch(error){console.error('Sportorvosi időpont mentési hiba:',error);if(st)st.textContent=error?.message||'A mentés nem sikerült.'}
+  finally{ccMedicalBusy_=false;d.classList.remove('is-saving')}
+}
+
+const CC_PAGE_VIEWS=['homeView','plannerView','profileView'];
+function ccPageSwipeBlocked_(target){
+  return !!target?.closest?.('button,a,input,select,textarea,label,dialog,[role="button"],.card,.event-card,.planner-card,.filter-panel,.notification-swipe-row,.notification-swipe-scroll,.planner-scroll-viewport,.matrix-scroll,.calendar-shell,.attendance-slider,.settings-card,.profile-card,[data-no-page-swipe]');
+}
+function ccAnimatePageArrival_(viewId,dir){
+  const view=document.getElementById(viewId);if(!view||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return;
+  try{view.animate([{transform:`translateX(${dir>0?'20':'-20'}px)`,opacity:.82},{transform:'translateX(0)',opacity:1}],{duration:175,easing:'cubic-bezier(.22,.7,.2,1)'})}catch(_){}
+}
+function ccBindBackgroundPageSwipe_(){
+  if(document.documentElement.dataset.ccPageSwipeBound==='1')return;document.documentElement.dataset.ccPageSwipeBound='1';
+  let start=null;
+  document.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    if(ccPageSwipeBlocked_(e.target)){start=null;return}
+    const active=document.querySelector('.view.active')?.id;if(!CC_PAGE_VIEWS.includes(active)){start=null;return}
+    start={x:e.clientX,y:e.clientY,id:e.pointerId,view:active};
+  },{passive:true});
+  document.addEventListener('pointerup',e=>{
+    if(!start||start.id!==e.pointerId){start=null;return}
+    const dx=e.clientX-start.x,dy=e.clientY-start.y,from=start.view;start=null;
+    if(Math.abs(dx)<58||Math.abs(dx)<Math.abs(dy)*1.25)return;
+    const i=CC_PAGE_VIEWS.indexOf(from),dir=dx<0?1:-1,next=i+dir;if(i<0||next<0||next>=CC_PAGE_VIEWS.length)return;
+    switchView(CC_PAGE_VIEWS[next]);requestAnimationFrame(()=>ccAnimatePageArrival_(CC_PAGE_VIEWS[next],dir));
+  },{passive:true});
+  document.addEventListener('pointercancel',()=>{start=null},{passive:true});
+}
+
 function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
   const navView=viewId;
@@ -2410,6 +2533,7 @@ function switchView(viewId){
 document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
 document.querySelectorAll('[data-view-jump]').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.viewJump)));
 ccSyncNavMotionIndicator_();
+ccBindBackgroundPageSwipe_();
 
 window.addEventListener('resize',()=>requestAnimationFrame(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();}));
 window.addEventListener('orientationchange',()=>setTimeout(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();},80));
@@ -2427,7 +2551,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026m').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p2').catch(()=>{}));
 }
 
 
@@ -2824,7 +2948,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026m');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p2');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -3132,7 +3256,9 @@ function defaultSettingsPayload_(){
       same_day_response_reminder:true,
       new_match:true,
       match_change:true,
-      payment:true
+      payment:true,
+      medical_expiry:true,
+      medical_appointment:true
     }
   };
 }
@@ -3154,7 +3280,18 @@ function updateNotificationTypesSummary_(){
   const summary=document.getElementById('notificationTypesSummary');
   if(summary) summary.textContent=`${enabled}/${inputs.length} bekapcsolva`;
 }
+function ccEnsureMedicalNotificationSettings_(){
+  if(document.querySelector('[data-notify-setting="medical_expiry"]')) return;
+  const payment=document.querySelector('[data-notify-setting="payment"]');
+  const anchor=payment?.closest?.('.switch-row');
+  if(!anchor?.parentElement) return;
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`<label class="switch-row"><span><b>Sportorvosi lejárat</b><small>Figyelmeztetés 3 hónapon belül, 1 hónapon belül és lejáratkor.</small></span><input type="checkbox" data-notify-setting="medical_expiry" checked></label><label class="switch-row"><span><b>Sportorvosi időpont</b><small>Emlékeztető a rögzített vizsgálati időpont előtt 7 nappal és 1 nappal.</small></span><input type="checkbox" data-notify-setting="medical_appointment" checked></label>`;
+  const nodes=[...wrap.children];let after=anchor;nodes.forEach(node=>{after.insertAdjacentElement('afterend',node);after=node});
+}
+
 function applySettingsUi_(value){
+  ccEnsureMedicalNotificationSettings_();
   const defaults=defaultSettingsPayload_();
   const settings={...defaults,...(value||{})};
   settings.notifications={...defaults.notifications,...((value||{}).notifications||{})};
@@ -3561,6 +3698,7 @@ function applyBootstrap(j){
   renderEvents();
   renderPlanner();
   renderProfileStats_();
+  queueMicrotask(()=>ccLoadMedicalStatus_());
 }
 
 function ccScheduleRealtimeRefresh_(){
