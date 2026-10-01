@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p4-medical-ios-grid';
+const CACHE='club-control-player-v2-3-10-26o-p6-medical-row-action-frame';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

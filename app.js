@@ -2411,7 +2411,7 @@ function ccEnsureMedicalDialog_(){
     <label class="medical-field"><span>Helyszín <em>opcionális</em></span><input id="medicalAppointmentLocation" type="text" maxlength="160" placeholder="pl. Sportorvosi rendelő"></label>
     <p class="medical-help">A vizsgálati időpont külön adat. Nem módosítja a sportorvosi érvényesség dátumát.</p>
     <div class="medical-dialog-status" id="medicalAppointmentStatus" aria-live="polite"></div>
-    <div class="medical-appointment-actions"><button type="button" class="ghost-btn" id="medicalAppointmentClear">Időpont törlése</button><button type="button" class="status-btn" id="medicalAppointmentSave">Mentés</button></div>
+    <div class="medical-appointment-actions"><button type="button" class="ghost-btn settings-wide-btn danger-outline" id="medicalAppointmentClear">Időpont törlése</button><button type="button" class="ghost-btn settings-wide-btn" id="medicalAppointmentSave">Mentés</button></div>
   </form>`;
   document.body.appendChild(d);
   d.querySelector('#medicalAppointmentClose')?.addEventListener('click',()=>ccCloseDialog_(d));
@@ -2459,6 +2459,7 @@ function ccOpenMedicalAppointment_(){
   const timeInput=d.querySelector('#medicalAppointmentTime');if(timeInput)timeInput.value=localTime;
   const loc=d.querySelector('#medicalAppointmentLocation');if(loc)loc.value=String(ccMedicalStatus_.location||'');
   const clear=d.querySelector('#medicalAppointmentClear');if(clear)clear.hidden=!ccMedicalStatus_.appointmentAt;
+  const actions=d.querySelector('.medical-appointment-actions');if(actions)actions.classList.toggle('single-action',!ccMedicalStatus_.appointmentAt);
   const st=d.querySelector('#medicalAppointmentStatus');if(st)st.textContent='';
   ccOpenDialog_(d);ccFocusPanelTitle_(d,'medicalAppointmentTitle');
 }
@@ -3393,7 +3394,9 @@ document.getElementById('avatarModeAvatarBtn')?.addEventListener('click',()=>{
   avatarPickerMode='avatar';
   syncAvatarModeUi_();
 });
-document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=>{
+const ccSettingsRefreshBtn_=document.getElementById('settingsRefreshBtn');
+if(ccSettingsRefreshBtn_) ccSettingsRefreshBtn_.textContent='Adatok újratöltése';
+ccSettingsRefreshBtn_?.addEventListener('click',async e=>{
   const old=e.currentTarget.textContent;
   e.currentTarget.textContent='… Frissítés';
   try{

@@ -9012,3 +9012,240 @@ dialog[open]:focus{
   max-inline-size:100%!important;
   margin:0;
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P5 — MEDICAL MODAL COMPACT / SETTINGS-BUTTON PARITY
+   Scope only: medical appointment profile action + modal geometry.
+   ========================================================== */
+
+/* Keep the appointment action on the same row as the medical validity copy. */
+#profileMedicalRow.medical-window-active{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  column-gap:8px;
+  row-gap:4px;
+}
+#profileMedicalRow.medical-window-active > span{
+  min-width:0;
+}
+#profileMedicalRow.medical-window-active #profileMedical{
+  white-space:nowrap;
+}
+#profileMedicalRow .profile-medical-action{
+  width:auto!important;
+  max-width:124px;
+  min-height:30px;
+  margin:0!important;
+  padding:0 8px;
+  border-radius:999px;
+  font-size:9px;
+  line-height:1.15;
+  white-space:normal;
+  text-align:center;
+}
+
+/* Date + time: exactly two independent half-width tracks with a real gap.
+   box-sizing is critical on iOS native date/time controls. */
+.medical-datetime-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:10px!important;
+  width:100%;
+  min-width:0;
+}
+.medical-datetime-grid .medical-field{
+  min-width:0!important;
+  width:100%;
+  max-width:100%;
+  overflow:visible;
+}
+.medical-datetime-grid .medical-field input[type="date"],
+.medical-datetime-grid .medical-field input[type="time"]{
+  box-sizing:border-box!important;
+  display:block;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  inline-size:100%!important;
+  min-inline-size:0!important;
+  max-inline-size:100%!important;
+  margin:0!important;
+  padding-left:9px!important;
+  padding-right:9px!important;
+  font-size:15px!important;
+}
+
+/* Same bordered button language as Settings footer. */
+.medical-appointment-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:10px!important;
+  width:100%;
+  margin-top:8px;
+}
+.medical-appointment-actions button{
+  box-sizing:border-box;
+  width:100%!important;
+  min-width:0;
+  min-height:42px!important;
+  margin:0!important;
+}
+.medical-appointment-actions.single-action #medicalAppointmentSave{
+  grid-column:1 / -1;
+}
+
+@media(max-width:560px){
+  #profileMedicalRow.medical-window-active{
+    grid-template-columns:minmax(0,1fr) auto auto!important;
+    gap:6px!important;
+  }
+  #profileMedicalRow .profile-medical-action{
+    max-width:108px;
+    padding:0 7px;
+    font-size:8.5px;
+  }
+  .medical-datetime-grid{
+    gap:8px!important;
+  }
+  .medical-datetime-grid .medical-field input[type="date"],
+  .medical-datetime-grid .medical-field input[type="time"]{
+    font-size:14px!important;
+    padding-left:7px!important;
+    padding-right:7px!important;
+  }
+  .medical-appointment-actions{
+    gap:8px!important;
+  }
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P6 — MEDICAL ROW / IOS INPUT FRAME / ACTION PARITY
+   Scope only: profile medical action geometry, medical modal fields/actions,
+   and Settings refresh label. No notification/RSVP/auth/backend changes.
+   ========================================================== */
+
+/* Keep label + expiry + compact action on one single row. */
+#profileMedicalRow.medical-window-active{
+  display:grid!important;
+  grid-template-columns:max-content max-content 96px!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  column-gap:6px!important;
+  row-gap:0!important;
+}
+#profileMedicalRow.medical-window-active > span,
+#profileMedicalRow.medical-window-active #profileMedical{
+  white-space:nowrap!important;
+  min-width:0!important;
+}
+#profileMedicalRow .profile-medical-action{
+  box-sizing:border-box!important;
+  width:96px!important;
+  min-width:96px!important;
+  max-width:96px!important;
+  min-height:30px!important;
+  margin:0!important;
+  padding:0 5px!important;
+  border-radius:999px!important;
+  font-size:8px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:clip!important;
+}
+
+/* iOS date/time controls: draw the frame inside the element so all four
+   sides remain visible regardless of native intrinsic control geometry. */
+.medical-datetime-grid{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:10px!important;
+  width:100%!important;
+}
+.medical-datetime-grid .medical-field{
+  min-width:0!important;
+  width:100%!important;
+  overflow:visible!important;
+}
+.medical-datetime-grid .medical-field input[type="date"],
+.medical-datetime-grid .medical-field input[type="time"]{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  inline-size:100%!important;
+  min-inline-size:0!important;
+  max-inline-size:100%!important;
+  height:44px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:var(--card)!important;
+  box-shadow:inset 0 0 0 1px var(--line)!important;
+  padding:0 9px!important;
+  overflow:hidden!important;
+}
+
+/* Settings-style full-width action.  Explicit rules avoid older generic
+   button styles stripping the frame in iOS/PWA rendering. */
+.medical-dialog-status:empty{display:none!important}
+.medical-appointment-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:10px!important;
+  width:100%!important;
+  margin-top:14px!important;
+}
+.medical-appointment-actions.single-action{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+.medical-appointment-actions button,
+#medicalAppointmentSave,
+#medicalAppointmentClear{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:46px!important;
+  margin:0!important;
+  border:1px solid var(--line)!important;
+  border-radius:10px!important;
+  background:var(--card)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  font-weight:850!important;
+}
+#medicalAppointmentSave{
+  color:#087cff!important;
+}
+.medical-appointment-actions.single-action #medicalAppointmentSave{
+  grid-column:1!important;
+}
+#medicalAppointmentClear{
+  color:var(--red)!important;
+  border-color:rgba(180,40,32,.28)!important;
+}
+
+@media(max-width:560px){
+  #profileMedicalRow.medical-window-active{
+    grid-template-columns:max-content max-content 92px!important;
+    column-gap:5px!important;
+  }
+  #profileMedicalRow .profile-medical-action{
+    width:92px!important;
+    min-width:92px!important;
+    max-width:92px!important;
+    padding:0 4px!important;
+    font-size:7.8px!important;
+  }
+  .medical-datetime-grid{gap:8px!important}
+  .medical-datetime-grid .medical-field input[type="date"],
+  .medical-datetime-grid .medical-field input[type="time"]{
+    padding-left:7px!important;
+    padding-right:7px!important;
+  }
+  .medical-appointment-actions{gap:8px!important}
+}
