@@ -2404,7 +2404,10 @@ function ccEnsureMedicalDialog_(){
   d.innerHTML=`<form method="dialog" class="medical-appointment-card" data-no-page-swipe>
     <div class="medical-appointment-head"><div><small>SPORTORVOSI</small><h3 id="medicalAppointmentTitle" tabindex="-1">Következő vizsgálat</h3></div><button type="button" class="medical-close" id="medicalAppointmentClose" aria-label="Bezárás">×</button></div>
     <p class="medical-expiry-copy" id="medicalAppointmentExpiry"></p>
-    <label class="medical-field"><span>Mikor mész sportorvoshoz?</span><input id="medicalAppointmentAt" type="datetime-local"></label>
+    <div class="medical-datetime-grid">
+      <label class="medical-field"><span>Dátum</span><input id="medicalAppointmentDate" type="date"></label>
+      <label class="medical-field"><span>Idő</span><input id="medicalAppointmentTime" type="time" step="60"></label>
+    </div>
     <label class="medical-field"><span>Helyszín <em>opcionális</em></span><input id="medicalAppointmentLocation" type="text" maxlength="160" placeholder="pl. Sportorvosi rendelő"></label>
     <p class="medical-help">A vizsgálati időpont külön adat. Nem módosítja a sportorvosi érvényesség dátumát.</p>
     <div class="medical-dialog-status" id="medicalAppointmentStatus" aria-live="polite"></div>
@@ -2450,7 +2453,10 @@ function ccOpenMedicalAppointment_(){
   const d=ccEnsureMedicalDialog_();
   const exp=d.querySelector('#medicalAppointmentExpiry');
   if(exp) exp.textContent=`Jelenlegi érvényesség: ${ccMedicalFormatDate_(ccMedicalStatus_.medicalValidUntil)}${Number.isFinite(Number(ccMedicalStatus_.daysLeft))?` · ${Number(ccMedicalStatus_.daysLeft)} nap`:''}`;
-  const at=d.querySelector('#medicalAppointmentAt');if(at)at.value=ccMedicalLocalInput_(ccMedicalStatus_.appointmentAt);
+  const local=ccMedicalLocalInput_(ccMedicalStatus_.appointmentAt);
+  const [localDate='',localTime='']=local.split('T');
+  const dateInput=d.querySelector('#medicalAppointmentDate');if(dateInput)dateInput.value=localDate;
+  const timeInput=d.querySelector('#medicalAppointmentTime');if(timeInput)timeInput.value=localTime;
   const loc=d.querySelector('#medicalAppointmentLocation');if(loc)loc.value=String(ccMedicalStatus_.location||'');
   const clear=d.querySelector('#medicalAppointmentClear');if(clear)clear.hidden=!ccMedicalStatus_.appointmentAt;
   const st=d.querySelector('#medicalAppointmentStatus');if(st)st.textContent='';
@@ -2458,9 +2464,12 @@ function ccOpenMedicalAppointment_(){
 }
 async function ccSaveMedicalAppointment_(options={}){
   if(ccMedicalBusy_||!ccSupabase)return;
-  const d=ccEnsureMedicalDialog_(),at=d.querySelector('#medicalAppointmentAt'),loc=d.querySelector('#medicalAppointmentLocation'),st=d.querySelector('#medicalAppointmentStatus');
-  const value=options.clear?'':String(at?.value||'');
-  if(!options.clear&&!value){if(st)st.textContent='Adj meg dátumot és időpontot.';return}
+  const d=ccEnsureMedicalDialog_(),dateInput=d.querySelector('#medicalAppointmentDate'),timeInput=d.querySelector('#medicalAppointmentTime'),loc=d.querySelector('#medicalAppointmentLocation'),st=d.querySelector('#medicalAppointmentStatus');
+  const dateValue=String(dateInput?.value||'').trim();
+  const timeValue=String(timeInput?.value||'').trim();
+  const value=options.clear?'':(dateValue&&timeValue?`${dateValue}T${timeValue}`:'');
+  if(!options.clear&&!dateValue){if(st)st.textContent='Adj meg dátumot.';return}
+  if(!options.clear&&!timeValue){if(st)st.textContent='Adj meg órát és percet.';return}
   ccMedicalBusy_=true;d.classList.add('is-saving');if(st)st.textContent='Mentés…';
   try{
     const {data,error}=await ccSupabase.rpc('cc_player_medical_appointment_save_v1',{p_appointment_local:value,p_location:options.clear?'':String(loc?.value||'')});
@@ -2551,7 +2560,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p2').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p3').catch(()=>{}));
 }
 
 
@@ -2948,7 +2957,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p2');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p3');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
