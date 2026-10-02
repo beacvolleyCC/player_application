@@ -221,7 +221,7 @@ const PLAYER_AVATARS = [
   ['extra_zebra','',40],['extra_horse','',41],['extra_deer','',42],['extra_kangaroo','',43],
   ['extra_rabbit','',44],['extra_eagle','',45],['extra_turtle','',46],['extra_dolphin','',47],
   ['extra_boar','',48],['extra_ram','',49],['extra_frog','',50],['extra_parrot','',51],
-  // V2.3.10.26O-P9 additions — same monochrome sprite language, 8×8 atlas.
+  // V2.3.10.26O-P10 artwork refinement — same 60 IDs, 8×8 atlas; original 52 cells unchanged.
   ['extra_lemur','',52],['extra_mouse','',53],['extra_pig','',54],['extra_duck','',55],
   ['extra_sheep','',56],['extra_chicken','',57],['extra_trex','',58],['extra_axolotl','',59]
 ].map(([id,label,spriteIndex])=>({id,label,spriteIndex}));
