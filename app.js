@@ -220,7 +220,10 @@ const PLAYER_AVATARS = [
   // V2.3.7 additions. IDs are prefixed so old semantic IDs remain stable.
   ['extra_zebra','',40],['extra_horse','',41],['extra_deer','',42],['extra_kangaroo','',43],
   ['extra_rabbit','',44],['extra_eagle','',45],['extra_turtle','',46],['extra_dolphin','',47],
-  ['extra_boar','',48],['extra_ram','',49],['extra_frog','',50],['extra_parrot','',51]
+  ['extra_boar','',48],['extra_ram','',49],['extra_frog','',50],['extra_parrot','',51],
+  // V2.3.10.26O-P9 additions — same monochrome sprite language, 8×8 atlas.
+  ['extra_lemur','',52],['extra_mouse','',53],['extra_pig','',54],['extra_duck','',55],
+  ['extra_sheep','',56],['extra_chicken','',57],['extra_trex','',58],['extra_axolotl','',59]
 ].map(([id,label,spriteIndex])=>({id,label,spriteIndex}));
 
 const PLAYER_AVATAR_IDS = new Set(PLAYER_AVATARS.map(x=>x.id));
@@ -271,7 +274,7 @@ function avatarMarkup_(avatarId,className='player-avatar-icon'){
   const col=def.spriteIndex%8;
   const row=Math.floor(def.spriteIndex/8);
   const x=(col*100/7).toFixed(6);
-  const y=(row*100/6).toFixed(6);
+  const y=(row*100/7).toFixed(6);
   return `<span class="avatar-sprite ${className}" role="img" aria-label="Avatar" style="background-position:${x}% ${y}%"></span>`;
 }
 
@@ -337,14 +340,35 @@ function syncAvatarModeUi_(){
   });
 }
 
+function occupiedAvatarIds_(){
+  const mine=String(currentPlayerData?.playerId||'');
+  return new Set(
+    Array.from(teamAvatarByPlayerId.entries())
+      .filter(([playerId,avatarId])=>String(playerId)!==mine && PLAYER_AVATAR_IDS.has(String(avatarId||'')))
+      .map(([,avatarId])=>String(avatarId))
+  );
+}
+
+function avatarLabel_(id,index){
+  const labels={
+    extra_lemur:'Gyűrűsfarkú maki',extra_mouse:'Egér',extra_pig:'Malac',extra_duck:'Kacsa',
+    extra_sheep:'Juh',extra_chicken:'Tyúk',extra_trex:'T-Rex',extra_axolotl:'Axolotl'
+  };
+  return labels[id]||`Avatar ${index+1}`;
+}
+
 function renderAvatarPicker_(){
   const grid=document.getElementById('avatarPickerGrid');
   if(!grid) return;
-  grid.innerHTML=PLAYER_AVATARS.map((item,index)=>`
-    <button type="button" class="avatar-option ${item.id===currentAvatarId?'selected':''}" data-avatar-id="${item.id}" role="option" aria-selected="${item.id===currentAvatarId?'true':'false'}" aria-label="Avatar ${index+1}">
+  const occupied=occupiedAvatarIds_();
+  grid.innerHTML=PLAYER_AVATARS.map((item,index)=>{
+    const taken=occupied.has(item.id) && item.id!==currentAvatarId;
+    const label=avatarLabel_(item.id,index);
+    return `
+    <button type="button" class="avatar-option ${item.id===currentAvatarId?'selected':''} ${taken?'taken':''}" data-avatar-id="${item.id}" role="option" aria-selected="${item.id===currentAvatarId?'true':'false'}" aria-label="${taken?`${label} — foglalt a csapatban`:label}" title="${taken?'Ezt az avatart már használja valaki a csapatban.':label}" ${taken?'disabled aria-disabled="true"':''}>
       ${avatarMarkup_(item.id,'avatar-option-svg')}
-    </button>
-  `).join('');
+    </button>`;
+  }).join('');
   renderCurrentAvatar_();
   syncAvatarModeUi_();
 }
@@ -352,7 +376,14 @@ function renderAvatarPicker_(){
 async function ccLoadAvatarDirectory_(){
   if(!SUPABASE_ENABLED || !ccSupabase) return;
   try{
-    const {data,error}=await ccSupabase.rpc('cc_player_avatar_directory');
+    let data,error;
+    ({data,error}=await ccSupabase.rpc('cc_player_avatar_team_directory_v1'));
+    if(error){
+      const msg=String(error?.message||error||'').toLowerCase();
+      if(msg.includes('cc_player_avatar_team_directory_v1')||msg.includes('function')||msg.includes('schema cache')){
+        ({data,error}=await ccSupabase.rpc('cc_player_avatar_directory'));
+      }
+    }
     if(error) throw error;
     const rows=typeof data==='string' ? JSON.parse(data) : (Array.isArray(data)?data:[]);
     teamAvatarByPlayerId=new Map(
@@ -3366,11 +3397,12 @@ document.getElementById('settingsThemeMode')?.addEventListener('change',e=>{
 });
 document.getElementById('settingsLanguage')?.addEventListener('change',scheduleSettingsSave_);
 document.querySelectorAll('[data-notify-setting]').forEach(el=>el.addEventListener('change',()=>{ updateNotificationTypesSummary_(); scheduleSettingsSave_(); }));
-document.getElementById('avatarPickerGrid')?.addEventListener('click',event=>{
+document.getElementById('avatarPickerGrid')?.addEventListener('click',async event=>{
   const button=event.target.closest('[data-avatar-id]');
-  if(!button) return;
+  if(!button || button.disabled) return;
   const next=String(button.dataset.avatarId||'');
-  if(!PLAYER_AVATAR_IDS.has(next)) return;
+  if(!PLAYER_AVATAR_IDS.has(next) || occupiedAvatarIds_().has(next)) return;
+  const previous=currentAvatarId;
   currentAvatarId=next;
   avatarPickerMode='avatar';
   if(currentPlayerData) currentPlayerData.avatarId=next;
@@ -3378,7 +3410,18 @@ document.getElementById('avatarPickerGrid')?.addEventListener('click',event=>{
   renderAvatarPicker_();
   renderEvents();
   renderPlanner();
-  scheduleSettingsSave_();
+  try{
+    await savePlayerSettingsNow_();
+    await ccLoadAvatarDirectory_();
+  }catch(err){
+    currentAvatarId=previous;
+    if(currentPlayerData) currentPlayerData.avatarId=previous;
+    if(currentPlayerSettings) currentPlayerSettings.avatarId=previous;
+    try{ await ccLoadAvatarDirectory_(); }catch(_){ renderAvatarPicker_(); }
+    const msg=String(err?.message||err||'');
+    if(msg.includes('AVATAR_TAKEN_IN_TEAM')) window.alert('Ezt az avatart közben már kiválasztotta valaki a csapatból. Válassz másikat.');
+    else window.alert('Az avatar mentése nem sikerült. Próbáld újra.');
+  }
 });
 document.getElementById('avatarModeMonogramBtn')?.addEventListener('click',()=>{
   avatarPickerMode='monogram';

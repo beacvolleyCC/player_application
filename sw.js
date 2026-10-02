@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p7-medical-frame-restore';
+const CACHE='club-control-player-v2-3-10-26o-p9-avatar60-unique';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -8,7 +8,7 @@ const CORE=[
   './icons/event-training-mask.png',
   './icons/event-home-mask.png',
   './icons/event-away-mask.png',
-  './icons/avatar-sprite.webp?v=2375'
+  './icons/avatar-sprite.webp?v=avatar60-p9'
 ];
 
 self.addEventListener('install', event => {

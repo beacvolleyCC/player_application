@@ -5566,7 +5566,7 @@ body.planner-grid-page-lock{
   height:100%;
   background-image:url('./icons/avatar-sprite.webp?v=2375');
   background-repeat:no-repeat;
-  background-size:800% 700%;
+  background-size:800% 800%;
   border-radius:50%;
 }
 .profile-avatar-svg,
@@ -9172,4 +9172,58 @@ dialog[open]:focus{
 .dark .medical-datetime-grid .medical-field input[type="time"]{
   background:var(--card)!important;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--line) 88%,transparent)!important;
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P9 — AVATAR 60 + TEAM-UNIQUE PICKER
+   ========================================================== */
+.avatar-option.taken,
+.avatar-option:disabled{
+  opacity:.28!important;
+  cursor:not-allowed!important;
+  filter:grayscale(1)!important;
+}
+.avatar-option.taken:hover,
+.avatar-option:disabled:hover{
+  background:var(--card)!important;
+}
+.avatar-option.taken .avatar-sprite,
+.avatar-option:disabled .avatar-sprite{
+  transform:none!important;
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P8 — MEDICAL COMPACT + NEUTRAL TEXT
+   Carried forward because the uploaded repo predates the requested P8 polish.
+   ========================================================== */
+.medical-appointment-head .medical-close{
+  width:32px!important;height:32px!important;min-width:32px!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  color:var(--black)!important;box-shadow:none!important;padding:0!important;
+}
+.medical-datetime-grid{
+  grid-template-columns:minmax(0,1.45fr) minmax(88px,.72fr)!important;
+  gap:7px!important;
+}
+.medical-datetime-grid .medical-field input[type="date"],
+.medical-datetime-grid .medical-field input[type="time"]{
+  min-height:40px!important;padding-left:7px!important;padding-right:7px!important;
+  font-size:14px!important;
+}
+.medical-appointment-actions button,
+#settingsDialog button,
+#settingsDialog .button,
+#settingsDialog a,
+#settingsDialog select,
+#settingsDialog label,
+#settingsDialog .settings-action{
+  color:var(--black)!important;
+  -webkit-text-fill-color:var(--black)!important;
+}
+@media(max-width:390px){
+  .medical-datetime-grid{grid-template-columns:minmax(0,1.55fr) minmax(78px,.65fr)!important;gap:6px!important}
+  .medical-datetime-grid .medical-field input[type="date"],
+  .medical-datetime-grid .medical-field input[type="time"]{font-size:13px!important;padding-left:6px!important;padding-right:6px!important}
 }
