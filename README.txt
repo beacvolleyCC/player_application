@@ -1,27 +1,18 @@
-CLUB CONTROL PLAYER V2.3.10.26O-P6
-2026-10-01
+CLUB CONTROL PLAYER V2.3.10.26O-P7 — MEDICAL DATE/TIME FRAME RESTORE
 
-GITHUB-ONLY PLAYER HOTFIX
-Repo: player_application
+Base: P6 medical iOS containment.
 
-Replace only:
-- app.js
-- styles.css
-- sw.js
+CHANGED
+- styles.css: restores the visible rounded border/frame around the Sportorvosi date and time fields.
+- sw.js: cache bump only.
 
-Do NOT replace config.js, index.html, manifest.webmanifest or icons.
-No SQL migration is required.
+UNCHANGED / LOCKED
+- app.js is byte-identical to P6.
+- Native iOS date/time picker behavior is unchanged.
+- P6 width containment remains active.
+- FINAL notification swipe V2.3.10.26O is untouched.
+- Canonical medical field remains player_private.medical_valid_until.
 
-FIXES
-- Sportorvosi lejár + expiry date + Időpont beállítása stay on one line.
-- Időpont beállítása is narrower on mobile.
-- Date and time inputs have a complete visible frame on iOS, including the right edge.
-- Save is a full-width bordered Settings-style button, centered.
-- Existing appointment still shows Delete + Save 50/50 with a gap.
-- Settings “Adatok újratöltése” no longer shows the leading arrow icon.
-
-REGRESSION LOCK
-- Notification swipe unchanged.
-- RSVP/schedule/push/auth unchanged.
-- medical_valid_until unchanged.
-- MGR011 backend/RPC unchanged.
+INSTALL
+Replace only: app.js, styles.css, sw.js.
+(Keeping app.js identical is intentional.)

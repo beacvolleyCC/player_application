@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p6-medical-row-action-frame';
+const CACHE='club-control-player-v2-3-10-26o-p7-medical-frame-restore';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

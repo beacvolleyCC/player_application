@@ -3394,9 +3394,7 @@ document.getElementById('avatarModeAvatarBtn')?.addEventListener('click',()=>{
   avatarPickerMode='avatar';
   syncAvatarModeUi_();
 });
-const ccSettingsRefreshBtn_=document.getElementById('settingsRefreshBtn');
-if(ccSettingsRefreshBtn_) ccSettingsRefreshBtn_.textContent='Adatok újratöltése';
-ccSettingsRefreshBtn_?.addEventListener('click',async e=>{
+document.getElementById('settingsRefreshBtn')?.addEventListener('click',async e=>{
   const old=e.currentTarget.textContent;
   e.currentTarget.textContent='… Frissítés';
   try{

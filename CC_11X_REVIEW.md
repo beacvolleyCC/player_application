@@ -1,26 +1,22 @@
-# CC 11× Review — Player V2.3.10.26O-P6
+# CC 11× Review — Player V2.3.10.26O-P7
 
-1. Product/domain — PASS: only Player medical appointment UI and Settings refresh label changed.
-2. UX/IA — PASS: medical expiry + date + compact appointment action remain on one row; modal preserves date/time/location flow.
-3. UI/design — PASS static: complete date/time frames; Settings-style bordered actions; full-width Save; Delete/Save 50/50 when both visible.
-4. Frontend/PWA — PASS static: app.js/sw.js syntax valid; service-worker cache bumped to P6.
-5. Backend/API — PASS by unchanged contract: cc_player_medical_appointment_save_v1 unchanged.
-6. DB/data integrity — PASS by unchanged contract: no SQL/schema/write semantic changes; medical_valid_until untouched.
-7. Architecture — PASS: GitHub-only frontend hotfix.
-8. Security/permissions — PASS: auth/RPC/config unchanged; no secrets added.
-9. QA/performance/accessibility — PASS static: native labeled date/time inputs retained; buttons remain semantic buttons. Physical iOS smoke still required.
-10. DevOps/deploy/rollback — PASS: replace app.js/styles.css/sw.js only; rollback to P5 if needed.
-11. Motion/interaction — PASS static: notification swipe/page carousel/RSVP logic not edited.
+1. Product/domain — PASS static: only the Sportorvosi appointment Date/Time visual frames are restored.
+2. UX/IA — PASS static: Date + Time remain separate labeled 50/50 controls.
+3. UI/design — PASS static: rounded visible input frames restored; modal structure unchanged.
+4. Frontend/PWA — PASS static: app.js byte-identical to P6; sw cache bumped.
+5. Backend/API — PASS: no RPC or payload change.
+6. DB/data integrity — PASS: no schema/write change; canonical player_private.medical_valid_until untouched.
+7. Architecture — PASS: CSS + cache-only visual hotfix over P6.
+8. Security/permissions — PASS: no auth/config/secret change.
+9. QA/performance/accessibility — PASS static: labels + native inputs retained; physical iOS smoke required.
+10. DevOps/deploy/rollback — PASS: replace app.js/styles.css/sw.js; rollback to P6.
+11. Motion/interaction — PASS static: FINAL notification swipe V2.3.10.26O and page gestures untouched.
 
 Static assertions:
-- app.js syntax: PASS
-- sw.js syntax: PASS
-- profile medical action fixed to compact mobile width: PASS
-- date/time grid = two minmax(0,1fr) columns: PASS
-- date/time complete frame via inset box-shadow: PASS
-- Save full-width centered bordered action: PASS
-- existing appointment Delete + Save = 50/50 with gap: PASS
-- Settings refresh label has no leading arrow: PASS
-- cache id = club-control-player-v2-3-10-26o-p6-medical-row-action-frame
-
-Runtime still required after GitHub Pages/PWA deploy on iPhone.
+- app.js byte-identical to P6: PASS
+- JS syntax: PASS
+- P6 overflow:hidden containment retained: PASS
+- 50/50 minmax(0,1fr) tracks retained: PASS
+- native date/time controls retained (no appearance override): PASS
+- explicit border + radius + box-shadow frame added: PASS
+- new cache id: club-control-player-v2-3-10-26o-p7-medical-frame-restore
