@@ -10086,3 +10086,46 @@ dialog[open]:focus{
 #plannerView .position-delta.down{color:#a43a3a;}
 .dark #plannerView .position-delta.up{color:#9ed6aa;}
 .dark #plannerView .position-delta.down{color:#e8a2a2;}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P14 — LEAGUE FORM + OPPONENT TREND
+   ========================================================== */
+#plannerView .cc-icon-standings{stroke-width:1.5 !important;stroke-linecap:round;fill:none !important;}
+#plannerView .standings-match-team>span{min-width:0;display:grid;gap:1px;}
+#plannerView .standings-team-status{display:flex !important;align-items:center;gap:3px;min-width:0;color:var(--muted);font-size:5.6px !important;line-height:1.05;white-space:nowrap;}
+#plannerView .league-pos-trend{display:inline-flex;align-items:center;font-weight:950;font-size:5.8px;line-height:1;}
+#plannerView .league-pos-trend.up{color:#2e7d45;}
+#plannerView .league-pos-trend.down{color:#a33434;}
+#plannerView .league-pos-trend.flat{color:var(--muted);}
+#plannerView .league-form-dots{display:inline-flex;align-items:center;gap:2px;vertical-align:middle;}
+#plannerView .league-form-dots i{display:block;width:5px;height:5px;border-radius:999px;background:var(--line);}
+#plannerView .league-form-dots i.win{background:#4f9a62;}
+#plannerView .league-form-dots i.loss{background:#c76666;}
+#plannerView .league-form-empty{font-size:6px;color:var(--muted);}
+#plannerView .standings-match-empty{padding:12px;color:var(--muted);font-size:7px;}
+#plannerView .league-overview-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--line);}
+#plannerView .league-overview-summary>div{min-width:0;padding:8px 9px;border-right:1px solid var(--line);display:grid;gap:3px;align-content:center;}
+#plannerView .league-overview-summary>div:last-child{border-right:0;}
+#plannerView .league-overview-summary span{font-size:6px;color:var(--muted);font-weight:850;}
+#plannerView .league-overview-summary b{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#plannerView .league-overview-summary small{font-size:6.3px;color:var(--muted);}
+#plannerView .league-form-list{padding:9px 10px 10px;}
+#plannerView .league-form-team{width:100%;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 2px;text-align:left;cursor:pointer;}
+#plannerView .league-form-team:first-of-type{border-top:0;}
+#plannerView .league-form-team-main{display:flex;align-items:center;gap:7px;min-width:0;}
+#plannerView .league-form-team-main>span{display:grid;gap:2px;min-width:0;}
+#plannerView .league-form-team-main b{font-size:7.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#plannerView .league-form-team-main small{display:flex;align-items:center;gap:4px;font-size:6px;color:var(--muted);}
+#plannerView .standings-team-logo.league-logo{width:22px;height:22px;min-width:22px;}
+#plannerView .league-form-team-right{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+#plannerView .league-form-team-right em{font-style:normal;font-size:6.5px;font-weight:900;color:var(--muted);min-width:24px;text-align:right;}
+@media(max-width:620px){
+  #plannerView .league-overview-summary{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #plannerView .league-overview-summary>div:nth-child(2){border-right:0;}
+  #plannerView .league-overview-summary>div:nth-child(-n+2){border-bottom:1px solid var(--line);}
+}
+@media(max-width:390px){
+  #plannerView .standings-team-status{gap:2px;font-size:5.2px !important;}
+  #plannerView .league-form-dots i{width:4px;height:4px;}
+}
