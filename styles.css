@@ -10218,3 +10218,67 @@ body.dark{
 .dark #plannerView #plannerStandingsBtn.active{background:#d5a72f !important;color:#101214 !important;}
 .dark .bottom-nav .nav-btn.active > .cc-geo-nav-icon{background:#d5a72f !important;color:#101214 !important;}
 .dark .bottom-nav::before{background:#d5a72f !important;}
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P14E — DARK NAV + MEDICAL INPUT FRAME FIX
+   Scope only:
+   - remove the double/outlined active bottom-nav highlight in dark mode
+   - restore a complete date/time frame on iOS native controls
+   ========================================================== */
+
+/* The animated pseudo tile and the active icon tile were both painting gold.
+   Keep exactly one active surface to avoid the dark-mode double frame/halo. */
+.bottom-nav::before{
+  display:none !important;
+}
+.bottom-nav .nav-btn.active > .cc-geo-nav-icon{
+  background:#fff0a3 !important;
+  color:#171717 !important;
+  box-shadow:none !important;
+  border:0 !important;
+}
+.dark .bottom-nav .nav-btn.active > .cc-geo-nav-icon{
+  background:#d5a72f !important;
+  color:#101214 !important;
+  box-shadow:none !important;
+  border:0 !important;
+}
+
+/* iOS date/time controls can keep a slightly wider native inner box.
+   Give them a real inset frame and keep the box 2px inside its grid track,
+   so the right/top edge cannot be clipped by the native control geometry. */
+.medical-datetime-grid .medical-field{
+  overflow:visible !important;
+}
+.medical-datetime-grid .medical-field input[type="date"],
+.medical-datetime-grid .medical-field input[type="time"]{
+  -webkit-appearance:none !important;
+  appearance:none !important;
+  box-sizing:border-box !important;
+  display:block !important;
+  width:calc(100% - 2px) !important;
+  max-width:calc(100% - 2px) !important;
+  min-width:0 !important;
+  inline-size:calc(100% - 2px) !important;
+  min-inline-size:0 !important;
+  max-inline-size:calc(100% - 2px) !important;
+  min-height:44px !important;
+  height:44px !important;
+  margin:0 1px !important;
+  padding:0 8px !important;
+  border:0 !important;
+  border-radius:10px !important;
+  background:var(--card) !important;
+  color:var(--black) !important;
+  -webkit-text-fill-color:var(--black) !important;
+  box-shadow:inset 0 0 0 1px var(--line) !important;
+  background-clip:padding-box !important;
+  line-height:42px !important;
+}
+.dark .medical-datetime-grid .medical-field input[type="date"],
+.dark .medical-datetime-grid .medical-field input[type="time"]{
+  background:var(--card) !important;
+  color:var(--black) !important;
+  -webkit-text-fill-color:var(--black) !important;
+  box-shadow:inset 0 0 0 1px #3a414a !important;
+}
