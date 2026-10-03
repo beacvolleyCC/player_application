@@ -1619,11 +1619,19 @@ function renderCompetitionStandings_(){
       ${selector}
       <div class="standings-context-title"><b>${escapeHtml_(ctx?.teamName||'Csapat')}</b><span>${escapeHtml_(meta||'Bajnoki tabella')}${updated?` · Frissítve: ${escapeHtml_(updated)}`:''}</span></div>
     </div>
-    <div class="standings-scroll" role="region" aria-label="Bajnoki tabella" tabindex="0">
-      <table class="standings-table">
-        <thead><tr><th class="pos">#</th><th class="team">Csapat</th><th>M</th><th>GY</th><th>V</th><th>P</th><th>Szett</th><th>Szettarány</th><th>Pontok</th><th>Pontarány</th></tr></thead>
-        <tbody>${rows.map(row=>`<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><span class="standings-team-name">${escapeHtml_(row?.teamName||'–')}</span></td><td>${escapeHtml_(standingText_(row?.played,'0'))}</td><td>${escapeHtml_(standingText_(row?.wins,'0'))}</td><td>${escapeHtml_(standingText_(row?.losses,'0'))}</td><td class="points">${escapeHtml_(standingText_(row?.tablePoints,'0'))}</td><td>${escapeHtml_(standingsSets_(row))}</td><td>${escapeHtml_(standingsSetRatio_(row))}</td><td>${escapeHtml_(standingsPoints_(row))}</td><td>${escapeHtml_(standingsPointRatio_(row))}</td></tr>`).join('')}</tbody>
-      </table>
+    <div class="standings-split" role="region" aria-label="Bajnoki tabella">
+      <div class="standings-fixed" aria-label="Helyezés és csapat">
+        <table class="standings-table standings-table-fixed">
+          <thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead>
+          <tbody>${rows.map(row=>`<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><span class="standings-team-name">${escapeHtml_(row?.teamName||'–')}</span></td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div class="standings-scroll" aria-label="Bajnoki statisztikák" tabindex="0">
+        <table class="standings-table standings-table-stats">
+          <thead><tr><th>M</th><th>GY</th><th>V</th><th>P</th><th>Szett</th><th>Szettarány</th><th>Pontok</th><th>Pontarány</th></tr></thead>
+          <tbody>${rows.map(row=>`<tr class="${row?.focus?'focus':''}"><td>${escapeHtml_(standingText_(row?.played,'0'))}</td><td>${escapeHtml_(standingText_(row?.wins,'0'))}</td><td>${escapeHtml_(standingText_(row?.losses,'0'))}</td><td class="points">${escapeHtml_(standingText_(row?.tablePoints,'0'))}</td><td>${escapeHtml_(standingsSets_(row))}</td><td>${escapeHtml_(standingsSetRatio_(row))}</td><td>${escapeHtml_(standingsPoints_(row))}</td><td>${escapeHtml_(standingsPointRatio_(row))}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>
     </div>
   </div>`;
 }
@@ -2746,7 +2754,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p11d').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p11e').catch(()=>{}));
 }
 
 
@@ -2793,12 +2801,14 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   document.body.appendChild(indicator);
 
   document.addEventListener('touchstart',event=>{
+    const inStandings=plannerSection==='standings' && !!event.target?.closest?.('#plannerView');
+    const standingsScroller=inStandings ? event.target?.closest?.('.standings-scroll') : null;
     const plannerScroller=
-      event.target && event.target.closest
+      plannerSection==='schedule' && event.target && event.target.closest
         ? event.target.closest('.matrix-scroll, .planner-scroll-viewport')
         : null;
 
-    const inPlannerGrid=plannerMode==='grid' && !!event.target?.closest?.('#plannerView');
+    const inPlannerGrid=plannerSection==='schedule' && plannerMode==='grid' && !!event.target?.closest?.('#plannerView');
     const nativeControl=!!event.target?.closest?.('select,input,textarea,button,label,.filter-panel');
     if(
       window.scrollY>1 ||
@@ -2807,6 +2817,7 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
       !event.touches.length ||
       plannerScroller ||
       inPlannerGrid ||
+      (standingsScroller && standingsScroller.scrollLeft>1) ||
       nativeControl
     ){
       startY=null;
@@ -3155,7 +3166,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p11d');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p11e');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
