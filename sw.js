@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p14-league-form-test-player-privacy';
+const CACHE='club-control-player-v2-3-10-26o-p14a-standings-fallback-matchday-cleanup';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -9,25 +9,25 @@ const CORE=[
   './icons/event-home-mask.png',
   './icons/event-away-mask.png',
   './icons/avatar-sprite.webp?v=avatar60-p10',
-  './assets/team-logos/beac.webp?v=p14',
-  './assets/team-logos/brozik.webp?v=p14',
-  './assets/team-logos/bunnies.webp?v=p14',
-  './assets/team-logos/dag.webp?v=p14',
-  './assets/team-logos/kando.webp?v=p14',
-  './assets/team-logos/keac.webp?v=p14',
-  './assets/team-logos/kispest.webp?v=p14',
-  './assets/team-logos/kozgaz.webp?v=p14',
-  './assets/team-logos/kre.webp?v=p14',
-  './assets/team-logos/mafc.webp?v=p14',
-  './assets/team-logos/mozdulj.webp?v=p14',
-  './assets/team-logos/mtk.webp?v=p14',
-  './assets/team-logos/ossc.webp?v=p14',
-  './assets/team-logos/panorama.webp?v=p14',
-  './assets/team-logos/pase.webp?v=p14',
-  './assets/team-logos/rackeve.webp?v=p14',
-  './assets/team-logos/rksk.webp?v=p14',
-  './assets/team-logos/semmelweis.webp?v=p14',
-  './assets/team-logos/ute.webp?v=p14'
+  './assets/team-logos/beac.webp?v=p14a',
+  './assets/team-logos/brozik.webp?v=p14a',
+  './assets/team-logos/bunnies.webp?v=p14a',
+  './assets/team-logos/dag.webp?v=p14a',
+  './assets/team-logos/kando.webp?v=p14a',
+  './assets/team-logos/keac.webp?v=p14a',
+  './assets/team-logos/kispest.webp?v=p14a',
+  './assets/team-logos/kozgaz.webp?v=p14a',
+  './assets/team-logos/kre.webp?v=p14a',
+  './assets/team-logos/mafc.webp?v=p14a',
+  './assets/team-logos/mozdulj.webp?v=p14a',
+  './assets/team-logos/mtk.webp?v=p14a',
+  './assets/team-logos/ossc.webp?v=p14a',
+  './assets/team-logos/panorama.webp?v=p14a',
+  './assets/team-logos/pase.webp?v=p14a',
+  './assets/team-logos/rackeve.webp?v=p14a',
+  './assets/team-logos/rksk.webp?v=p14a',
+  './assets/team-logos/semmelweis.webp?v=p14a',
+  './assets/team-logos/ute.webp?v=p14a'
 ];
 
 self.addEventListener('install', event => {

@@ -1628,7 +1628,7 @@ function standingsTeamLogoHtml_(name,extraClass=''){
   if(!slug){
     return `<span class="standings-team-logo standings-team-monogram ${extraClass}" aria-hidden="true">${escapeHtml_(standingsTeamMonogram_(name))}</span>`;
   }
-  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p14" alt="" loading="lazy" decoding="async">`;
+  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p14a" alt="" loading="lazy" decoding="async">`;
 }
 function standingsRowFilterOptions_(rows){
   return (Array.isArray(rows)?rows:[]).map(row=>({
@@ -2163,6 +2163,56 @@ function syncPlannerSectionUi_(){
   updatePlannerFilterButton_();
 }
 
+function standingsContextFromLeaguePayload_(payload){
+  const league=payload&&typeof payload==='object'?payload:{};
+  const teams=Array.isArray(league?.teams)?league.teams:[];
+  if(!teams.length) return null;
+  const rows=teams.map(team=>{
+    const cur=team?.current||{};
+    return {
+      sourceTeamId:String(team?.sourceTeamId||cur?.sourceTeamId||''),
+      teamName:String(team?.teamName||cur?.teamName||''),
+      focus:!!team?.focus,
+      position:cur?.position??null,
+      played:cur?.played??0,
+      wins:cur?.wins??0,
+      losses:cur?.losses??0,
+      tablePoints:cur?.tablePoints??0,
+      setsFor:cur?.setsFor??0,
+      setsAgainst:cur?.setsAgainst??0,
+      setRatio:cur?.setRatio??null,
+      pointsFor:cur?.pointsFor??0,
+      pointsAgainst:cur?.pointsAgainst??0,
+      pointRatio:cur?.pointRatio??null
+    };
+  });
+  const focus=teams.find(t=>t?.focus)||teams[0]||{};
+  const updatedAt=teams.map(t=>t?.current?.updatedAt).filter(Boolean).sort().at(-1)||'';
+  return {
+    contextTeamId:String(league?.contextTeamId||currentTeamData?.id||''),
+    teamName:String(currentTeamData?.teamName||currentTeamData?.name||focus?.teamName||'Csapat'),
+    competitionLabel:String(league?.competitionLabel||''),
+    source:String(league?.source||''),
+    season:String(league?.season||''),
+    updatedAt,
+    rows
+  };
+}
+
+async function ccStandingsLeagueFallback_(){
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_competition_league_insights_v1',{p_context_team_id:null});
+    if(error) throw error;
+    const payload=typeof data==='string'?JSON.parse(data):(data||{});
+    const ctx=standingsContextFromLeaguePayload_(payload);
+    if(!ctx) return null;
+    competitionLeagueInsights={key:'',loaded:true,loading:false,error:'',data:payload};
+    return ctx;
+  }catch(_){
+    return null;
+  }
+}
+
 async function ccLoadCompetitionStandings_(){
   if(!SUPABASE_ENABLED || !ccSupabase){
     competitionStandings={contexts:[],loaded:true,error:''};
@@ -2173,12 +2223,23 @@ async function ccLoadCompetitionStandings_(){
     const {data,error}=await ccSupabase.rpc('cc_player_competition_standings_v1');
     if(error) throw error;
     const payload=typeof data==='string'?JSON.parse(data):(data||{});
-    competitionStandings={contexts:Array.isArray(payload?.contexts)?payload.contexts:[],loaded:true,error:''};
+    let contexts=Array.isArray(payload?.contexts)?payload.contexts:[];
+    if(!contexts.length){
+      const fallback=await ccStandingsLeagueFallback_();
+      if(fallback) contexts=[fallback];
+    }
+    competitionStandings={contexts,loaded:true,error:''};
     competitionInsights={key:'',loaded:false,loading:false,error:'',data:null};
-    competitionLeagueInsights={key:'',loaded:false,loading:false,error:'',data:null};
+    if(!competitionLeagueInsights.loaded) competitionLeagueInsights={key:'',loaded:false,loading:false,error:'',data:null};
   }catch(error){
-    const msg=String(error?.message||error||'');
-    competitionStandings={contexts:[],loaded:true,error:/cc_player_competition_standings_v1|schema cache|function/i.test(msg)?'A Player tabella modul még nincs telepítve.':msg};
+    const fallback=await ccStandingsLeagueFallback_();
+    if(fallback){
+      competitionStandings={contexts:[fallback],loaded:true,error:''};
+      competitionInsights={key:'',loaded:false,loading:false,error:'',data:null};
+    }else{
+      const msg=String(error?.message||error||'');
+      competitionStandings={contexts:[],loaded:true,error:/cc_player_competition_standings_v1|schema cache|function/i.test(msg)?'A Player tabella modul még nincs telepítve.':msg};
+    }
   }
   if(plannerSection==='standings') renderPlanner();
 }
@@ -3280,7 +3341,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14a').catch(()=>{}));
 }
 
 
@@ -3699,7 +3760,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p14');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p14a');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -4391,6 +4452,13 @@ function normalizeApiEvent(x){
   };
 }
 
+function ccSuppressMatchDayTrainings_(items){
+  const rows=Array.isArray(items)?items:[];
+  const matchDates=new Set(rows.filter(e=>e?.type==='Meccs').map(e=>String(e?.date||'')).filter(Boolean));
+  if(!matchDates.size) return rows;
+  return rows.filter(e=>!(e?.type==='Edzés' && matchDates.has(String(e?.date||''))));
+}
+
 function applyBootstrap(j){
   if(!j || !Array.isArray(j.events)) throw new Error('Hibás eseményadat érkezett a szervertől.');
 
@@ -4464,7 +4532,7 @@ function applyBootstrap(j){
         avatarId:teamAvatarByPlayerId.get(String(player?.playerId||player?.id||'')) || ''
       }))
     : [];
-  events=j.events.map(normalizeApiEvent).filter(e=>e.id && e.date);
+  events=ccSuppressMatchDayTrainings_(j.events.map(normalizeApiEvent).filter(e=>e.id && e.date));
   renderEvents();
   renderPlanner();
   renderProfileStats_();
