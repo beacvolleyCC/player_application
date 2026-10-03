@@ -1631,7 +1631,7 @@ function standingsTeamLogoHtml_(name,extraClass=''){
   if(!slug){
     return `<span class="standings-team-logo standings-team-monogram ${extraClass}" aria-hidden="true">${escapeHtml_(standingsTeamMonogram_(name))}</span>`;
   }
-  const version='p14c';
+  const version='p14d';
   if(STANDINGS_DARK_LOGO_SLUGS_.has(slug)){
     return `<span class="standings-team-logo standings-team-logo-switch ${extraClass}" aria-hidden="true"><img class="logo-light" src="./assets/team-logos/${slug}.png?v=${version}" alt="" loading="lazy" decoding="async"><img class="logo-dark" src="./assets/team-logos/${slug}_dark.png?v=${version}" alt="" loading="lazy" decoding="async"></span>`;
   }
@@ -3348,7 +3348,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14c').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14d').catch(()=>{}));
 }
 
 
@@ -3767,7 +3767,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p14c');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p14d');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
