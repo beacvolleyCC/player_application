@@ -35,6 +35,10 @@ let teamPlayerDirectory = [];
 let currentAvatarId = '';
 let teamAvatarByPlayerId = new Map();
 let avatarPickerMode = 'monogram';
+let plannerSection=localStorage.getItem('cc-planner-section')||'schedule';
+if(!['schedule','standings'].includes(plannerSection)) plannerSection='schedule';
+let competitionStandings={contexts:[],loaded:false,error:''};
+let selectedStandingTeamId=localStorage.getItem('cc-standings-team')||'';
 
 
 // ---------------------------------------------------------------------------
@@ -221,7 +225,7 @@ const PLAYER_AVATARS = [
   ['extra_zebra','',40],['extra_horse','',41],['extra_deer','',42],['extra_kangaroo','',43],
   ['extra_rabbit','',44],['extra_eagle','',45],['extra_turtle','',46],['extra_dolphin','',47],
   ['extra_boar','',48],['extra_ram','',49],['extra_frog','',50],['extra_parrot','',51],
-  // V2.3.10.26O-P10 artwork refinement — same 60 IDs, 8×8 atlas; original 52 cells unchanged.
+  // V2.3.10.26O-P11 standings + P10 artwork refinement — same 60 IDs, 8×8 atlas; original 52 cells unchanged.
   ['extra_lemur','',52],['extra_mouse','',53],['extra_pig','',54],['extra_duck','',55],
   ['extra_sheep','',56],['extra_chicken','',57],['extra_trex','',58],['extra_axolotl','',59]
 ].map(([id,label,spriteIndex])=>({id,label,spriteIndex}));
@@ -1116,7 +1120,7 @@ function forcePlannerPageTop_(){
 function plannerGridPageLockNeeded_(){
   const plannerView=document.getElementById('plannerView');
   const portrait=window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches;
-  return !!(plannerView?.classList.contains('active') && plannerMode==='grid' && portrait);
+  return !!(plannerView?.classList.contains('active') && plannerSection==='schedule' && plannerMode==='grid' && portrait);
 }
 
 function syncPlannerPageLock_(){
@@ -1524,7 +1528,124 @@ function syncPlannerFloatingHeaderGeometry_(){}
 
 function setupPlannerFloatingHeader_(){}
 
+function standingText_(value,fallback='–'){
+  return value===null || value===undefined || String(value).trim()==='' ? fallback : String(value);
+}
+
+function standingsDateLabel_(value){
+  const d=value?new Date(value):null;
+  if(!d || Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('hu-HU',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
+}
+
+function activeStandingsContext_(){
+  const contexts=Array.isArray(competitionStandings?.contexts)?competitionStandings.contexts:[];
+  if(!contexts.length) return null;
+  let selected=contexts.find(c=>String(c?.contextTeamId||'')===String(selectedStandingTeamId||''));
+  if(!selected && currentTeamData?.id) selected=contexts.find(c=>String(c?.contextTeamId||'')===String(currentTeamData.id));
+  if(!selected) selected=contexts[0];
+  if(selected && String(selectedStandingTeamId||'')!==String(selected.contextTeamId||'')){
+    selectedStandingTeamId=String(selected.contextTeamId||'');
+    try{localStorage.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
+  }
+  return selected;
+}
+
+function standingsRatio_(row){
+  const sf=row?.setsFor, sa=row?.setsAgainst;
+  if(sf===null||sf===undefined||sa===null||sa===undefined) return '–';
+  return `${sf}:${sa}`;
+}
+function standingsPoints_(row){
+  const pf=row?.pointsFor, pa=row?.pointsAgainst;
+  if(pf===null||pf===undefined||pa===null||pa===undefined) return '–';
+  return `${pf}:${pa}`;
+}
+
+function renderCompetitionStandings_(){
+  if(!competitionStandings.loaded && !competitionStandings.error){
+    return `<div class="standings-state"><b>Tabella betöltése…</b><span>A bajnoki adatok frissítése folyamatban van.</span></div>`;
+  }
+  if(competitionStandings.error){
+    return `<div class="standings-state"><b>A tabella most nem érhető el</b><span>${escapeHtml_(competitionStandings.error)}</span></div>`;
+  }
+  const contexts=Array.isArray(competitionStandings.contexts)?competitionStandings.contexts:[];
+  if(!contexts.length){
+    return `<div class="standings-state"><b>Még nincs tabellaadat</b><span>Amint érkezik hivatalos bajnoki tabella, itt automatikusan megjelenik.</span></div>`;
+  }
+  const ctx=activeStandingsContext_();
+  const rows=Array.isArray(ctx?.rows)?ctx.rows:[];
+  const selector=contexts.length>1 ? `<label class="standings-team-picker"><span>Csapat</span><select id="standingsTeamSelect">${contexts.map(c=>`<option value="${escapeHtml_(String(c.contextTeamId||''))}" ${String(c.contextTeamId||'')===String(ctx?.contextTeamId||'')?'selected':''}>${escapeHtml_(c.teamName||'Csapat')}</option>`).join('')}</select></label>` : '';
+  const meta=[ctx?.competitionLabel,ctx?.source].filter(Boolean).join(' · ');
+  const updated=standingsDateLabel_(ctx?.updatedAt);
+  if(!rows.length){
+    return `<div class="standings-headline">${selector}<div><b>${escapeHtml_(ctx?.teamName||'Csapat')}</b>${meta?`<span>${escapeHtml_(meta)}</span>`:''}</div></div><div class="standings-state"><b>Ehhez a csapathoz még nincs hivatalos tabella</b><span>A BRSZ/MRSZ forrás frissítése után automatikusan megjelenik.</span></div>`;
+  }
+  return `<div class="competition-standings">
+    <div class="standings-headline">
+      ${selector}
+      <div class="standings-context-title"><b>${escapeHtml_(ctx?.teamName||'Csapat')}</b><span>${escapeHtml_(meta||'Bajnoki tabella')}${updated?` · Frissítve: ${escapeHtml_(updated)}`:''}</span></div>
+    </div>
+    <div class="standings-scroll" role="region" aria-label="Bajnoki tabella" tabindex="0">
+      <table class="standings-table">
+        <thead><tr><th class="pos">#</th><th class="team">Csapat</th><th>M</th><th>GY</th><th>V</th><th>P</th><th>Szett</th><th>Labdapont</th></tr></thead>
+        <tbody>${rows.map(row=>`<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><span class="standings-team-name">${escapeHtml_(row?.teamName||'–')}</span></td><td>${escapeHtml_(standingText_(row?.played,'0'))}</td><td>${escapeHtml_(standingText_(row?.wins,'0'))}</td><td>${escapeHtml_(standingText_(row?.losses,'0'))}</td><td class="points">${escapeHtml_(standingText_(row?.tablePoints,'0'))}</td><td>${escapeHtml_(standingsRatio_(row))}</td><td>${escapeHtml_(standingsPoints_(row))}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function syncPlannerSectionUi_(){
+  const standings=plannerSection==='standings';
+  document.querySelectorAll('[data-planner-section]').forEach(btn=>{
+    const active=btn.dataset.plannerSection===plannerSection;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-selected',active?'true':'false');
+  });
+  const title=document.getElementById('plannerSectionTitle');
+  const subtitle=document.getElementById('plannerSectionSubtitle');
+  if(title) title.textContent=standings?'Tabella':'Menetrend';
+  if(subtitle) subtitle.textContent=standings?'Aktuális bajnoki állás a csapatod versenysorozatában.':'Rács és naptár a teljes szezonhoz.';
+  const actions=document.querySelector('#plannerView .planner-view-actions');
+  if(actions) actions.hidden=standings;
+  const filters=document.getElementById('plannerFilterPanel');
+  if(filters){
+    filters.hidden=standings;
+    if(standings){filters.classList.add('is-collapsed');filters.setAttribute('aria-hidden','true')}
+  }
+}
+
+async function ccLoadCompetitionStandings_(){
+  if(!SUPABASE_ENABLED || !ccSupabase){
+    competitionStandings={contexts:[],loaded:true,error:''};
+    if(plannerSection==='standings') renderPlanner();
+    return;
+  }
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_competition_standings_v1');
+    if(error) throw error;
+    const payload=typeof data==='string'?JSON.parse(data):(data||{});
+    competitionStandings={contexts:Array.isArray(payload?.contexts)?payload.contexts:[],loaded:true,error:''};
+  }catch(error){
+    const msg=String(error?.message||error||'');
+    competitionStandings={contexts:[],loaded:true,error:/cc_player_competition_standings_v1|schema cache|function/i.test(msg)?'A Player tabella modul még nincs telepítve.':msg};
+  }
+  if(plannerSection==='standings') renderPlanner();
+}
+
 function renderPlanner(){
+  syncPlannerSectionUi_();
+  if(plannerSection==='standings'){
+    const jumpBtn=document.getElementById('jumpCurrentBtn');
+    if(jumpBtn) jumpBtn.hidden=true;
+    plannerList.innerHTML=renderCompetitionStandings_();
+    document.getElementById('standingsTeamSelect')?.addEventListener('change',event=>{
+      selectedStandingTeamId=String(event.target.value||'');
+      try{localStorage.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
+      renderPlanner();
+    });
+    return;
+  }
   const jumpBtn=document.getElementById('jumpCurrentBtn');
   if(jumpBtn) jumpBtn.hidden=plannerMode!=='grid';
 
@@ -2592,13 +2713,25 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p3').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p11').catch(()=>{}));
 }
 
 
 
 
 
+
+document.querySelectorAll('[data-planner-section]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const next=btn.dataset.plannerSection;
+    if(!['schedule','standings'].includes(next) || next===plannerSection) return;
+    plannerSection=next;
+    try{localStorage.setItem('cc-planner-section',plannerSection)}catch(_){}
+    syncPlannerPageLock_();
+    forcePlannerPageTop_();
+    renderPlanner();
+  });
+});
 
 document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -2989,7 +3122,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p3');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p11');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -3856,7 +3989,8 @@ async function loadBootstrap(options={}){
     await Promise.all([
       ccLoadProfileData_(),
       ccLoadAvatarDirectory_(),
-      ccLoadNotifications_({force:true})
+      ccLoadNotifications_({force:true}),
+      ccLoadCompetitionStandings_()
     ]);
     if(!options.skipRealtimeSetup) await ccSetupRealtime_(payload.team);
     hideLogin();

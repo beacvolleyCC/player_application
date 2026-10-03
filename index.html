@@ -134,8 +134,12 @@
     <section id="plannerView" class="view">
       <div class="section-head planner-title-row">
         <div>
-          <h3>Menetrend</h3>
-          <p>Rács és naptár a teljes szezonhoz.</p>
+          <h3 id="plannerSectionTitle">Menetrend</h3>
+          <p id="plannerSectionSubtitle">Rács és naptár a teljes szezonhoz.</p>
+          <div class="planner-section-tabs" role="tablist" aria-label="Versenysport nézet">
+            <button type="button" class="planner-section-tab active" id="plannerScheduleTab" data-planner-section="schedule" role="tab" aria-selected="true">Menetrend</button>
+            <button type="button" class="planner-section-tab" id="plannerStandingsTab" data-planner-section="standings" role="tab" aria-selected="false">Tabella</button>
+          </div>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
           <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">
@@ -467,7 +471,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.26O-P10</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.26O-P11</b></div>
       </div>
     </div>
   </dialog>

@@ -9227,3 +9227,79 @@ dialog[open]:focus{
   .medical-datetime-grid .medical-field input[type="date"],
   .medical-datetime-grid .medical-field input[type="time"]{font-size:13px!important;padding-left:6px!important;padding-right:6px!important}
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P11 — COMPETITION STANDINGS
+   ========================================================== */
+.planner-section-tabs{
+  display:inline-flex;
+  gap:3px;
+  margin-top:9px;
+  padding:3px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--soft);
+}
+.planner-section-tab{
+  min-height:32px;
+  padding:0 13px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--muted);
+  font:inherit;
+  font-size:9px;
+  font-weight:900;
+  cursor:pointer;
+}
+.planner-section-tab.active{
+  background:var(--card);
+  color:var(--black);
+  box-shadow:0 1px 4px rgba(0,0,0,.08),inset 0 0 0 1px rgba(0,0,0,.06);
+}
+.standings-state{
+  min-height:180px;
+  display:grid;
+  place-content:center;
+  gap:7px;
+  padding:24px;
+  text-align:center;
+  color:var(--muted);
+}
+.standings-state b{color:var(--black);font-size:13px}.standings-state span{font-size:9px;line-height:1.45}
+.competition-standings{padding:3px}
+.standings-headline{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:12px;
+  padding:8px 6px 13px;
+}
+.standings-context-title{display:grid;gap:2px;min-width:0}
+.standings-context-title b{font-size:14px}.standings-context-title span{font-size:8px;color:var(--muted)}
+.standings-team-picker{display:grid;gap:3px;min-width:150px}
+.standings-team-picker>span{font-size:7px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.standings-team-picker select{min-height:34px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--black);padding:0 28px 0 10px;font:inherit;font-size:9px;font-weight:800}
+.standings-scroll{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.standings-table{width:100%;min-width:570px;border-collapse:separate;border-spacing:0;font-size:9px;font-variant-numeric:tabular-nums}
+.standings-table th,.standings-table td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.standings-table thead th{position:sticky;top:0;z-index:2;background:var(--soft);color:var(--muted);font-size:7px;text-transform:uppercase;letter-spacing:.05em}
+.standings-table tbody tr:last-child td{border-bottom:0}
+.standings-table .pos{width:38px;font-weight:950}
+.standings-table .team{text-align:left;min-width:190px;position:sticky;left:0;z-index:1;background:var(--card)}
+.standings-table thead .team{z-index:3;background:var(--soft)}
+.standings-team-name{font-weight:900;color:var(--black)}
+.standings-table .points{font-weight:950}
+.standings-table tr.focus td{background:#fff7cf}
+.standings-table tr.focus .team{background:#fff1a8;box-shadow:inset 4px 0 0 #f0b400}
+.dark .standings-table tr.focus td{background:#302a16}.dark .standings-table tr.focus .team{background:#3a3014;box-shadow:inset 4px 0 0 #d5a72f}
+.dark .planner-section-tab.active{background:#262521;color:#f3eee4}
+@media(max-width:620px){
+  .planner-title-row{align-items:flex-start}
+  .planner-section-tabs{margin-top:7px}
+  .standings-headline{align-items:stretch;flex-direction:column-reverse}
+  .standings-team-picker{width:100%}
+  .standings-context-title b{font-size:13px}
+  .standings-table th,.standings-table td{padding:9px 8px}
+}

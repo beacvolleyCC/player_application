@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p10-avatar60-art-refine';
+const CACHE='club-control-player-v2-3-10-26o-p11-competition-standings';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
