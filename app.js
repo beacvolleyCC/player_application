@@ -38,6 +38,7 @@ let avatarPickerMode = 'monogram';
 let plannerSection=localStorage.getItem('cc-planner-section')||'schedule';
 if(!['schedule','standings'].includes(plannerSection)) plannerSection='schedule';
 let competitionStandings={contexts:[],loaded:false,error:''};
+let competitionInsights={key:'',loaded:false,loading:false,error:'',data:null};
 let selectedStandingTeamId=localStorage.getItem('cc-standings-team')||'';
 let selectedStandingsRowTeamId=localStorage.getItem('cc-standings-row-team')||'all';
 // Hidden until Club Control actually has players with multiple active competition teams.
@@ -1616,10 +1617,17 @@ function standingsTeamLogoSlug_(name){
   if(n.includes('budapest bunnies')) return 'bunnies';
   return '';
 }
+function standingsTeamMonogram_(name){
+  const clean=String(name||'').trim().replace(/^[^A-Za-zÁÉÍÓÖŐÚÜŰ0-9]+/,'');
+  const m=clean.match(/[A-Za-zÁÉÍÓÖŐÚÜŰ0-9]/u);
+  return (m?.[0]||'?').toLocaleUpperCase('hu-HU');
+}
 function standingsTeamLogoHtml_(name,extraClass=''){
   const slug=standingsTeamLogoSlug_(name);
-  if(!slug) return '';
-  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p12c" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
+  if(!slug){
+    return `<span class="standings-team-logo standings-team-monogram ${extraClass}" aria-hidden="true">${escapeHtml_(standingsTeamMonogram_(name))}</span>`;
+  }
+  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p13" alt="" loading="lazy" decoding="async">`;
 }
 function standingsRowFilterOptions_(rows){
   return (Array.isArray(rows)?rows:[]).map(row=>({
@@ -1702,6 +1710,10 @@ function applyStandingsTeamFilter_(teamId){
   try{localStorage.setItem('cc-standings-row-team',next)}catch(_){}
   const select=document.getElementById('standingsRowTeamFilter');
   if(select) select.value=next;
+  competitionInsights.key='';
+  competitionInsights.loaded=false;
+  competitionInsights.error='';
+  competitionInsights.data=null;
   renderPlanner();
 }
 function bindStandingsTeamFilterClicks_(){
@@ -1733,6 +1745,186 @@ function renderStandingsMatches_(allRows,selectedRow){
   const completed=matches.filter(e=>matchOutcome_(e));
   const form=completed.slice(-5).map(e=>matchOutcome_(e)==='win'?'W':'L');
   return `<section class="standings-matches-panel"><div class="standings-panel-head"><b>${title}</b><span>${matches.length} meccs</span></div><div class="standings-match-list">${items}</div>${form.length?`<div class="standings-form-row"><span>Utolsó ${form.length}</span><div>${form.map(x=>`<b class="${x==='W'?'win':'loss'}">${x}</b>`).join('')}</div></div>`:''}</section>`;
+}
+
+
+function standingsInsightsTarget_(){
+  const ctx=activeStandingsContext_();
+  if(!ctx) return null;
+  const allRows=standingsDisplayRows_(ctx?.rows);
+  if(!allRows.length) return null;
+  const selected=selectedStandingsRow_(allRows);
+  const focus=allRows.find(r=>r?.focus) || allRows[0];
+  const row=selected||focus;
+  const contextTeamId=String(ctx?.contextTeamId||'');
+  const sourceTeamId=String(row?.sourceTeamId||'');
+  if(!contextTeamId||!sourceTeamId) return null;
+  return {ctx,row,contextTeamId,sourceTeamId,key:`${contextTeamId}|${sourceTeamId}`};
+}
+
+async function ccEnsureCompetitionInsights_(){
+  if(!SUPABASE_ENABLED || !ccSupabase || plannerSection!=='standings') return;
+  const target=standingsInsightsTarget_();
+  if(!target) return;
+  if(competitionInsights.key===target.key && (competitionInsights.loading||competitionInsights.loaded)) return;
+  competitionInsights={key:target.key,loaded:false,loading:true,error:'',data:null};
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_competition_insights_v1',{
+      p_context_team_id:target.contextTeamId,
+      p_source_team_id:target.sourceTeamId
+    });
+    if(error) throw error;
+    const payload=typeof data==='string'?JSON.parse(data):(data||{});
+    if(competitionInsights.key!==target.key) return;
+    competitionInsights={key:target.key,loaded:true,loading:false,error:'',data:payload};
+  }catch(error){
+    if(competitionInsights.key!==target.key) return;
+    const msg=String(error?.message||error||'');
+    competitionInsights={
+      key:target.key,loaded:true,loading:false,
+      error:/cc_player_competition_insights_v1|schema cache|function/i.test(msg)?'A statisztika modul még nincs telepítve.':msg,
+      data:null
+    };
+  }
+  if(plannerSection==='standings') renderPlanner();
+}
+
+function insightOutcome_(match,sourceTeamId){
+  const home=String(match?.homeSourceTeamId||'')===String(sourceTeamId||'');
+  const away=String(match?.awaySourceTeamId||'')===String(sourceTeamId||'');
+  if(!home&&!away) return '';
+  const hs=Number(match?.homeSets),as=Number(match?.awaySets);
+  if(!Number.isFinite(hs)||!Number.isFinite(as)||hs===as) return '';
+  const won=home ? hs>as : as>hs;
+  return won?'W':'L';
+}
+function insightOpponentId_(match,sourceTeamId){
+  return String(match?.homeSourceTeamId||'')===String(sourceTeamId||'')
+    ? String(match?.awaySourceTeamId||'')
+    : String(match?.homeSourceTeamId||'');
+}
+function insightIsHome_(match,sourceTeamId){
+  return String(match?.homeSourceTeamId||'')===String(sourceTeamId||'');
+}
+function insightScore_(match){
+  const h=Number(match?.homeSets),a=Number(match?.awaySets);
+  return Number.isFinite(h)&&Number.isFinite(a)?`${h}–${a}`:'–';
+}
+function insightHistoryPoints_(history){
+  const rows=(Array.isArray(history)?history:[])
+    .filter(x=>Number.isFinite(Number(x?.position)))
+    .slice().sort((a,b)=>new Date(a?.snapshotAt||0)-new Date(b?.snapshotAt||0));
+  const out=[];
+  rows.forEach(row=>{
+    const item={...row,position:Number(row.position),played:Number(row?.played||0)};
+    const prev=out[out.length-1];
+    if(prev && prev.position===item.position && prev.played===item.played){ out[out.length-1]=item; return; }
+    out.push(item);
+  });
+  return out;
+}
+function renderStandingsPositionChart_(history,totalTeams){
+  const pts=insightHistoryPoints_(history);
+  if(pts.length<2){
+    return `<div class="standings-chart-empty">A helyezésgrafikon a következő tabellafrissítésekkel épül fel.</div>`;
+  }
+  const W=320,H=112,padL=24,padR=10,padT=10,padB=22;
+  const total=Math.max(2,Number(totalTeams)||Math.max(...pts.map(p=>p.position)));
+  const x=i=>padL+(pts.length===1?0:(W-padL-padR)*(i/(pts.length-1)));
+  const y=pos=>padT+(H-padT-padB)*((Math.max(1,pos)-1)/(total-1));
+  const line=pts.map((p,i)=>`${i?'L':'M'} ${x(i).toFixed(1)} ${y(p.position).toFixed(1)}`).join(' ');
+  const circles=pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.position).toFixed(1)}" r="3.2"></circle>`).join('');
+  const first=pts[0],last=pts[pts.length-1];
+  return `<svg class="standings-position-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Helyezés alakulása">
+    <line x1="${padL}" y1="${y(1)}" x2="${W-padR}" y2="${y(1)}" class="grid"></line>
+    <line x1="${padL}" y1="${y(total)}" x2="${W-padR}" y2="${y(total)}" class="grid"></line>
+    <text x="4" y="${y(1)+3}" class="axis">1.</text><text x="4" y="${y(total)+3}" class="axis">${total}.</text>
+    <path d="${line}" class="trend"></path>${circles}
+    <text x="${padL}" y="${H-5}" class="caption">${escapeHtml_(String(first.played||0))} M</text>
+    <text x="${W-padR}" y="${H-5}" text-anchor="end" class="caption">${escapeHtml_(String(last.played||0))} M</text>
+  </svg>`;
+}
+function insightStatsModel_(data){
+  const sourceId=String(data?.sourceTeamId||'');
+  const matches=(Array.isArray(data?.matches)?data.matches:[])
+    .filter(m=>insightOutcome_(m,sourceId))
+    .slice().sort((a,b)=>new Date(a?.startsAt||0)-new Date(b?.startsAt||0));
+  const recent=matches.slice(-5);
+  const outcomes=recent.map(m=>insightOutcome_(m,sourceId));
+  const desc=matches.slice().reverse();
+  const latest=desc[0]?insightOutcome_(desc[0],sourceId):'';
+  let streak=0;
+  for(const m of desc){ if(insightOutcome_(m,sourceId)===latest) streak++; else break; }
+  const home={w:0,l:0},away={w:0,l:0};
+  matches.forEach(m=>{ const bucket=insightIsHome_(m,sourceId)?home:away; insightOutcome_(m,sourceId)==='W'?bucket.w++:bucket.l++; });
+  const positions=new Map((Array.isArray(data?.opponents)?data.opponents:[]).map(o=>[String(o?.sourceTeamId||''),Number(o?.position)||null]));
+  const total=Math.max(1,Number(data?.totalTeams)||positions.size||1);
+  const topEnd=Math.ceil(total/3),midEnd=Math.ceil(total*2/3);
+  const strength={top:{w:0,l:0},mid:{w:0,l:0},bottom:{w:0,l:0}};
+  matches.forEach(m=>{
+    const pos=positions.get(insightOpponentId_(m,sourceId));
+    if(!pos) return;
+    const key=pos<=topEnd?'top':pos<=midEnd?'mid':'bottom';
+    insightOutcome_(m,sourceId)==='W'?strength[key].w++:strength[key].l++;
+  });
+  return {matches,recent,outcomes,latest,streak,home,away,strength};
+}
+function insightPositionDelta_(history,currentPosition,currentPlayed){
+  const pts=insightHistoryPoints_(history);
+  const currentPos=Number(currentPosition);
+  const played=Number(currentPlayed||0);
+  if(!Number.isFinite(currentPos)||pts.length<2) return null;
+  let previous=null;
+  for(let i=pts.length-1;i>=0;i--){
+    const p=pts[i];
+    if(Number(p?.played)<played){ previous=p; break; }
+  }
+  if(!previous){
+    for(let i=pts.length-2;i>=0;i--){
+      if(Number(pts[i]?.position)!==currentPos){ previous=pts[i]; break; }
+    }
+  }
+  if(!previous||!Number.isFinite(Number(previous.position))) return null;
+  const delta=Number(previous.position)-currentPos;
+  return delta===0?0:delta;
+}
+
+function renderStandingsInsights_(allRows,selectedRow){
+  const target=standingsInsightsTarget_();
+  if(!target) return '';
+  const teamName=String(selectedRow?.teamName||target?.row?.teamName||'Csapat');
+  if(competitionInsights.key!==target.key || competitionInsights.loading || (!competitionInsights.loaded&&!competitionInsights.error)){
+    return `<section class="standings-insights-panel"><div class="standings-panel-head"><b>Statisztika</b><span>${escapeHtml_(teamName)}</span></div><div class="standings-insights-state">Statisztika betöltése…</div></section>`;
+  }
+  if(competitionInsights.error){
+    return `<section class="standings-insights-panel"><div class="standings-panel-head"><b>Statisztika</b><span>${escapeHtml_(teamName)}</span></div><div class="standings-insights-state">${escapeHtml_(competitionInsights.error)}</div></section>`;
+  }
+  const d=competitionInsights.data||{};
+  const model=insightStatsModel_(d);
+  const current=d?.current||{};
+  const coverage=d?.coverage||{};
+  const form=model.outcomes.length?model.outcomes.map(x=>`<b class="${x==='W'?'win':'loss'}">${x}</b>`).join(''):'<span class="muted">–</span>';
+  const streak=model.latest&&model.streak?`${model.streak}× ${model.latest}`:'–';
+  const pos=Number(current?.position);
+  const posDelta=insightPositionDelta_(d?.history,current?.position,current?.played);
+  const posDeltaHtml=posDelta===null||posDelta===0?'':`<em class="position-delta ${posDelta>0?'up':'down'}">${posDelta>0?'+':''}${posDelta}</em>`;
+  const strengthRow=(label,key)=>{const x=model.strength[key];return `<div><span>${label}</span><b>${x.w}–${x.l}</b></div>`};
+  const complete=coverage?.complete!==false;
+  return `<section class="standings-insights-panel">
+    <div class="standings-panel-head"><b>Statisztika</b><span>${escapeHtml_(String(d?.teamName||teamName))}</span></div>
+    <div class="standings-insights-summary">
+      <div><span>Helyezés</span><b>${Number.isFinite(pos)?`${pos}.`:'–'}${posDeltaHtml}</b></div>
+      <div><span>Mérleg</span><b>${standingText_(current?.wins,'0')}–${standingText_(current?.losses,'0')}</b></div>
+      <div class="form"><span>Utolsó ${model.outcomes.length||5}</span><div>${form}</div></div>
+      <div><span>Sorozat</span><b>${escapeHtml_(streak)}</b></div>
+    </div>
+    <div class="standings-insights-grid">
+      <div class="standings-insight-card chart"><div class="insight-title"><b>Helyezés alakulása</b><span>meccsek / frissítések</span></div>${renderStandingsPositionChart_(d?.history,d?.totalTeams)}</div>
+      <div class="standings-insight-card"><div class="insight-title"><b>Hazai / idegen</b></div><div class="record-grid"><div><span>Hazai</span><b>${model.home.w}–${model.home.l}</b></div><div><span>Idegen</span><b>${model.away.w}–${model.away.l}</b></div></div></div>
+      <div class="standings-insight-card"><div class="insight-title"><b>Ellenfél erőssége</b><span>aktuális helyezés alapján</span></div><div class="strength-grid">${strengthRow('Felső harmad','top')}${strengthRow('Közép','mid')}${strengthRow('Alsó harmad','bottom')}</div></div>
+    </div>
+    ${complete?'':`<div class="standings-coverage-note">Részleges BRSZ-adat: ${escapeHtml_(String(coverage?.capturedCompletedMatches??0))}/${escapeHtml_(String(coverage?.officialPlayed??0))} lejátszott meccs érhető el ehhez a csapathoz.</div>`}
+  </section>`;
 }
 
 function standingsDisplayRows_(rows){
@@ -1791,6 +1983,7 @@ function renderCompetitionStandings_(){
       </div>
     </div>
     ${renderStandingsMatches_(allRows,selectedRow)}
+    ${renderStandingsInsights_(allRows,selectedRow)}
   </div>`;
 }
 
@@ -1826,6 +2019,7 @@ async function ccLoadCompetitionStandings_(){
     if(error) throw error;
     const payload=typeof data==='string'?JSON.parse(data):(data||{});
     competitionStandings={contexts:Array.isArray(payload?.contexts)?payload.contexts:[],loaded:true,error:''};
+    competitionInsights={key:'',loaded:false,loading:false,error:'',data:null};
   }catch(error){
     const msg=String(error?.message||error||'');
     competitionStandings={contexts:[],loaded:true,error:/cc_player_competition_standings_v1|schema cache|function/i.test(msg)?'A Player tabella modul még nincs telepítve.':msg};
@@ -1843,8 +2037,10 @@ function renderPlanner(){
     document.getElementById('standingsTeamSelect')?.addEventListener('change',event=>{
       selectedStandingTeamId=String(event.target.value||'');
       try{localStorage.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
+      competitionInsights={key:'',loaded:false,loading:false,error:'',data:null};
       renderPlanner();
     });
+    requestAnimationFrame(()=>ccEnsureCompetitionInsights_());
     return;
   }
   const jumpBtn=document.getElementById('jumpCurrentBtn');
@@ -2924,7 +3120,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p12c').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p13').catch(()=>{}));
 }
 
 
@@ -3343,7 +3539,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p12c');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p13');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){

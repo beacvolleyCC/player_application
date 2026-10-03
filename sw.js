@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p12c-responsive-standings-fill';
+const CACHE='club-control-player-v2-3-10-26o-p13-competition-insights-history';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -9,25 +9,25 @@ const CORE=[
   './icons/event-home-mask.png',
   './icons/event-away-mask.png',
   './icons/avatar-sprite.webp?v=avatar60-p10',
-  './assets/team-logos/beac.webp?v=p12c',
-  './assets/team-logos/brozik.webp?v=p12c',
-  './assets/team-logos/bunnies.webp?v=p12c',
-  './assets/team-logos/dag.webp?v=p12c',
-  './assets/team-logos/kando.webp?v=p12c',
-  './assets/team-logos/keac.webp?v=p12c',
-  './assets/team-logos/kispest.webp?v=p12c',
-  './assets/team-logos/kozgaz.webp?v=p12c',
-  './assets/team-logos/kre.webp?v=p12c',
-  './assets/team-logos/mafc.webp?v=p12c',
-  './assets/team-logos/mozdulj.webp?v=p12c',
-  './assets/team-logos/mtk.webp?v=p12c',
-  './assets/team-logos/ossc.webp?v=p12c',
-  './assets/team-logos/panorama.webp?v=p12c',
-  './assets/team-logos/pase.webp?v=p12c',
-  './assets/team-logos/rackeve.webp?v=p12c',
-  './assets/team-logos/rksk.webp?v=p12c',
-  './assets/team-logos/semmelweis.webp?v=p12c',
-  './assets/team-logos/ute.webp?v=p12c'
+  './assets/team-logos/beac.webp?v=p13',
+  './assets/team-logos/brozik.webp?v=p13',
+  './assets/team-logos/bunnies.webp?v=p13',
+  './assets/team-logos/dag.webp?v=p13',
+  './assets/team-logos/kando.webp?v=p13',
+  './assets/team-logos/keac.webp?v=p13',
+  './assets/team-logos/kispest.webp?v=p13',
+  './assets/team-logos/kozgaz.webp?v=p13',
+  './assets/team-logos/kre.webp?v=p13',
+  './assets/team-logos/mafc.webp?v=p13',
+  './assets/team-logos/mozdulj.webp?v=p13',
+  './assets/team-logos/mtk.webp?v=p13',
+  './assets/team-logos/ossc.webp?v=p13',
+  './assets/team-logos/panorama.webp?v=p13',
+  './assets/team-logos/pase.webp?v=p13',
+  './assets/team-logos/rackeve.webp?v=p13',
+  './assets/team-logos/rksk.webp?v=p13',
+  './assets/team-logos/semmelweis.webp?v=p13',
+  './assets/team-logos/ute.webp?v=p13'
 ];
 
 self.addEventListener('install', event => {
