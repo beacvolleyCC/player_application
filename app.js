@@ -39,6 +39,8 @@ let plannerSection=localStorage.getItem('cc-planner-section')||'schedule';
 if(!['schedule','standings'].includes(plannerSection)) plannerSection='schedule';
 let competitionStandings={contexts:[],loaded:false,error:''};
 let selectedStandingTeamId=localStorage.getItem('cc-standings-team')||'';
+// Hidden until Club Control actually has players with multiple active competition teams.
+const PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED=false;
 
 
 // ---------------------------------------------------------------------------
@@ -1551,15 +1553,46 @@ function activeStandingsContext_(){
   return selected;
 }
 
-function standingsRatio_(row){
-  const sf=row?.setsFor, sa=row?.setsAgainst;
-  if(sf===null||sf===undefined||sa===null||sa===undefined) return '–';
-  return `${sf}:${sa}`;
+function standingsPair_(forValue,againstValue){
+  if(forValue===null||forValue===undefined||againstValue===null||againstValue===undefined) return '–';
+  return `${forValue}–${againstValue}`;
+}
+function standingsRatioValue_(sourceValue,forValue,againstValue){
+  const raw=sourceValue;
+  if(raw!==null&&raw!==undefined&&String(raw).trim()!==''){
+    const n=Number(String(raw).replace(',','.'));
+    if(Number.isFinite(n)) return n.toFixed(3);
+    return String(raw);
+  }
+  const f=Number(forValue), a=Number(againstValue);
+  if(Number.isFinite(f)&&Number.isFinite(a)&&a!==0) return (f/a).toFixed(3);
+  return '–';
+}
+function standingsSets_(row){
+  return standingsPair_(row?.setsFor,row?.setsAgainst);
+}
+function standingsSetRatio_(row){
+  return standingsRatioValue_(row?.setRatio,row?.setsFor,row?.setsAgainst);
 }
 function standingsPoints_(row){
-  const pf=row?.pointsFor, pa=row?.pointsAgainst;
-  if(pf===null||pf===undefined||pa===null||pa===undefined) return '–';
-  return `${pf}:${pa}`;
+  return standingsPair_(row?.pointsFor,row?.pointsAgainst);
+}
+function standingsPointRatio_(row){
+  return standingsRatioValue_(row?.pointRatio,row?.pointsFor,row?.pointsAgainst);
+}
+
+function standingsDisplayRows_(rows){
+  const list=(Array.isArray(rows)?rows:[]).map(row=>({...row}));
+  if(!list.length) return list;
+  const hasAnyTablePoint=list.some(row=>{
+    const raw=row?.tablePoints;
+    if(raw===null||raw===undefined||String(raw).trim()==='') return false;
+    const n=Number(String(raw).replace(',','.'));
+    return Number.isFinite(n) && n!==0;
+  });
+  if(hasAnyTablePoint) return list;
+  list.sort((a,b)=>String(a?.teamName||'').localeCompare(String(b?.teamName||''),'hu',{sensitivity:'base'}));
+  return list.map((row,index)=>({...row,position:index+1,provisionalAlphabetical:true}));
 }
 
 function renderCompetitionStandings_(){
@@ -1574,8 +1607,8 @@ function renderCompetitionStandings_(){
     return `<div class="standings-state"><b>Még nincs tabellaadat</b><span>Amint érkezik hivatalos bajnoki tabella, itt automatikusan megjelenik.</span></div>`;
   }
   const ctx=activeStandingsContext_();
-  const rows=Array.isArray(ctx?.rows)?ctx.rows:[];
-  const selector=contexts.length>1 ? `<label class="standings-team-picker"><span>Csapat</span><select id="standingsTeamSelect">${contexts.map(c=>`<option value="${escapeHtml_(String(c.contextTeamId||''))}" ${String(c.contextTeamId||'')===String(ctx?.contextTeamId||'')?'selected':''}>${escapeHtml_(c.teamName||'Csapat')}</option>`).join('')}</select></label>` : '';
+  const rows=standingsDisplayRows_(ctx?.rows);
+  const selector=PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED && contexts.length>1 ? `<label class="standings-team-picker"><span>Csapat</span><select id="standingsTeamSelect">${contexts.map(c=>`<option value="${escapeHtml_(String(c.contextTeamId||''))}" ${String(c.contextTeamId||'')===String(ctx?.contextTeamId||'')?'selected':''}>${escapeHtml_(c.teamName||'Csapat')}</option>`).join('')}</select></label>` : '';
   const meta=[ctx?.competitionLabel,ctx?.source].filter(Boolean).join(' · ');
   const updated=standingsDateLabel_(ctx?.updatedAt);
   if(!rows.length){
@@ -1588,8 +1621,8 @@ function renderCompetitionStandings_(){
     </div>
     <div class="standings-scroll" role="region" aria-label="Bajnoki tabella" tabindex="0">
       <table class="standings-table">
-        <thead><tr><th class="pos">#</th><th class="team">Csapat</th><th>M</th><th>GY</th><th>V</th><th>P</th><th>Szett</th><th>Labdapont</th></tr></thead>
-        <tbody>${rows.map(row=>`<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><span class="standings-team-name">${escapeHtml_(row?.teamName||'–')}</span></td><td>${escapeHtml_(standingText_(row?.played,'0'))}</td><td>${escapeHtml_(standingText_(row?.wins,'0'))}</td><td>${escapeHtml_(standingText_(row?.losses,'0'))}</td><td class="points">${escapeHtml_(standingText_(row?.tablePoints,'0'))}</td><td>${escapeHtml_(standingsRatio_(row))}</td><td>${escapeHtml_(standingsPoints_(row))}</td></tr>`).join('')}</tbody>
+        <thead><tr><th class="pos">#</th><th class="team">Csapat</th><th>M</th><th>GY</th><th>V</th><th>P</th><th>Szett</th><th>Szettarány</th><th>Pontok</th><th>Pontarány</th></tr></thead>
+        <tbody>${rows.map(row=>`<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><span class="standings-team-name">${escapeHtml_(row?.teamName||'–')}</span></td><td>${escapeHtml_(standingText_(row?.played,'0'))}</td><td>${escapeHtml_(standingText_(row?.wins,'0'))}</td><td>${escapeHtml_(standingText_(row?.losses,'0'))}</td><td class="points">${escapeHtml_(standingText_(row?.tablePoints,'0'))}</td><td>${escapeHtml_(standingsSets_(row))}</td><td>${escapeHtml_(standingsSetRatio_(row))}</td><td>${escapeHtml_(standingsPoints_(row))}</td><td>${escapeHtml_(standingsPointRatio_(row))}</td></tr>`).join('')}</tbody>
       </table>
     </div>
   </div>`;
@@ -1605,7 +1638,7 @@ function syncPlannerSectionUi_(){
   const title=document.getElementById('plannerSectionTitle');
   const subtitle=document.getElementById('plannerSectionSubtitle');
   if(title) title.textContent=standings?'Tabella':'Menetrend';
-  if(subtitle) subtitle.textContent=standings?'Aktuális bajnoki állás a csapatod versenysorozatában.':'Rács és naptár a teljes szezonhoz.';
+  if(subtitle) subtitle.textContent=standings?'Aktuális bajnoki állás.':'Rács és naptár a teljes szezonhoz.';
   const actions=document.querySelector('#plannerView .planner-view-actions');
   if(actions) actions.hidden=standings;
   const filters=document.getElementById('plannerFilterPanel');
@@ -2713,7 +2746,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p11').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p11c').catch(()=>{}));
 }
 
 
@@ -3122,7 +3155,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p11');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p11c');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){

@@ -9282,7 +9282,7 @@ dialog[open]:focus{
 .standings-team-picker>span{font-size:7px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
 .standings-team-picker select{min-height:34px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--black);padding:0 28px 0 10px;font:inherit;font-size:9px;font-weight:800}
 .standings-scroll{overflow:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:var(--card)}
-.standings-table{width:100%;min-width:570px;border-collapse:separate;border-spacing:0;font-size:9px;font-variant-numeric:tabular-nums}
+.standings-table{width:100%;min-width:700px;border-collapse:separate;border-spacing:0;font-size:9px;font-variant-numeric:tabular-nums}
 .standings-table th,.standings-table td{padding:10px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
 .standings-table thead th{position:sticky;top:0;z-index:2;background:var(--soft);color:var(--muted);font-size:7px;text-transform:uppercase;letter-spacing:.05em}
 .standings-table tbody tr:last-child td{border-bottom:0}
@@ -9303,3 +9303,91 @@ dialog[open]:focus{
   .standings-context-title b{font-size:13px}
   .standings-table th,.standings-table td{padding:9px 8px}
 }
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P11A — MOBILE STANDINGS HORIZONTAL SCROLL FIX
+   Keep legacy planner max-content/clip rules away from standings.
+   ========================================================== */
+#plannerView #plannerList:has(.competition-standings){
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:visible !important;
+}
+#plannerView .planner-scroll-viewport > .planner-card.planner-surface:has(.competition-standings){
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:visible !important;
+}
+#plannerView .competition-standings{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+}
+#plannerView .standings-scroll{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow-x:scroll !important;
+  overflow-y:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  touch-action:pan-x pan-y !important;
+  overscroll-behavior-x:contain;
+  box-sizing:border-box !important;
+}
+#plannerView .standings-table{
+  width:700px !important;
+  min-width:700px !important;
+  max-width:none !important;
+}
+@media(max-width:620px){
+  #plannerView .standings-scroll{
+    scrollbar-width:thin;
+  }
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P11B — STANDINGS POLISH
+   - stable planner header geometry
+   - no left yellow stripe on own team
+   - team switcher stays hidden until actually needed
+   ========================================================== */
+#plannerView .planner-title-row{
+  align-items:flex-start!important;
+}
+#plannerView #plannerSectionSubtitle{
+  min-height:1.35em;
+  line-height:1.35;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#plannerView .planner-view-actions{
+  align-self:flex-start;
+}
+.standings-table tr.focus .team{
+  box-shadow:none!important;
+}
+.dark .standings-table tr.focus .team{
+  box-shadow:none!important;
+}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P11C — BRSZ STANDINGS COLUMNS
+   - compact BRSZ column mapping
+   - sets/points as W–L pairs, ratios as separate 3-decimal columns
+   ========================================================== */
+.standings-table th:nth-child(7),
+.standings-table td:nth-child(7),
+.standings-table th:nth-child(9),
+.standings-table td:nth-child(9){min-width:72px}
+.standings-table th:nth-child(8),
+.standings-table td:nth-child(8),
+.standings-table th:nth-child(10),
+.standings-table td:nth-child(10){min-width:78px}
