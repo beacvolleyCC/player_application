@@ -1619,7 +1619,7 @@ function standingsTeamLogoSlug_(name){
 function standingsTeamLogoHtml_(name,extraClass=''){
   const slug=standingsTeamLogoSlug_(name);
   if(!slug) return '';
-  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p12b" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
+  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p12c" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
 }
 function standingsRowFilterOptions_(rows){
   return (Array.isArray(rows)?rows:[]).map(row=>({
@@ -2924,7 +2924,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p12b').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p12c').catch(()=>{}));
 }
 
 
@@ -3343,7 +3343,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p12b');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p12c');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){

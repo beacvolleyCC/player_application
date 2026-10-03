@@ -9875,3 +9875,89 @@ dialog[open]:focus{
   #plannerView .standings-table-fixed .team{width:93px !important;min-width:93px !important;max-width:93px !important;}
   #plannerView .standings-team-name{font-size:7.2px !important;}
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P12C — RESPONSIVE STANDINGS FILL
+   - portrait keeps a compact one-screen layout
+   - wider screens use the full standings panel width
+   - horizontal scrolling remains as a safety fallback
+   ========================================================== */
+#plannerView .standings-split{
+  --standings-left:120px;
+  grid-template-columns:var(--standings-left) minmax(0,1fr) !important;
+  width:100% !important;
+}
+#plannerView .standings-fixed,
+#plannerView .standings-table-fixed{
+  width:var(--standings-left) !important;
+  min-width:var(--standings-left) !important;
+  max-width:var(--standings-left) !important;
+}
+#plannerView .standings-table-fixed .pos{
+  width:22px !important;
+  min-width:22px !important;
+  max-width:22px !important;
+}
+#plannerView .standings-table-fixed .team{
+  width:calc(var(--standings-left) - 22px) !important;
+  min-width:calc(var(--standings-left) - 22px) !important;
+  max-width:calc(var(--standings-left) - 22px) !important;
+}
+#plannerView .standings-scroll{
+  width:100% !important;
+  min-width:0 !important;
+}
+#plannerView .standings-table-stats{
+  width:100% !important;
+  min-width:234px !important;
+  max-width:none !important;
+  table-layout:fixed !important;
+}
+/* On portrait the numeric columns stay extremely compact; on wider panels
+   these percentages distribute the available width instead of leaving a hole. */
+#plannerView .standings-table-stats th:nth-child(-n+4),
+#plannerView .standings-table-stats td:nth-child(-n+4){
+  width:8.5% !important;min-width:20px !important;max-width:none !important;
+}
+#plannerView .standings-table-stats th:nth-child(5),
+#plannerView .standings-table-stats td:nth-child(5){
+  width:13% !important;min-width:31px !important;max-width:none !important;
+}
+#plannerView .standings-table-stats th:nth-child(6),
+#plannerView .standings-table-stats td:nth-child(6){
+  width:15% !important;min-width:35px !important;max-width:none !important;
+}
+#plannerView .standings-table-stats th:nth-child(7),
+#plannerView .standings-table-stats td:nth-child(7){
+  width:20% !important;min-width:42px !important;max-width:none !important;
+}
+#plannerView .standings-table-stats th:nth-child(8),
+#plannerView .standings-table-stats td:nth-child(8){
+  width:18% !important;min-width:34px !important;max-width:none !important;
+}
+@media (min-width:621px){
+  #plannerView .standings-split{--standings-left:clamp(150px,18vw,240px);}
+  #plannerView .standings-table-fixed .pos{
+    width:30px !important;min-width:30px !important;max-width:30px !important;
+  }
+  #plannerView .standings-table-fixed .team{
+    width:calc(var(--standings-left) - 30px) !important;
+    min-width:calc(var(--standings-left) - 30px) !important;
+    max-width:calc(var(--standings-left) - 30px) !important;
+  }
+  #plannerView .standings-team-name{font-size:8.3px !important;}
+  #plannerView .standings-table-stats thead th{font-size:6.5px !important;}
+  #plannerView .standings-table-stats tbody td{font-size:8.5px !important;}
+}
+@media (max-width:370px){
+  #plannerView .standings-split{--standings-left:114px;}
+  #plannerView .standings-table-fixed .pos{
+    width:21px !important;min-width:21px !important;max-width:21px !important;
+  }
+  #plannerView .standings-table-fixed .team{
+    width:calc(var(--standings-left) - 21px) !important;
+    min-width:calc(var(--standings-left) - 21px) !important;
+    max-width:calc(var(--standings-left) - 21px) !important;
+  }
+}
