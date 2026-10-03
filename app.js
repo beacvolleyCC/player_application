@@ -686,6 +686,7 @@ function updateHomeFilterUi_(){
   if(filterBtn) filterBtn.classList.toggle('has-active-filter',!isDefault);
   const resetBtn=document.getElementById('resetEventFiltersBtn');
   if(resetBtn) resetBtn.hidden=isDefault;
+  document.getElementById('eventFilterPanel')?.classList.toggle('no-active-filter',isDefault);
   const summary=document.getElementById('homeFilterSummary');
   if(summary){
     const labels={next14:'Következő 14 nap.',next30:'Következő 30 nap.',future:'Minden következő alkalom.',past:'Elmúlt alkalmak.',all:'Teljes szezon.',custom:'Egyéni időszak.'};
@@ -1481,6 +1482,7 @@ function updatePlannerFilterButton_(){
   if(btn) btn.classList.toggle('has-active-filter',!isDefault);
   const resetBtn=document.getElementById('resetPlannerFiltersBtn');
   if(resetBtn) resetBtn.hidden=isDefault;
+  document.getElementById('plannerFilterPanel')?.classList.toggle('no-active-filter',isDefault);
 }
 
 function updatePlannerBottomState_(){
@@ -1617,7 +1619,7 @@ function standingsTeamLogoSlug_(name){
 function standingsTeamLogoHtml_(name,extraClass=''){
   const slug=standingsTeamLogoSlug_(name);
   if(!slug) return '';
-  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p12a" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
+  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p12b" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
 }
 function standingsRowFilterOptions_(rows){
   return (Array.isArray(rows)?rows:[]).map(row=>({
@@ -1794,22 +1796,22 @@ function renderCompetitionStandings_(){
 
 function syncPlannerSectionUi_(){
   const standings=plannerSection==='standings';
-  document.querySelectorAll('[data-planner-section]').forEach(btn=>{
-    const active=btn.dataset.plannerSection===plannerSection;
-    btn.classList.toggle('active',active);
-    btn.setAttribute('aria-selected',active?'true':'false');
-  });
+  const standingsBtn=document.getElementById('plannerStandingsBtn');
+  if(standingsBtn){
+    standingsBtn.classList.toggle('active',standings);
+    standingsBtn.setAttribute('aria-pressed',standings?'true':'false');
+  }
   const title=document.getElementById('plannerSectionTitle');
   const subtitle=document.getElementById('plannerSectionSubtitle');
   if(title) title.textContent=standings?'Tabella':'Menetrend';
   if(subtitle) subtitle.textContent=standings?'Aktuális bajnoki állás.':'Rács és naptár a teljes szezonhoz.';
   const actions=document.querySelector('#plannerView .planner-view-actions');
   if(actions) actions.hidden=false;
-  document.querySelectorAll('#plannerView .planner-view-actions [data-mode]').forEach(btn=>btn.hidden=standings);
-  const filters=document.getElementById('plannerFilterPanel');
-  if(filters) filters.hidden=false;
   document.querySelector('#plannerView .planner-schedule-filter-fields')?.toggleAttribute('hidden',standings);
   document.querySelector('#plannerView .standings-filter-fields')?.toggleAttribute('hidden',!standings);
+  if(standings){
+    document.querySelectorAll('#plannerView .planner-view-actions [data-mode]').forEach(btn=>btn.classList.remove('active'));
+  }
   updatePlannerFilterButton_();
 }
 
@@ -2917,9 +2919,12 @@ applyThemePreference_();
 window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{ if(currentThemePreference_()==='system') applyThemePreference_('system'); });
 renderEvents();
 renderPlanner();
+if(plannerSection==='standings'){
+  requestAnimationFrame(()=>toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true));
+}
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p12a').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p12b').catch(()=>{}));
 }
 
 
@@ -2927,28 +2932,35 @@ if('serviceWorker' in navigator){
 
 
 
-document.querySelectorAll('[data-planner-section]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const next=btn.dataset.plannerSection;
-    if(!['schedule','standings'].includes(next) || next===plannerSection) return;
-    plannerSection=next;
-    try{localStorage.setItem('cc-planner-section',plannerSection)}catch(_){}
-    syncPlannerPageLock_();
-    forcePlannerPageTop_();
-    renderPlanner();
-  });
+document.getElementById('plannerStandingsBtn')?.addEventListener('click',()=>{
+  const entering=plannerSection!=='standings';
+  plannerSection='standings';
+  try{localStorage.setItem('cc-planner-section',plannerSection)}catch(_){}
+  syncPlannerPageLock_();
+  forcePlannerPageTop_();
+  renderPlanner();
+  // Tabella always opens with its team filter immediately available.
+  if(entering || document.getElementById('plannerFilterPanel')?.classList.contains('is-collapsed')){
+    requestAnimationFrame(()=>toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true));
+  }
 });
 
 document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const nextMode=btn.dataset.mode;
-    if(nextMode===plannerMode) return;
+    const leavingStandings=plannerSection==='standings';
+    const modeChanged=nextMode!==plannerMode;
+    if(!leavingStandings && !modeChanged) return;
 
+    plannerSection='schedule';
+    try{localStorage.setItem('cc-planner-section',plannerSection)}catch(_){}
+    if(leavingStandings) toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',false);
     plannerMode=nextMode;
     localStorage.setItem('cc-planner-mode',plannerMode);
     plannerUserPositioned=false;
     syncPlannerPageLock_();
     forcePlannerPageTop_();
+    renderPlanner();
     positionPlannerInitial_(filteredPlannerEvents());
   });
 });
@@ -3331,7 +3343,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p12a');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p12b');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){

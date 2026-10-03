@@ -9750,3 +9750,128 @@ dialog[open]:focus{
   #plannerView .standings-match-score{font-size:12px;}
   #plannerView .standings-match-place span,#plannerView .standings-match-place small{font-size:5.5px;}
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P12B — DIRECT VIEW BUTTONS + COMPACT FIT
+   - Rács | Naptár | Tabella | Szűrő in one action row
+   - standings filter opens on entry
+   - filter footer disappears entirely when no reset is needed
+   - standings widths target one-screen fit on common iPhone portrait widths
+   ========================================================== */
+#plannerView .planner-section-tabs{display:none !important;}
+#plannerView .planner-view-actions{gap:5px !important;}
+#plannerView .planner-view-actions .view-mode-btn,
+#plannerView #plannerFilterBtn{
+  width:38px !important;
+  min-width:38px !important;
+  height:38px !important;
+}
+#plannerView .cc-icon-standings{
+  width:25px;
+  height:25px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.5;
+  vector-effect:non-scaling-stroke;
+}
+#plannerView #plannerStandingsBtn.active{
+  background:#fff0a3 !important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12) !important;
+}
+.dark #plannerView #plannerStandingsBtn.active{background:#d5a72f !important;}
+
+/* No active filter = no empty footer rule, padding or reserved space. */
+.filter-panel.no-active-filter .filter-panel-actions{
+  display:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  min-height:0 !important;
+}
+
+/* Shrink the fixed team pane and numeric columns to content width.
+   Horizontal scrolling intentionally remains available as a fallback. */
+#plannerView .standings-split{
+  grid-template-columns:120px minmax(0,1fr) !important;
+}
+#plannerView .standings-fixed,
+#plannerView .standings-table-fixed{
+  width:120px !important;
+  min-width:120px !important;
+  max-width:120px !important;
+}
+#plannerView .standings-table-fixed .pos{
+  width:22px !important;
+  min-width:22px !important;
+  max-width:22px !important;
+  padding:0 2px !important;
+  font-size:8px !important;
+}
+#plannerView .standings-table-fixed .team{
+  width:98px !important;
+  min-width:98px !important;
+  max-width:98px !important;
+  padding-left:4px !important;
+  padding-right:3px !important;
+}
+#plannerView .standings-team-cell{gap:3px !important;}
+#plannerView .standings-team-logo{
+  width:15px !important;
+  height:15px !important;
+  min-width:15px !important;
+}
+#plannerView .standings-team-name{font-size:7.6px !important;}
+
+#plannerView .standings-table-stats{
+  width:234px !important;
+  min-width:234px !important;
+  max-width:234px !important;
+}
+#plannerView .standings-table-stats th,
+#plannerView .standings-table-stats td{
+  padding-left:1px !important;
+  padding-right:1px !important;
+}
+#plannerView .standings-table-stats thead th{
+  font-size:6px !important;
+  letter-spacing:0 !important;
+}
+#plannerView .standings-table-stats tbody td{font-size:8px !important;}
+/* M / GY / V / championship P */
+#plannerView .standings-table-stats th:nth-child(-n+4),
+#plannerView .standings-table-stats td:nth-child(-n+4){
+  width:22px !important;min-width:22px !important;max-width:22px !important;
+}
+/* SZ */
+#plannerView .standings-table-stats th:nth-child(5),
+#plannerView .standings-table-stats td:nth-child(5){
+  width:34px !important;min-width:34px !important;max-width:34px !important;
+}
+/* SZA */
+#plannerView .standings-table-stats th:nth-child(6),
+#plannerView .standings-table-stats td:nth-child(6){
+  width:36px !important;min-width:36px !important;max-width:36px !important;
+}
+/* point pair */
+#plannerView .standings-table-stats th:nth-child(7),
+#plannerView .standings-table-stats td:nth-child(7){
+  width:42px !important;min-width:42px !important;max-width:42px !important;
+}
+/* PA */
+#plannerView .standings-table-stats th:nth-child(8),
+#plannerView .standings-table-stats td:nth-child(8){
+  width:34px !important;min-width:34px !important;max-width:34px !important;
+}
+#plannerView .standings-table-stats .points{font-weight:950 !important;}
+#plannerView .standings-table-stats .group-end{
+  border-right:1px solid color-mix(in srgb,var(--black) 28%,transparent) !important;
+}
+@media(max-width:370px){
+  #plannerView .standings-split{grid-template-columns:114px minmax(0,1fr) !important;}
+  #plannerView .standings-fixed,
+  #plannerView .standings-table-fixed{width:114px !important;min-width:114px !important;max-width:114px !important;}
+  #plannerView .standings-table-fixed .pos{width:21px !important;min-width:21px !important;max-width:21px !important;}
+  #plannerView .standings-table-fixed .team{width:93px !important;min-width:93px !important;max-width:93px !important;}
+  #plannerView .standings-team-name{font-size:7.2px !important;}
+}

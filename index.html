@@ -136,10 +136,6 @@
         <div>
           <h3 id="plannerSectionTitle">Menetrend</h3>
           <p id="plannerSectionSubtitle">Rács és naptár a teljes szezonhoz.</p>
-          <div class="planner-section-tabs" role="tablist" aria-label="Versenysport nézet">
-            <button type="button" class="planner-section-tab active" id="plannerScheduleTab" data-planner-section="schedule" role="tab" aria-selected="true">Menetrend</button>
-            <button type="button" class="planner-section-tab" id="plannerStandingsTab" data-planner-section="standings" role="tab" aria-selected="false">Tabella</button>
-          </div>
         </div>
         <div class="planner-view-actions" role="group" aria-label="Menetrend nézet">
           <button class="view-mode-btn active icon-only" data-mode="grid" title="Rácsnézet – játékosok" aria-label="Rácsnézet – játékosok">
@@ -152,6 +148,12 @@
             <svg class="cc-icon cc-icon-schedule-grid" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
               <rect x="4" y="4" width="24" height="24" rx="1"></rect>
               <path d="M8.8 4V28 M13.6 4V28 M18.4 4V28 M23.2 4V28 M4 8.8H28 M4 13.6H28 M4 18.4H28 M4 23.2H28"></path>
+            </svg>
+          </button>
+          <button class="view-mode-btn icon-only" id="plannerStandingsBtn" data-planner-section="standings" title="Tabella" aria-label="Tabella" aria-pressed="false">
+            <svg class="cc-icon cc-icon-standings" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="4" y="5" width="24" height="22" rx="1"></rect>
+              <path d="M4 11H28 M4 17H28 M4 23H28 M11 5V27"></path>
             </svg>
           </button>
           <button class="view-mode-btn icon-only filter-state-btn" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">
@@ -480,7 +482,7 @@
       <div class="settings-footer-actions">
         <button class="ghost-btn settings-wide-btn" id="settingsRefreshBtn">↻ Adatok újratöltése</button>
         <button class="ghost-btn settings-wide-btn danger-outline" id="logoutBtn">Kijelentkezés</button>
-        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.26O-P12A</b></div>
+        <div class="settings-build-line"><span>Build</span><b>Player V2.3.10.26O-P12B</b></div>
       </div>
     </div>
   </dialog>
