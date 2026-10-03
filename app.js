@@ -1617,7 +1617,7 @@ function standingsTeamLogoSlug_(name){
 function standingsTeamLogoHtml_(name,extraClass=''){
   const slug=standingsTeamLogoSlug_(name);
   if(!slug) return '';
-  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p12" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
+  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p12a" alt="" loading="lazy" decoding="async" onerror="this.remove()">`;
 }
 function standingsRowFilterOptions_(rows){
   return (Array.isArray(rows)?rows:[]).map(row=>({
@@ -1683,6 +1683,30 @@ function standingsPositionByTeamName_(allRows,name){
   });
   return row?.position ? `${row.position}. hely` : '';
 }
+function standingsFilterIdByTeamName_(allRows,name){
+  const slug=standingsTeamLogoSlug_(name);
+  const key=normalizeStandingTeamKey_(name);
+  const row=(Array.isArray(allRows)?allRows:[]).find(r=>{
+    const rSlug=standingsTeamLogoSlug_(r?.teamName);
+    if(slug && rSlug) return slug===rSlug;
+    const rk=normalizeStandingTeamKey_(r?.teamName);
+    return rk===key || (rk&&key&&(rk.includes(key)||key.includes(rk)));
+  });
+  return row ? String(row?.sourceTeamId||row?.teamName||'') : '';
+}
+function applyStandingsTeamFilter_(teamId){
+  const next=String(teamId||'all')||'all';
+  selectedStandingsRowTeamId=next;
+  try{localStorage.setItem('cc-standings-row-team',next)}catch(_){}
+  const select=document.getElementById('standingsRowTeamFilter');
+  if(select) select.value=next;
+  renderPlanner();
+}
+function bindStandingsTeamFilterClicks_(){
+  plannerList?.querySelectorAll('[data-standings-filter-team]').forEach(btn=>{
+    btn.addEventListener('click',()=>applyStandingsTeamFilter_(btn.dataset.standingsFilterTeam||'all'));
+  });
+}
 function renderStandingsMatches_(allRows,selectedRow){
   const matches=standingsMatchRows_(selectedRow);
   if(!matches.length) return '';
@@ -1694,11 +1718,13 @@ function renderStandingsMatches_(allRows,selectedRow){
     const awayPos=standingsPositionByTeamName_(allRows,teams.away);
     const homeOwn=standingsTeamLogoSlug_(teams.home)==='beac';
     const awayOwn=standingsTeamLogoSlug_(teams.away)==='beac';
+    const homeFilterId=standingsFilterIdByTeamName_(allRows,teams.home);
+    const awayFilterId=standingsFilterIdByTeamName_(allRows,teams.away);
     return `<div class="standings-match-row">
       <div class="standings-match-date"><b>${escapeHtml_(shortMatchDate_(e))}</b><span>${escapeHtml_(String(e?.time||'').split('–')[0])}</span></div>
-      <div class="standings-match-team ${homeOwn?'is-own':''}">${standingsTeamLogoHtml_(teams.home,'match-logo')}<span><b>${escapeHtml_(teams.home||'–')}</b>${homePos?`<small>${escapeHtml_(homePos)}</small>`:''}</span></div>
+      <button type="button" class="standings-match-team standings-team-filter-btn ${homeOwn?'is-own':''}" ${homeFilterId?`data-standings-filter-team="${escapeHtml_(homeFilterId)}"`:''}>${standingsTeamLogoHtml_(teams.home,'match-logo')}<span><b>${escapeHtml_(teams.home||'–')}</b>${homePos?`<small>${escapeHtml_(homePos)}</small>`:''}</span></button>
       <div class="standings-match-score ${score?'has-score':''}">${escapeHtml_(score||'–')}</div>
-      <div class="standings-match-team away ${awayOwn?'is-own':''}"><span><b>${escapeHtml_(teams.away||'–')}</b>${awayPos?`<small>${escapeHtml_(awayPos)}</small>`:''}</span>${standingsTeamLogoHtml_(teams.away,'match-logo')}</div>
+      <button type="button" class="standings-match-team standings-team-filter-btn away ${awayOwn?'is-own':''}" ${awayFilterId?`data-standings-filter-team="${escapeHtml_(awayFilterId)}"`:''}><span><b>${escapeHtml_(teams.away||'–')}</b>${awayPos?`<small>${escapeHtml_(awayPos)}</small>`:''}</span>${standingsTeamLogoHtml_(teams.away,'match-logo')}</button>
       <div class="standings-match-place"><span>${escapeHtml_(e?.place||'')}</span>${e?.court?`<small>${escapeHtml_(e.court)}</small>`:''}</div>
     </div>`;
   }).join('');
@@ -1752,7 +1778,7 @@ function renderCompetitionStandings_(){
       <div class="standings-fixed" aria-label="Helyezés és csapat">
         <table class="standings-table standings-table-fixed">
           <thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead>
-          <tbody>${rows.map(row=>`<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><span class="standings-team-cell">${standingsTeamLogoHtml_(row?.teamName)}<span class="standings-team-name">${escapeHtml_(row?.teamName||'–')}</span></span></td></tr>`).join('')}</tbody>
+          <tbody>${rows.map(row=>{const filterId=String(row?.sourceTeamId||row?.teamName||'');return `<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><button type="button" class="standings-team-cell standings-team-filter-btn" data-standings-filter-team="${escapeHtml_(filterId)}">${standingsTeamLogoHtml_(row?.teamName)}<span class="standings-team-name">${escapeHtml_(row?.teamName||'–')}</span></button></td></tr>`}).join('')}</tbody>
         </table>
       </div>
       <div class="standings-scroll" aria-label="Bajnoki statisztikák" tabindex="0">
@@ -1811,6 +1837,7 @@ function renderPlanner(){
     const jumpBtn=document.getElementById('jumpCurrentBtn');
     if(jumpBtn) jumpBtn.hidden=true;
     plannerList.innerHTML=renderCompetitionStandings_();
+    bindStandingsTeamFilterClicks_();
     document.getElementById('standingsTeamSelect')?.addEventListener('change',event=>{
       selectedStandingTeamId=String(event.target.value||'');
       try{localStorage.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
@@ -2892,7 +2919,7 @@ renderEvents();
 renderPlanner();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p12').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p12a').catch(()=>{}));
 }
 
 
@@ -3304,7 +3331,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p12');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p12a');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
