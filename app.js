@@ -1598,24 +1598,26 @@ function standingsTeamLogoSlug_(name){
   const n=normalizeStandingTeamKey_(name);
   if(!n) return '';
   if(n.includes('budapesti egyetemi atletikai club') || /(^| )beac( |$)/.test(n)) return 'beac';
-  if(n.includes('karoli gaspar') || /(^| )kre( |$)/.test(n)) return 'kre';
+  if(n.includes('bdse emericus') || n.includes('emericus')) return 'bdseemericus';
+  if(n.includes('budapest bunnies') || n.includes('bunnies')) return 'bunnies';
+  if(n.includes('dag kozsegi') || n.includes('dag kse') || /(^| )dag( |$)/.test(n)) return 'dag';
+  if(n.includes('obudai egyetem kando') || n.includes('kando')) return 'kando';
   if(n.includes('kerteszeti egyetem') || /(^| )keac( |$)/.test(n)) return 'keac';
-  if(n.includes('dag kozsegi') || /(^| )dagkse( |$)/.test(n)) return 'dag';
+  if(n.includes('kispest')) return 'kispest';
+  if(n.includes('kozgaz') || n.includes('corvinus')) return 'kozgaz';
+  if(n.includes('karoli gaspar') || /(^| )kre( |$)/.test(n)) return 'kre';
+  if(/(^| )kse( |$)/.test(n)) return 'kse';
   if(n.includes('mafc')) return 'mafc';
+  if(n.includes('mozdulj')) return 'mozdulj';
+  if(/(^| )mtk( |$)/.test(n)) return 'mtk';
   if(n.includes('ossc') || n.includes('strandrop labda sport club')) return 'ossc';
   if(n.includes('panorama')) return 'panorama';
   if(n.includes('pogany akademia') || /(^| )pase( |$)/.test(n)) return 'pase';
-  if(n.includes('mozdulj')) return 'mozdulj';
-  if(n.includes('kozgaz') || n.includes('corvinus')) return 'kozgaz';
-  if(n.includes('semmelweis')) return 'semmelweis';
-  if(n.includes('brozik tibor') || n.includes('taksonyi') || n.includes('btdse')) return 'brozik';
-  if(n.includes('kispest')) return 'kispest';
-  if(n.includes('kando')) return 'kando';
   if(n.includes('rackeve')) return 'rackeve';
-  if(/(^| )mtk( |$)/.test(n)) return 'mtk';
   if(/(^| )rksk( |$)/.test(n)) return 'rksk';
+  if(n.includes('semmelweis')) return 'semmeilweis';
+  if(n.includes('brozik tibor') || n.includes('taksonyi') || n.includes('taksony') || n.includes('btdse')) return 'taksony';
   if(/(^| )ute( |$)/.test(n) || n.includes('ujpest')) return 'ute';
-  if(n.includes('budapest bunnies')) return 'bunnies';
   return '';
 }
 function standingsTeamMonogram_(name){
@@ -1623,12 +1625,17 @@ function standingsTeamMonogram_(name){
   const m=clean.match(/[A-Za-zÁÉÍÓÖŐÚÜŰ0-9]/u);
   return (m?.[0]||'?').toLocaleUpperCase('hu-HU');
 }
+const STANDINGS_DARK_LOGO_SLUGS_=new Set(['bdseemericus','kispest','ossc','panorama']);
 function standingsTeamLogoHtml_(name,extraClass=''){
   const slug=standingsTeamLogoSlug_(name);
   if(!slug){
     return `<span class="standings-team-logo standings-team-monogram ${extraClass}" aria-hidden="true">${escapeHtml_(standingsTeamMonogram_(name))}</span>`;
   }
-  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.webp?v=p14a" alt="" loading="lazy" decoding="async">`;
+  const version='p14c';
+  if(STANDINGS_DARK_LOGO_SLUGS_.has(slug)){
+    return `<span class="standings-team-logo standings-team-logo-switch ${extraClass}" aria-hidden="true"><img class="logo-light" src="./assets/team-logos/${slug}.png?v=${version}" alt="" loading="lazy" decoding="async"><img class="logo-dark" src="./assets/team-logos/${slug}_dark.png?v=${version}" alt="" loading="lazy" decoding="async"></span>`;
+  }
+  return `<img class="standings-team-logo ${extraClass}" src="./assets/team-logos/${slug}.png?v=${version}" alt="" loading="lazy" decoding="async">`;
 }
 function standingsRowFilterOptions_(rows){
   return (Array.isArray(rows)?rows:[]).map(row=>({
@@ -3341,7 +3348,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14a').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14c').catch(()=>{}));
 }
 
 
@@ -3760,7 +3767,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p14a');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p14c');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){

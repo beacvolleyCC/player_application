@@ -10089,7 +10089,7 @@ dialog[open]:focus{
 
 
 /* ==========================================================
-   PLAYER V2.3.10.26O-P14A — LEAGUE FORM + OPPONENT TREND
+   PLAYER V2.3.10.26O-P14 — LEAGUE FORM + OPPONENT TREND
    ========================================================== */
 #plannerView .cc-icon-standings{stroke-width:1.5 !important;stroke-linecap:round;fill:none !important;}
 #plannerView .standings-match-team>span{min-width:0;display:grid;gap:1px;}
@@ -10129,3 +10129,92 @@ dialog[open]:focus{
   #plannerView .standings-team-status{gap:2px;font-size:5.2px !important;}
   #plannerView .league-form-dots i{width:4px;height:4px;}
 }
+
+
+/* P14A: standings fail-safe + same-day match/training Player guard. */
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P14C — DARK PRO + THEME-AWARE TEAM LOGOS
+   - cooler near-black surface system
+   - restrained gold accents
+   - supplied light/dark team logo variants
+   ========================================================== */
+#plannerView .standings-team-logo-switch{
+  position:relative;
+  display:block !important;
+  overflow:hidden;
+  background:transparent;
+  border:0;
+}
+#plannerView .standings-team-logo-switch > img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+}
+#plannerView .standings-team-logo-switch > .logo-dark{display:none;}
+.dark #plannerView .standings-team-logo-switch > .logo-light{display:none;}
+.dark #plannerView .standings-team-logo-switch > .logo-dark{display:block;}
+
+/* Own-team highlight stays horizontal only — no vertical yellow rail. */
+#plannerView .standings-table tr.focus .team,
+#plannerView .standings-table-fixed tr.focus .team{
+  box-shadow:none !important;
+}
+
+body.dark{
+  --black:#f2f4f6;
+  --muted:#9ca2aa;
+  --line:#2d333b;
+  --soft:#1d2126;
+  --card:#15181c;
+  --bg:#0c0e11;
+  --green:#79c98e;
+  --red:#ef8984;
+  --amber:#efbd63;
+  --shadow:none;
+  background:#0c0e11 !important;
+  color:#f2f4f6;
+  color-scheme:dark;
+}
+.dark .event-card,
+.dark .planner-card,
+.dark .card,
+.dark .stat-card,
+.dark .ghost-btn,
+.dark .month-tab,
+.dark .status-btn,
+.dark .segmented button,
+.dark .avatar-option,
+.dark .avatar-mode-btn{
+  background:var(--card) !important;
+  color:var(--black) !important;
+}
+.dark .roster-toggle,
+.dark .position-strip span,
+.dark .chip,
+.dark .settings-avatar-block,
+.dark .profile-payment-info-row,
+.dark .notifications-dialog .notification-inbox-card{
+  background:var(--soft) !important;
+}
+.dark .bottom-nav{background:rgba(12,14,17,.96) !important;border-color:var(--line) !important;}
+.dark .planner-row,.dark .detail-row,.dark .payment-row{border-color:var(--line) !important;}
+.dark .planner-view-actions .view-mode-btn{color:#8f969f !important;}
+.dark .planner-view-actions .view-mode-btn.active{color:var(--black) !important;background:var(--soft) !important;}
+.dark .matrix-cell.matrix-none,
+.dark #plannerView #matrixScroll .transposed-matrix thead th{background:var(--card) !important;}
+.dark .matrix-control{background:var(--soft) !important;}
+.dark .calendar-event.status-none{background:var(--soft) !important;color:var(--black) !important;}
+.dark .login-email-preview{background:var(--soft) !important;}
+.dark .avatar-option:hover{background:#22272d !important;}
+.dark .avatar-option.selected,
+.dark .avatar-mode-btn.active{background:#2a2515 !important;border-color:#d5a72f !important;}
+.dark #plannerView .standings-team-monogram{background:var(--soft) !important;}
+.dark .planner-section-tab.active{background:var(--soft) !important;color:var(--black) !important;}
+.dark #plannerView .standings-table tr.focus td{background:rgba(247,183,0,.11) !important;}
+.dark #plannerView .standings-table-fixed tr.focus .team{background:rgba(247,183,0,.14) !important;box-shadow:none !important;}
+.dark #plannerView .standings-match-team.is-own{background:rgba(247,183,0,.14) !important;}
+.dark #plannerView #plannerStandingsBtn.active{background:#d5a72f !important;color:#101214 !important;}
+.dark .bottom-nav .nav-btn.active > .cc-geo-nav-icon{background:#d5a72f !important;color:#101214 !important;}
+.dark .bottom-nav::before{background:#d5a72f !important;}
