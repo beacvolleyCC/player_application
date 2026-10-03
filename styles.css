@@ -9391,3 +9391,77 @@ dialog[open]:focus{
 .standings-table td:nth-child(8),
 .standings-table th:nth-child(10),
 .standings-table td:nth-child(10){min-width:78px}
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P11D — STANDINGS STICKY LEFT + COMPACT TEAM
+   - freeze # + team columns like the Player grid
+   - narrower team column on mobile
+   ========================================================== */
+#plannerView .standings-table{
+  min-width:650px !important;
+  width:650px !important;
+}
+#plannerView .standings-table .pos{
+  position:sticky !important;
+  left:0 !important;
+  z-index:4 !important;
+  width:38px !important;
+  min-width:38px !important;
+  max-width:38px !important;
+  padding-left:6px !important;
+  padding-right:6px !important;
+  background:var(--card) !important;
+}
+#plannerView .standings-table .team{
+  position:sticky !important;
+  left:38px !important;
+  z-index:3 !important;
+  width:142px !important;
+  min-width:142px !important;
+  max-width:142px !important;
+  padding-left:8px !important;
+  padding-right:8px !important;
+  background:var(--card) !important;
+  box-shadow:1px 0 0 var(--line) !important;
+}
+#plannerView .standings-table thead .pos{
+  z-index:6 !important;
+  background:var(--soft) !important;
+}
+#plannerView .standings-table thead .team{
+  z-index:5 !important;
+  background:var(--soft) !important;
+}
+#plannerView .standings-team-name{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#plannerView .standings-table tr.focus .pos,
+#plannerView .standings-table tr.focus .team{
+  background:#fff1a8 !important;
+}
+.dark #plannerView .standings-table tr.focus .pos,
+.dark #plannerView .standings-table tr.focus .team{
+  background:#3a3014 !important;
+}
+@media(max-width:620px){
+  #plannerView .standings-table{
+    min-width:620px !important;
+    width:620px !important;
+  }
+  #plannerView .standings-table .pos{
+    width:36px !important;
+    min-width:36px !important;
+    max-width:36px !important;
+  }
+  #plannerView .standings-table .team{
+    left:36px !important;
+    width:132px !important;
+    min-width:132px !important;
+    max-width:132px !important;
+  }
+}

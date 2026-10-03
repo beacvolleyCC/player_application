@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p11c-brsz-standings-columns';
+const CACHE='club-control-player-v2-3-10-26o-p11d-sticky-left-compact-team';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
