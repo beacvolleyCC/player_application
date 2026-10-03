@@ -4418,11 +4418,15 @@ async function apiPost(payload){
   return j;
 }
 
-function ccIsHiddenTestPlayerName_(value){
-  return String(value||'').toLocaleLowerCase('hu-HU').includes('teszt');
+function ccIsHiddenTestPlayer_(value){
+  const parts=(value && typeof value==='object')
+    ? [value.name,value.displayName,value.display_name,value.email]
+    : [value];
+  const marker=parts.map(x=>String(x||'').trim()).filter(Boolean).join(' ').toLocaleLowerCase('hu-HU');
+  return /(^|[^a-záéíóöőúüű])(teszt|test)([^a-záéíóöőúüű]|$)/i.test(marker);
 }
 function ccFilterVisiblePlayerNames_(values){
-  return (Array.isArray(values)?values:[]).filter(name=>!ccIsHiddenTestPlayerName_(name));
+  return (Array.isArray(values)?values:[]).filter(name=>!ccIsHiddenTestPlayer_(name));
 }
 
 function normalizeApiEvent(x){
@@ -4462,7 +4466,11 @@ function ccSuppressMatchDayTrainings_(items){
 function applyBootstrap(j){
   if(!j || !Array.isArray(j.events)) throw new Error('Hibás eseményadat érkezett a szervertől.');
 
-  const displayRows=(Array.isArray(j.displayNames) ? j.displayNames : []).filter(row=>!ccIsHiddenTestPlayerName_(row?.name));
+  const selfPlayerId=String(j.player?.playerId || j.player?.id || '').trim();
+  const displayRows=(Array.isArray(j.displayNames) ? j.displayNames : []).filter(row=>{
+    const rowPlayerId=String(row?.playerId || row?.id || '').trim();
+    return (selfPlayerId && rowPlayerId===selfPlayerId) || !ccIsHiddenTestPlayer_(row);
+  });
   const displayById=new Map();
   const displayByName=new Map();
 
@@ -4525,7 +4533,7 @@ function applyBootstrap(j){
   applySettingsUi_(currentPlayerSettings);
 
   teamPlayerDirectory=Array.isArray(j.teamPlayers)
-    ? j.teamPlayers.filter(player=>!ccIsHiddenTestPlayerName_(player?.name)).map(player=>({
+    ? j.teamPlayers.filter(player=>!ccIsHiddenTestPlayer_(player)).map(player=>({
         ...player,
         position:playerPositionLabel_(player.position),
         displayName:resolveDisplayName(player),

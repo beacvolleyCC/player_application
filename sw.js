@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p14a-standings-fallback-matchday-cleanup';
+const CACHE='club-control-player-v2-3-10-26o-p14b-unified-test-player-filter';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
