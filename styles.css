@@ -9602,3 +9602,115 @@ dialog[open]:focus{
   #plannerView .standings-table-fixed .pos{width:28px !important;min-width:28px !important;max-width:28px !important;}
   #plannerView .standings-table-fixed .team{width:122px !important;min-width:122px !important;max-width:122px !important;}
 }
+
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P11F — DATA-WIDTH STANDINGS
+   - stat widths follow numeric values instead of long headers
+   - ratio headers wrap to two compact lines
+   ========================================================== */
+#plannerView .standings-table-stats{
+  width:326px !important;
+  min-width:326px !important;
+  max-width:326px !important;
+}
+#plannerView .standings-table-stats thead th{
+  padding:0 2px !important;
+  font-size:6.3px !important;
+  line-height:1.05 !important;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  letter-spacing:.025em !important;
+}
+#plannerView .standings-table-stats tbody td{
+  padding:0 2px !important;
+  font-size:8.8px !important;
+}
+/* M / GY / V / P — single or two-digit numeric cells */
+#plannerView .standings-table-stats th:nth-child(-n+4),
+#plannerView .standings-table-stats td:nth-child(-n+4){
+  width:28px !important;min-width:28px !important;max-width:28px !important;
+}
+/* Szett — e.g. 35–7 */
+#plannerView .standings-table-stats th:nth-child(5),
+#plannerView .standings-table-stats td:nth-child(5){
+  width:46px !important;min-width:46px !important;max-width:46px !important;
+}
+/* Szettarány — e.g. 5.000 */
+#plannerView .standings-table-stats th:nth-child(6),
+#plannerView .standings-table-stats td:nth-child(6){
+  width:52px !important;min-width:52px !important;max-width:52px !important;
+}
+/* Pontok — e.g. 987–775 */
+#plannerView .standings-table-stats th:nth-child(7),
+#plannerView .standings-table-stats td:nth-child(7){
+  width:62px !important;min-width:62px !important;max-width:62px !important;
+}
+/* Pontarány — e.g. 1.274 */
+#plannerView .standings-table-stats th:nth-child(8),
+#plannerView .standings-table-stats td:nth-child(8){
+  width:54px !important;min-width:54px !important;max-width:54px !important;
+}
+#plannerView .standings-table-stats .hdr-wrap{
+  display:inline-block !important;
+  max-width:100% !important;
+  text-align:center !important;
+}
+
+/* ==========================================================
+   PLAYER V2.3.10.26O-P12 — TEAM LOGOS + STANDINGS FILTER + MATCH PANEL
+   ========================================================== */
+#plannerView .standings-team-cell{display:flex;align-items:center;gap:5px;min-width:0;width:100%;}
+#plannerView .standings-team-logo{width:18px;height:18px;min-width:18px;object-fit:contain;display:block;}
+#plannerView .standings-team-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#plannerView .standings-table-stats .group-end{border-right:1px solid color-mix(in srgb,var(--black) 24%,transparent) !important;}
+#plannerView .standings-table-stats thead th{white-space:nowrap !important;font-size:6.6px !important;}
+#plannerView .standings-table-stats th:nth-child(-n+4),
+#plannerView .standings-table-stats td:nth-child(-n+4){width:26px !important;min-width:26px !important;max-width:26px !important;}
+#plannerView .standings-table-stats th:nth-child(5),
+#plannerView .standings-table-stats td:nth-child(5){width:42px !important;min-width:42px !important;max-width:42px !important;}
+#plannerView .standings-table-stats th:nth-child(6),
+#plannerView .standings-table-stats td:nth-child(6){width:45px !important;min-width:45px !important;max-width:45px !important;}
+#plannerView .standings-table-stats th:nth-child(7),
+#plannerView .standings-table-stats td:nth-child(7){width:58px !important;min-width:58px !important;max-width:58px !important;}
+#plannerView .standings-table-stats th:nth-child(8),
+#plannerView .standings-table-stats td:nth-child(8){width:48px !important;min-width:48px !important;max-width:48px !important;}
+#plannerView .standings-table-stats{width:297px !important;min-width:297px !important;max-width:297px !important;}
+#plannerView .standings-filter-fields .filter-bar{grid-template-columns:minmax(0,1fr) !important;}
+#plannerView .standings-filter-fields select{width:100%;}
+#plannerView .planner-view-actions [hidden]{display:none !important;}
+
+#plannerView .standings-matches-panel{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden;}
+#plannerView .standings-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border-bottom:1px solid var(--line);}
+#plannerView .standings-panel-head>b{font-size:11px;}
+#plannerView .standings-panel-head>span{font-size:7.5px;color:var(--muted);font-weight:800;}
+#plannerView .standings-match-list{display:grid;}
+#plannerView .standings-match-row{display:grid;grid-template-columns:52px minmax(90px,1fr) 44px minmax(90px,1fr) 76px;align-items:center;gap:6px;min-height:52px;padding:6px 8px;border-bottom:1px solid var(--line);}
+#plannerView .standings-match-row:last-child{border-bottom:0;}
+#plannerView .standings-match-date{display:grid;gap:1px;text-align:left;font-variant-numeric:tabular-nums;}
+#plannerView .standings-match-date b{font-size:8px;white-space:nowrap;}
+#plannerView .standings-match-date span{font-size:7px;color:var(--muted);}
+#plannerView .standings-match-team{display:flex;align-items:center;gap:5px;min-width:0;padding:3px 4px;border-radius:7px;}
+#plannerView .standings-match-team.away{justify-content:flex-end;text-align:right;}
+#plannerView .standings-match-team.is-own{background:#fff3ad;}
+.dark #plannerView .standings-match-team.is-own{background:#3a3014;}
+#plannerView .standings-match-team>span{display:grid;gap:1px;min-width:0;}
+#plannerView .standings-match-team b{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#plannerView .standings-match-team small{font-size:6.5px;color:var(--muted);white-space:nowrap;}
+#plannerView .standings-team-logo.match-logo{width:22px;height:22px;min-width:22px;}
+#plannerView .standings-match-score{font-size:15px;font-weight:950;text-align:center;font-variant-numeric:tabular-nums;}
+#plannerView .standings-match-score:not(.has-score){font-size:10px;color:var(--muted);}
+#plannerView .standings-match-place{text-align:right;display:grid;gap:1px;min-width:0;}
+#plannerView .standings-match-place span,#plannerView .standings-match-place small{font-size:6.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#plannerView .standings-form-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-top:1px solid var(--line);}
+#plannerView .standings-form-row>span{font-size:7.5px;color:var(--muted);font-weight:800;}
+#plannerView .standings-form-row>div{display:flex;gap:4px;}
+#plannerView .standings-form-row b{width:20px;height:20px;border-radius:999px;display:grid;place-items:center;font-size:7px;}
+#plannerView .standings-form-row b.win{background:#e5f3e8;color:#246235;}
+#plannerView .standings-form-row b.loss{background:#fae4e4;color:#8b2929;}
+@media(max-width:620px){
+  #plannerView .standings-match-panel{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  #plannerView .standings-match-list{min-width:610px;}
+  #plannerView .standings-match-row{grid-template-columns:48px 155px 42px 155px 150px;}
+}
