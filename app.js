@@ -243,6 +243,12 @@ let currentProfileData = {
   loaded: false
 };
 
+let currentFinanceSettings={
+  season:'2026/27',passAmountHuf:7000,coachAmountHuf:7000,licenseAmountHuf:null,
+  passPurchaseUrl:'https://www.beac.hu/berlet/versenyzoi-roplabda-berlet-2026-osz',
+  coachPaymentText:'Revolut vagy készpénz',coachPaymentRecipient:'',coachPaymentAccount:'',playerInfo:''
+};
+
 let currentTeamData = null;
 
 const HOME_FILTER_KEY='cc-home-filters-v2';
@@ -560,6 +566,18 @@ function compactCourtMeta_(e){
   const court=compactCourtLabel_(e);
   return court==='–' ? 'Pálya –' : court;
 }
+function teamCoachBadges_(){
+  const raw=String(currentTeamData?.coaches||currentTeamData?.coach||currentFinanceSettings?.teamCoaches||'').trim();
+  if(!raw) return '';
+  const names=raw.split(/[,;/]+/).map(x=>x.trim()).filter(Boolean).slice(0,3);
+  if(!names.length) return '';
+  return `<span class="event-coach-badges" aria-label="Edző: ${escapeHtml_(names.join(', '))}">${names.map(name=>{
+    const parts=name.split(/\s+/).filter(Boolean);
+    const mono=(parts.length>1?(parts[0][0]+parts[parts.length-1][0]):parts[0]?.slice(0,2)||'E').toLocaleUpperCase('hu-HU');
+    return `<span class="event-coach-badge" title="${escapeHtml_(name)}">${escapeHtml_(mono)}</span>`;
+  }).join('')}</span>`;
+}
+
 function eventCard(e){
   const archived=isPast(e);
   const court=compactCourtMeta_(e);
@@ -585,7 +603,7 @@ function eventCard(e){
           ${awayLine}
           ${autoAbsence}
         </div>
-        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
+        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
       </div>
 
       <div class="slider-wrap">
@@ -1081,14 +1099,15 @@ function renderProfilePayments_(){
       </summary>
       <div class="profile-payment-info-body">
         <div class="profile-payment-info-row">
-          <div><b>BEAC versenyzői röplabda bérlet</b><small>7 000 Ft / hó</small></div>
-          <a href="https://www.beac.hu/berlet/versenyzoi-roplabda-berlet-2026-osz" target="_blank" rel="noopener">Bérlet megnyitása ↗</a>
+          <div><b>BEAC versenyzői röplabda bérlet</b><small>${escapeHtml_(profileMoney_(currentFinanceSettings.passAmountHuf)||'–')} / hó</small></div>
+          ${currentFinanceSettings.passPurchaseUrl?`<a href="${escapeHtml_(currentFinanceSettings.passPurchaseUrl)}" target="_blank" rel="noopener">Bérlet megnyitása ↗</a>`:'<span>–</span>'}
         </div>
         <div class="profile-payment-info-row">
-          <div><b>Edzői díj</b><small>7 000 Ft / hó</small></div>
-          <span>Revolut vagy készpénz</span>
+          <div><b>Edzői díj</b><small>${escapeHtml_(profileMoney_(currentFinanceSettings.coachAmountHuf)||'–')} / hó</small></div>
+          <span>${escapeHtml_(currentFinanceSettings.coachPaymentText||'–')}</span>
         </div>
-        <p>Ez a rész csak tájékoztató. A fenti havi státuszok kizárólag a rendszerben ténylegesen rögzített befizetéseket mutatják.</p>
+        ${Number.isFinite(Number(currentFinanceSettings.licenseAmountHuf))?`<div class="profile-payment-info-row"><div><b>Versenyengedély</b><small>${escapeHtml_(profileMoney_(currentFinanceSettings.licenseAmountHuf))}</small></div><span>Szezonális díj</span></div>`:''}
+        ${currentFinanceSettings.playerInfo?`<p>${escapeHtml_(currentFinanceSettings.playerInfo)}</p>`:'<p>Ez a rész csak tájékoztató. A fenti havi státuszok kizárólag a rendszerben ténylegesen rögzített befizetéseket mutatják.</p>'}
       </div>
     </details>
   `;
@@ -1343,8 +1362,7 @@ function initialCalendarCursor(rows){
 }
 
 function safeEventColor_(e){
-  const raw=String(e?.color||'').trim();
-  if(/^#[0-9a-fA-F]{6}$/.test(raw)) return raw;
+  // P14F: stable semantic calendar palette.
   if(e?.type==='Edzés') return '#f7b700';
   if(e?.matchKind==='home') return '#3f8f55';
   return '#4687c7';
@@ -1631,7 +1649,7 @@ function standingsTeamLogoHtml_(name,extraClass=''){
   if(!slug){
     return `<span class="standings-team-logo standings-team-monogram ${extraClass}" aria-hidden="true">${escapeHtml_(standingsTeamMonogram_(name))}</span>`;
   }
-  const version='p14e';
+  const version='p14f';
   if(STANDINGS_DARK_LOGO_SLUGS_.has(slug)){
     return `<span class="standings-team-logo standings-team-logo-switch ${extraClass}" aria-hidden="true"><img class="logo-light" src="./assets/team-logos/${slug}.png?v=${version}" alt="" loading="lazy" decoding="async"><img class="logo-dark" src="./assets/team-logos/${slug}_dark.png?v=${version}" alt="" loading="lazy" decoding="async"></span>`;
   }
@@ -3348,7 +3366,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14e').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14f').catch(()=>{}));
 }
 
 
@@ -3767,7 +3785,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p14e');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p14f');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -4288,7 +4306,7 @@ function openEventDialog(eventId){
         <h3>${e.title}</h3>
         <p>${e.date} • ${e.day} • ${e.time}</p>
       </div>
-      <strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong>
+      <div class="event-dialog-count"><strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
     </div>
     ${eventDialogDetails_(e)}
     <div class="event-dialog-slider">${plannerStatusControls(e,archived)}</div>
@@ -4590,10 +4608,15 @@ async function ccLoadProfileData_(){
   }
 
   try{
-    const [profileResult,overrideResult]=await Promise.all([
+    const [profileResult,overrideResult,financeSettingsResult]=await Promise.all([
       ccSupabase.rpc('cc_player_profile_data'),
-      ccSupabase.rpc('cc_player_payment_overrides_v2382')
+      ccSupabase.rpc('cc_player_payment_overrides_v2382'),
+      Promise.resolve(ccSupabase.rpc('cc_player_finance_settings_v1')).catch(()=>({data:null,error:null}))
     ]);
+    if(!financeSettingsResult?.error && financeSettingsResult?.data){
+      const fs=typeof financeSettingsResult.data==='string'?JSON.parse(financeSettingsResult.data):financeSettingsResult.data;
+      if(fs&&typeof fs==='object'){currentFinanceSettings={...currentFinanceSettings,...fs};renderEvents();renderPlanner();}
+    }
     if(profileResult.error) throw profileResult.error;
     const payload=typeof profileResult.data==='string' ? JSON.parse(profileResult.data) : (profileResult.data||{});
     let payments=Array.isArray(payload.payments) ? payload.payments.slice() : [];
