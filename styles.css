@@ -10220,7 +10220,7 @@ body.dark{
 .dark .bottom-nav::before{background:#d5a72f !important;}
 
 /* ==========================================================
-   PLAYER V2.3.10.26O-P14F — DARK NAV + MEDICAL INPUT FRAME FIX
+   PLAYER V2.3.10.26O-P14G — DARK NAV + MEDICAL INPUT FRAME FIX
    Scope only:
    - remove the double/outlined active bottom-nav highlight in dark mode
    - restore a complete date/time frame on iOS native controls
@@ -10284,7 +10284,7 @@ body.dark{
 }
 
 /* ========================================================================== 
-   PLAYER V2.3.10.26O-P14F — coach badge + semantic calendar + landscape safe area
+   PLAYER V2.3.10.26O-P14G — coach badge + semantic calendar + landscape safe area
    ========================================================================== */
 .event-coach-badges{display:inline-flex;align-items:center;margin-left:5px;gap:2px;vertical-align:middle}
 .event-coach-badge{width:19px;height:19px;border-radius:999px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--yellow) 55%,var(--line));background:var(--soft);color:var(--text);font-size:6.5px;font-weight:950;line-height:1;letter-spacing:-.03em}
@@ -10298,3 +10298,43 @@ body.dark{
   .page,.view,.content,#plannerView,#homeView,#profileView{padding-left:max(0px,env(safe-area-inset-left));padding-right:max(0px,env(safe-area-inset-right))}
   .bottom-nav{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
 }
+
+
+/* ========================================================================== 
+   PLAYER V2.3.10.26O-P14G — coach alignment + finance override bridge
+   ========================================================================== */
+.event-card .head-count,
+.event-top .head-count,
+.head-count{
+  display:inline-flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:4px !important;
+  vertical-align:middle !important;
+}
+.event-coach-badges{
+  display:inline-grid !important;
+  grid-auto-flow:column;
+  grid-auto-columns:19px;
+  align-items:center !important;
+  align-self:center !important;
+  gap:2px;
+  margin-left:1px !important;
+  vertical-align:middle !important;
+  line-height:1;
+}
+.event-coach-badges.multi{
+  grid-auto-flow:row;
+  grid-auto-rows:17px;
+  grid-template-columns:19px;
+  gap:1px;
+}
+.event-coach-badges.multi .event-coach-badge{
+  width:17px;
+  height:17px;
+  font-size:6px;
+}
+.event-dialog-count .event-coach-badges{margin-left:2px !important}
+.profile-permission-row .profile-permission-symbol.paid{color:#18733b !important}
+.profile-permission-row .profile-permission-symbol.late{color:#b42318 !important}

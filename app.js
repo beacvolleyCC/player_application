@@ -571,7 +571,7 @@ function teamCoachBadges_(){
   if(!raw) return '';
   const names=raw.split(/[,;/]+/).map(x=>x.trim()).filter(Boolean).slice(0,3);
   if(!names.length) return '';
-  return `<span class="event-coach-badges" aria-label="Edző: ${escapeHtml_(names.join(', '))}">${names.map(name=>{
+  return `<span class="event-coach-badges ${names.length>1?'multi':''}" aria-label="Edző: ${escapeHtml_(names.join(', '))}">${names.map(name=>{
     const parts=name.split(/\s+/).filter(Boolean);
     const mono=(parts.length>1?(parts[0][0]+parts[parts.length-1][0]):parts[0]?.slice(0,2)||'E').toLocaleUpperCase('hu-HU');
     return `<span class="event-coach-badge" title="${escapeHtml_(name)}">${escapeHtml_(mono)}</span>`;
@@ -916,19 +916,18 @@ function profileSeasonMonths_(){
     const startYear=Number(match[1]);
     const months=[];
 
-    // Club season: September -> August, all 12 months.
+    // Club payment season: September -> June. July and August are intentionally omitted.
     for(let month=9;month<=12;month++){
       months.push(`${startYear}-${String(month).padStart(2,'0')}`);
     }
-    for(let month=1;month<=8;month++){
+    for(let month=1;month<=6;month++){
       months.push(`${startYear+1}-${String(month).padStart(2,'0')}`);
     }
 
     return months;
   }
 
-  // Fallback: 12-month window around the current club year,
-  // still keeping all existing event months if season metadata is missing.
+  // Fallback: same September -> June payment window if season metadata is missing.
   const current=profileBudapestMonthKey_();
   const currentYear=Number(current.slice(0,4));
   const currentMonth=Number(current.slice(5,7));
@@ -938,7 +937,7 @@ function profileSeasonMonths_(){
   for(let month=9;month<=12;month++){
     months.push(`${startYear}-${String(month).padStart(2,'0')}`);
   }
-  for(let month=1;month<=8;month++){
+  for(let month=1;month<=6;month++){
     months.push(`${startYear+1}-${String(month).padStart(2,'0')}`);
   }
 
@@ -1060,7 +1059,7 @@ function renderProfilePayments_(){
 
   let permissionHtml='';
   const permissionStatus=String(permission?.status||'').toLowerCase();
-  if(permissionStatus==='paid'){
+  if(permissionStatus==='paid'||permissionStatus==='prior_paid'){
     permissionHtml=`<span class="profile-permission-symbol paid" title="Befizetve" aria-label="Befizetve">✓</span>`;
   }else if(permissionStatus==='due'){
     permissionHtml=`<span class="profile-permission-symbol late" title="Fizetendő" aria-label="Fizetendő">!</span>`;
@@ -1088,7 +1087,7 @@ function renderProfilePayments_(){
     </div>
 
     <div class="profile-permission-row detail-row">
-      <span class="profile-permission-label">Engedélyek</span>
+      <span class="profile-permission-label">Versenyengedély</span>
       ${permissionHtml}
     </div>
 
@@ -1362,7 +1361,7 @@ function initialCalendarCursor(rows){
 }
 
 function safeEventColor_(e){
-  // P14F: stable semantic calendar palette.
+  // P14G: stable semantic calendar palette.
   if(e?.type==='Edzés') return '#f7b700';
   if(e?.matchKind==='home') return '#3f8f55';
   return '#4687c7';
@@ -1649,7 +1648,7 @@ function standingsTeamLogoHtml_(name,extraClass=''){
   if(!slug){
     return `<span class="standings-team-logo standings-team-monogram ${extraClass}" aria-hidden="true">${escapeHtml_(standingsTeamMonogram_(name))}</span>`;
   }
-  const version='p14f';
+  const version='p14g';
   if(STANDINGS_DARK_LOGO_SLUGS_.has(slug)){
     return `<span class="standings-team-logo standings-team-logo-switch ${extraClass}" aria-hidden="true"><img class="logo-light" src="./assets/team-logos/${slug}.png?v=${version}" alt="" loading="lazy" decoding="async"><img class="logo-dark" src="./assets/team-logos/${slug}_dark.png?v=${version}" alt="" loading="lazy" decoding="async"></span>`;
   }
@@ -3366,7 +3365,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14f').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14g').catch(()=>{}));
 }
 
 
@@ -3785,7 +3784,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p14f');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p14g');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -4599,6 +4598,13 @@ async function ccSetupRealtime_(team){
     });
 }
 
+async function ccLoadPlayerFinanceOverrides_(){
+  let result=await ccSupabase.rpc('cc_player_finance_overrides_v1');
+  if(!result?.error) return result;
+  console.warn('MGR019 Player finance bridge nem érhető el, régi override RPC fallback:',result.error);
+  return await ccSupabase.rpc('cc_player_payment_overrides_v2382');
+}
+
 async function ccLoadProfileData_(){
   if(!SUPABASE_ENABLED || !ccSupabase){
     currentProfileData={attendance:[],payments:[],loaded:false};
@@ -4610,7 +4616,7 @@ async function ccLoadProfileData_(){
   try{
     const [profileResult,overrideResult,financeSettingsResult]=await Promise.all([
       ccSupabase.rpc('cc_player_profile_data'),
-      ccSupabase.rpc('cc_player_payment_overrides_v2382'),
+      ccLoadPlayerFinanceOverrides_(),
       Promise.resolve(ccSupabase.rpc('cc_player_finance_settings_v1')).catch(()=>({data:null,error:null}))
     ]);
     if(!financeSettingsResult?.error && financeSettingsResult?.data){
