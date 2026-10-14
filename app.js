@@ -2121,26 +2121,33 @@ function standingsDisplayRows_(rows){
 }
 
 function renderCompetitionStandings_(){
-  const photoMain=ccMrszPlayerMainScreenshotHtml_();
-  if(photoMain!==null)return photoMain;
-  if(!competitionStandings.loaded && !competitionStandings.error){
+  const men=ccMrszPlayerIsMensTeam_(),women2=ccMrszPlayerIsWomen2_(),women1=ccMrszPlayerIsWomenI_();
+  const label=men?(ccMrszPlayerMenGroup_==='A'?'Férfi Budapest I. osztály – A csoport':'Férfi Budapest I. osztály – B csoport')
+    :women2?'Női Budapest II. osztály – B csoport':'Női Budapest I. osztály';
+  const photo=(ccMrszPlayerPhoto_.tables||[]).find(t=>t.competitionLabel===label)||null;
+  const hasPhoto=!!photo&&(women1||women2||(men&&ccMrszPlayerMenGroup_==='A'));
+  const requiresPhoto=men&&ccMrszPlayerMenGroup_==='A';
+  if(requiresPhoto&&!ccMrszPlayerPhoto_.loaded)return '<div class="standings-state">A bajnoki tabella betöltése…</div>'+ccMrszPlayerMenGroupButtonsHtml_();
+  if(requiresPhoto&&ccMrszPlayerPhoto_.error)return '<div class="standings-state">A mentett MRSZ-tabella nem elérhető.</div>'+ccMrszPlayerMenGroupButtonsHtml_();
+  if(requiresPhoto&&!hasPhoto)return '<div class="standings-state">Ehhez a csoporthoz nincs mentett tabella.</div>'+ccMrszPlayerMenGroupButtonsHtml_();
+  if(!hasPhoto&&!competitionStandings.loaded && !competitionStandings.error){
     return `<div class="standings-state"><b>Tabella betöltése…</b><span>A bajnoki adatok frissítése folyamatban van.</span></div>`;
   }
-  if(competitionStandings.error){
+  if(!hasPhoto&&competitionStandings.error){
     return `<div class="standings-state"><b>A tabella most nem érhető el</b><span>${escapeHtml_(competitionStandings.error)}</span></div>`;
   }
   const contexts=Array.isArray(competitionStandings.contexts)?competitionStandings.contexts:[];
-  if(!contexts.length){
+  if(!hasPhoto&&!contexts.length){
     return `<div class="standings-state"><b>Még nincs tabellaadat</b><span>Amint érkezik hivatalos bajnoki tabella, itt automatikusan megjelenik.</span></div>${ccMrszPlayerMenGroupButtonsHtml_()}`;
   }
   const ctx=activeStandingsContext_();
-  const allRows=standingsDisplayRows_(ctx?.rows);
-  syncStandingsFilterControl_(allRows);
-  const rows=filteredStandingsRows_(ctx?.rows);
-  const selectedRow=selectedStandingsRow_(allRows);
+  const allRows=hasPhoto?ccPlayerPhotoStandingRows_(photo):standingsDisplayRows_(ctx?.rows);
+  if(!hasPhoto)syncStandingsFilterControl_(allRows);
+  const rows=hasPhoto?allRows:filteredStandingsRows_(ctx?.rows);
+  const selectedRow=hasPhoto?null:selectedStandingsRow_(allRows);
   const selector=PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED && contexts.length>1 ? `<label class="standings-team-picker"><span>Csapat</span><select id="standingsTeamSelect">${contexts.map(c=>`<option value="${escapeHtml_(String(c.contextTeamId||''))}" ${String(c.contextTeamId||'')===String(ctx?.contextTeamId||'')?'selected':''}>${escapeHtml_(c.teamName||'Csapat')}</option>`).join('')}</select></label>` : '';
-  const meta=[ctx?.competitionLabel,ctx?.source].filter(Boolean).join(' · ');
-  const updated=standingsDateLabel_(ctx?.updatedAt);
+  const meta=hasPhoto?label+' · '+(photo.partial?'részleges, eredményekből számított állás':'mentett MRSZ-tabella (2026.10.14.)'):[ctx?.competitionLabel,ctx?.source].filter(Boolean).join(' · ');
+  const updated=hasPhoto?'':standingsDateLabel_(ctx?.updatedAt);
   if(!allRows.length){
     return `<div class="standings-headline">${selector}<div><b>${escapeHtml_(ctx?.teamName||'Csapat')}</b>${meta?`<span>${escapeHtml_(meta)}</span>`:''}</div></div>${ccMrszPlayerMenGroupButtonsHtml_()}<div class="standings-state"><b>Ehhez a csapathoz még nincs hivatalos tabella</b><span>A BRSZ/MRSZ forrás frissítése után automatikusan megjelenik.</span></div>`;
   }
@@ -2164,8 +2171,8 @@ function renderCompetitionStandings_(){
       </div>
     </div>
     ${ccMrszPlayerMenGroupButtonsHtml_()}
-    ${ccMrszPlayerIsMensTeam_()?ccMrszPlayerLeagueScheduleHtml_('Férfi Budapest I. osztály – B csoport',true):renderStandingsMatches_(allRows,selectedRow)}
-    ${selectedRow?renderStandingsInsights_(allRows,selectedRow):renderLeagueStandingsInsights_(allRows)}
+    ${ccMrszPlayerLeagueScheduleHtml_(label,!requiresPhoto)}
+    ${hasPhoto?'':selectedRow?renderStandingsInsights_(allRows,selectedRow):renderLeagueStandingsInsights_(allRows)}
   </div>`;
 }
 
@@ -2327,9 +2334,25 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  for(const m of snapshot)unique.set(ccMrszPlayerFixtureKey_(m),m);
  return [...unique.values()].sort((a,b)=>String(a.startsAt||'').localeCompare(String(b.startsAt||'')));
 }
+
+let ccLeaguePlayerMatchScope_='beac';
+function ccLeaguePlayerHasBeac_(name){
+ const value=String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ return /^beac(?:\s+ii\.?)?$/.test(value)||value.startsWith('budapesti egyetemi atletikai club');
+}
+function ccPlayerPhotoStandingRows_(photo){
+ return (photo?.rows||[]).map((r,i)=>({...r,sourceTeamId:String(r.sourceTeamId||'photo-'+i),
+   focus:ccLeaguePlayerHasBeac_(r.teamName),position:r.position??i+1}));
+}
+
 function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
  const rows=ccMrszPlayerAllLeagueMatches_(label,withCanonical);
- const result=rows.map(m=>{
+ const scope=label==='Férfi Budapest I. osztály – A csoport'?'all':ccLeaguePlayerMatchScope_;
+ const filtered=scope==='all'?rows:rows.filter(m=>ccLeaguePlayerHasBeac_(m.homeName)||ccLeaguePlayerHasBeac_(m.awayName));
+ const controls='<div class="cc-league-player-scope" role="group" aria-label="Bajnoki meccsek szűrése">'
+  +'<button type="button" data-league-player-scope="beac" aria-pressed="'+(scope==='beac')+'" class="'+(scope==='beac'?'active':'')+'">BEAC meccsek</button>'
+  +'<button type="button" data-league-player-scope="all" aria-pressed="'+(scope==='all')+'" class="'+(scope==='all'?'active':'')+'">Összes bajnoki meccs</button></div>';
+ const result=filtered.map(m=>{
    const date=String(m.startsAt||'').slice(0,10),time=String(m.startsAt||'').slice(11,16);
    const scored=m.homeSets!=null&&m.awaySets!=null&&Number.isFinite(Number(m.homeSets))&&Number.isFinite(Number(m.awaySets));
    const score=scored?(Number(m.homeSets)+'–'+Number(m.awaySets)):'–';
@@ -2341,8 +2364,8 @@ function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
     +'<div class="standings-match-team away"><span><b>'+escapeHtml_(away||'–')+'</b></span>'+standingsTeamLogoHtml_(away,'match-logo')+'</div>'
     +'<div class="standings-match-place"><span>'+escapeHtml_(venue)+'</span>'+(sets?'<small>Szettek: '+escapeHtml_(sets)+'</small>':'')+'</div></div>';
  }).join('');
- return '<section class="standings-matches-panel cc-mrsz-player-league-matches"><div class="standings-panel-head"><b>Bajnoki mérkőzések</b><span>'+rows.length+' meccs</span></div>'
-  +'<div class="standings-match-list">'+(result||'<div class="standings-match-empty">Ehhez a bajnoksághoz még nincs rögzített mérkőzés.</div>')+'</div></section>';
+ return '<section class="standings-matches-panel cc-mrsz-player-league-matches"><div class="standings-panel-head"><b>Bajnoki mérkőzések</b><span>'+filtered.length+' / '+rows.length+' meccs</span>'+controls+'</div>'
+  +'<div class="standings-match-list">'+(result||'<div class="standings-match-empty">Nincs BEAC-meccs ebben a szűrésben. A teljes bajnokság a fenti kapcsolóval elérhető.</div>')+'</div></section>';
 }
 
 function ccMrszPlayerMainScreenshotHtml_(){
@@ -2381,6 +2404,10 @@ function renderPlanner(){
     if(!ccMrszPlayerPhoto_.loaded&&!ccMrszPlayerPhoto_.loading)void ccLoadMrszPlayerPhoto_();
     bindStandingsTeamFilterClicks_();
     ccBindMrszPlayerMenGroup_();
+    document.querySelectorAll('[data-league-player-scope]').forEach(btn=>btn.addEventListener('click',()=>{
+      ccLeaguePlayerMatchScope_=btn.dataset.leaguePlayerScope==='all'?'all':'beac';
+      renderPlanner();
+    }));
     document.getElementById('standingsTeamSelect')?.addEventListener('change',event=>{
       selectedStandingTeamId=String(event.target.value||'');
       try{localStorage.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
