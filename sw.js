@@ -1,4 +1,4 @@
-const CACHE='club-control-player-20261014-single-standings-beac-mobile-v5';
+const CACHE='club-control-player-20261014-standings-scope-v6';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',

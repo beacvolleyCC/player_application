@@ -1566,7 +1566,10 @@ function standingsDateLabel_(value){
 function activeStandingsContext_(){
   const contexts=Array.isArray(competitionStandings?.contexts)?competitionStandings.contexts:[];
   if(!contexts.length) return null;
-  let selected=contexts.find(c=>String(c?.contextTeamId||'')===String(selectedStandingTeamId||''));
+  let selected=null;
+  // The team picker is intentionally hidden; never let an old stored selection override the player's current team.
+  if(!PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED && currentTeamData?.id) selected=contexts.find(c=>String(c?.contextTeamId||'')===String(currentTeamData.id));
+  if(!selected) selected=contexts.find(c=>String(c?.contextTeamId||'')===String(selectedStandingTeamId||''));
   if(!selected && currentTeamData?.id) selected=contexts.find(c=>String(c?.contextTeamId||'')===String(currentTeamData.id));
   if(!selected) selected=contexts[0];
   if(selected && String(selectedStandingTeamId||'')!==String(selected.contextTeamId||'')){

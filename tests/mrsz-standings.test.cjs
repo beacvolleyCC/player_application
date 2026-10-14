@@ -100,9 +100,9 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261014-single-standings-beac-mobile-v5'));
- assert.ok(html.includes('app.js?v=20261014-single-standings-beac-mobile-v5'));
- assert.ok(sw.includes("club-control-player-20261014-single-standings-beac-mobile-v5"));
+ assert.ok(html.includes('styles.css?v=20261014-standings-scope-v6'));
+ assert.ok(html.includes('app.js?v=20261014-standings-scope-v6'));
+ assert.ok(sw.includes("club-control-player-20261014-standings-scope-v6"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -118,4 +118,25 @@ test('official UTC kickoff is shown in Budapest time and not duplicated against 
   assert.ok(!html.includes('17:30'));
   assert.equal(vm.runInContext("ccMrszPlayerLocalKickoff_('2026-11-01T23:30:00+00:00').date",context),'2026-11-02');
  }finally{context.ccMrszPlayerPhoto_.fixtures.pop();context.competitionLeagueInsights.data.matches=[];}
+});
+
+test('hidden Player team switcher cannot display a persisted different team league',()=>{
+ const st=js.indexOf('function activeStandingsContext_(){');
+ const en=js.indexOf('function standingsPair_(',st);
+ assert.ok(st>0 && en>st);
+ const teams=[
+  {contextTeamId:'10000000-0000-4000-8000-000000000001',teamName:'Női I.'},
+  {contextTeamId:'10000000-0000-4000-8000-000000000003',teamName:'Férfi I.'}
+ ];
+ const mock={competitionStandings:{contexts:teams},selectedStandingTeamId:teams[0].contextTeamId,
+   currentTeamData:{id:teams[1].contextTeamId},PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED:false,
+   localStorage:{setItem(){}}};
+ vm.createContext(mock);
+ vm.runInContext(js.slice(st,en)+'\nthis.getCurrent=activeStandingsContext_;',mock);
+ const active=mock.getCurrent();
+ assert.equal(active.contextTeamId,teams[1].contextTeamId);
+ assert.equal(mock.selectedStandingTeamId,teams[1].contextTeamId);
+ mock.PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED=true;
+ mock.selectedStandingTeamId=teams[0].contextTeamId;
+ assert.equal(mock.getCurrent().contextTeamId,teams[0].contextTeamId);
 });
