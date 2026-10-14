@@ -37,7 +37,7 @@ test('photo scores take precedence over BRSZ fixture with team-name aliases',()=
  assert.equal(context.qa.merge(w2,false).length,1);
  assert.equal(context.qa.merge(menA,false).length,1);
 });
-test('all leagues, including men's A and B, have an isolated schedule in existing match design',()=>{
+test("all leagues, including men's A and B, have an isolated schedule in existing match design",()=>{
  for(const league of [w1,w2,menA,menB]){
   const html=context.qa.html(league,false);
   assert.ok(html.includes('standings-match-row'));
@@ -66,7 +66,7 @@ test('canonical feed and fixture matching do not double-count',()=>{
  assert.equal(rows.length,1);
  assert.equal(rows[0].homeSets,3);
 });
-test('standings use men's full league schedule, not only BEAC matches',()=>{
+test("standings use men's full league schedule, not only BEAC matches",()=>{
  assert.ok(js.includes("ccMrszPlayerLeagueScheduleHtml_('Férfi Budapest I. osztály – B csoport',true)"));
  assert.ok(css.includes('.standings-match-row'));
 });
