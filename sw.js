@@ -1,4 +1,4 @@
-const CACHE='club-control-player-20261014-mrsz-photo-r1';
+const CACHE='club-control-player-20261014-mrsz-main-a2';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
