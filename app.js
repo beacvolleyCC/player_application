@@ -2347,7 +2347,16 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  for(const m of (ccMrszPlayerPhoto_.fixtures||[]).filter(x=>String(x.competitionLabel)===competitionLabel))unique.set(ccMrszPlayerFixtureKey_(m),m);
  for(const m of feed)unique.set(ccMrszPlayerFixtureKey_(m),m);
  for(const m of snapshot)unique.set(ccMrszPlayerFixtureKey_(m),m);
- return [...unique.values()].sort((a,b)=>String(a.startsAt||'').localeCompare(String(b.startsAt||'')));
+ const localSort=m=>{const t=ccMrszPlayerLocalKickoff_(m.startsAt);return t.date+'T'+t.time;};
+ return [...unique.values()].sort((a,b)=>localSort(a).localeCompare(localSort(b)));
+}
+
+// Preserve unconfirmed BEAC self-fixtures in the source but do not advertise them as matches.
+function ccMrszPlayerUnverifiedSelfFixture_(m){
+ if(m.homeSets!=null||m.awaySets!=null)return false;
+ const key=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const home=key(m.homeName);
+ return !!home&&home===key(m.awayName)&&ccLeaguePlayerHasBeac_(m.homeName);
 }
 
 let ccLeaguePlayerMatchScope_='beac';
@@ -2361,7 +2370,7 @@ function ccPlayerPhotoStandingRows_(photo){
 }
 
 function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
- const rows=ccMrszPlayerAllLeagueMatches_(label,withCanonical);
+ const rows=ccMrszPlayerAllLeagueMatches_(label,withCanonical).filter(m=>!ccMrszPlayerUnverifiedSelfFixture_(m));
  const scope=ccLeaguePlayerMatchScope_;
  const filtered=scope==='all'?rows:rows.filter(m=>ccLeaguePlayerHasBeac_(m.homeName)||ccLeaguePlayerHasBeac_(m.awayName));
  const controls='<div class="cc-league-player-scope" role="group" aria-label="Bajnoki meccsek szűrése">'

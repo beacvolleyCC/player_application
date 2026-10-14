@@ -100,9 +100,9 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261014-standings-scope-v6'));
- assert.ok(html.includes('app.js?v=20261014-standings-scope-v6'));
- assert.ok(sw.includes("club-control-player-20261014-standings-scope-v6"));
+ assert.ok(html.includes('styles.css?v=20261014-fixture-review-v7'));
+ assert.ok(html.includes('app.js?v=20261014-fixture-review-v7'));
+ assert.ok(sw.includes("club-control-player-20261014-fixture-review-v7"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -139,4 +139,38 @@ test('hidden Player team switcher cannot display a persisted different team leag
  mock.PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED=true;
  mock.selectedStandingTeamId=teams[0].contextTeamId;
  assert.equal(mock.getCurrent().contextTeamId,teams[0].contextTeamId);
+});
+
+test('unconfirmed BEAC self-fixtures do not appear on either Player match scope',()=>{
+ const league=menB;
+ const records=[
+  {competitionLabel:league,startsAt:'2027-01-13T20:30:00',homeName:'BEAC',awayName:'BEAC',homeSets:null,awaySets:null},
+  {competitionLabel:league,startsAt:'2027-03-04T19:30:00',homeName:'BEAC',awayName:'BEAC',homeSets:null,awaySets:null}
+ ];
+ fixtures.push(...records);
+ try{
+  for(const scope of ['beac','all']){
+   context.qa.setScope(scope);
+   const html=context.qa.html(league,false);
+   assert.ok(html.includes('1 / 1 meccs'),scope);
+   assert.ok(html.includes('PDSE'),scope);
+   assert.ok(!html.includes('2027-01-13'),scope);
+   assert.ok(!html.includes('2027-03-04'),scope);
+  }
+  assert.equal(vm.runInContext('ccMrszPlayerUnverifiedSelfFixture_',context)({...records[1],homeSets:3,awaySets:1}),false);
+ }finally{
+  fixtures.splice(fixtures.length-records.length);
+  context.qa.setScope('beac');
+ }
+});
+test('women I self-fixture does not appear while other women results remain accessible',()=>{
+ const s={competitionLabel:w1,startsAt:'2026-11-10T19:30:00',homeName:'BEAC',awayName:'BEAC',homeSets:null,awaySets:null};
+ fixtures.push(s);
+ try{
+  context.qa.setScope('all');
+  const html=context.qa.html(w1,false);
+  assert.ok(!html.includes('2026-11-10'));
+  assert.ok(html.includes('3–1'));
+  assert.ok(html.includes('1 / 1 meccs'));
+ }finally{fixtures.pop();context.qa.setScope('beac');}
 });
