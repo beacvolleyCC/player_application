@@ -2268,12 +2268,36 @@ async function ccLoadCompetitionStandings_(){
   if(plannerSection==='standings') renderPlanner();
 }
 
+
+/* MRSZ screenshot snapshots are separate from the team's canonical BRSZ table. */
+let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],tables:[]};
+async function ccLoadMrszPlayerPhoto_(){
+  if(ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.loading||!ccSupabase||!SUPABASE_ENABLED)return;
+  ccMrszPlayerPhoto_.loading=true;
+  try{
+    const {data,error}=await ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v1');
+    if(error)throw error;
+    const p=typeof data==='string'?JSON.parse(data):(data||{});
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],tables:Array.isArray(p.tables)?p.tables:[]};
+  }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],tables:[]}}
+  if(plannerSection==='standings')renderPlanner();
+}
+function ccMrszPlayerPhotoHtml_(){
+  const p=ccMrszPlayerPhoto_;
+  if(!p.loaded)return '<section class="cc-mrsz-player-snapshot"><h3>MRSZ · beküldött eredmények</h3><p>Adatok betöltése…</p></section>';
+  if(p.error)return `<section class="cc-mrsz-player-snapshot"><h3>MRSZ · beküldött eredmények</h3><p>Jelenleg nem elérhető: ${escapeHtml_(p.error)}</p></section>`;
+  const matches=p.matches.map(m=>`<div class="cc-mrsz-player-match"><span><b>${escapeHtml_(m.homeName||'')}</b> – ${escapeHtml_(m.awayName||'')}<small>${escapeHtml_(m.competitionLabel||'')} · ${escapeHtml_(String(m.startsAt||'').slice(0,10))}</small></span><strong>${Number(m.homeSets)||0}:${Number(m.awaySets)||0}</strong><small class="cc-mrsz-player-sets">${(m.setScores||[]).map(x=>`${Number(x.home)||0}:${Number(x.away)||0}`).join(' · ')}</small></div>`).join('');
+  const tables=p.tables.map(t=>`<details class="cc-mrsz-player-group"><summary>${escapeHtml_(t.competitionLabel||'Bajnokság')} · tabella</summary><div class="cc-mrsz-player-table-scroll"><table><thead><tr><th>#</th><th>Csapat</th><th>M</th><th>GY</th><th>V</th><th>P</th></tr></thead><tbody>${(t.rows||[]).map(r=>`<tr><td>${Number(r.position)||0}</td><td>${escapeHtml_(r.teamName||'')}</td><td>${Number(r.played)||0}</td><td>${Number(r.wins)||0}</td><td>${Number(r.losses)||0}</td><td>${Number(r.tablePoints)||0}</td></tr>`).join('')}</tbody></table></div></details>`).join('');
+  return `<section class="cc-mrsz-player-snapshot"><h3>MRSZ · beküldött eredmények</h3><p>2026. október 14-i Hunvolley-képernyőképek alapján · nem automatikus frissítés</p><div class="cc-mrsz-player-matches">${matches}</div>${tables}</section>`;
+}
+
 function renderPlanner(){
   syncPlannerSectionUi_();
   if(plannerSection==='standings'){
     const jumpBtn=document.getElementById('jumpCurrentBtn');
     if(jumpBtn) jumpBtn.hidden=true;
-    plannerList.innerHTML=renderCompetitionStandings_();
+    plannerList.innerHTML=renderCompetitionStandings_()+ccMrszPlayerPhotoHtml_();
+    if(!ccMrszPlayerPhoto_.loaded&&!ccMrszPlayerPhoto_.loading)void ccLoadMrszPlayerPhoto_();
     bindStandingsTeamFilterClicks_();
     document.getElementById('standingsTeamSelect')?.addEventListener('change',event=>{
       selectedStandingTeamId=String(event.target.value||'');
