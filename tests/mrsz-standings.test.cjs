@@ -78,7 +78,7 @@ test('canonical feed and fixture matching do not double-count',()=>{
  assert.equal(rows[0].homeSets,3);
 });
 test("standings use men's full league schedule, not only BEAC matches",()=>{
- assert.ok(js.includes("ccMrszPlayerLeagueScheduleHtml_('Férfi Budapest I. osztály – B csoport',true)"));
+ assert.ok(js.includes("ccMrszPlayerLeagueScheduleHtml_(label,!requiresPhoto)"));
  assert.ok(css.includes('.standings-match-row'));
 });
 
