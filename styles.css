@@ -10338,3 +10338,21 @@ body.dark{
 .event-dialog-count .event-coach-badges{margin-left:2px !important}
 .profile-permission-row .profile-permission-symbol.paid{color:#18733b !important}
 .profile-permission-row .profile-permission-symbol.late{color:#b42318 !important}
+
+
+/* Read-only 2026-10-14 MRSZ screenshot season snapshot – supplemental, not official live table. */
+.cc-mrsz-player-snapshot{margin:18px 0;padding:12px;background:var(--card,#fff);border:1px solid var(--line,#ddd);border-radius:14px;color:var(--text,inherit)}
+.cc-mrsz-player-snapshot h3{font-size:15px;margin:0 0 4px;font-weight:850}
+.cc-mrsz-player-snapshot>p{margin:0 0 12px;font-size:11px;color:var(--muted,#666)}
+.cc-mrsz-player-matches{display:grid;gap:6px;margin-bottom:12px}
+.cc-mrsz-player-match{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 9px;padding:10px;border:1px solid var(--line,#ddd);border-radius:9px}
+.cc-mrsz-player-match>span{display:grid;gap:4px;font-size:12px;overflow-wrap:anywhere}
+.cc-mrsz-player-match>span small{font-size:10px;color:var(--muted,#666)}
+.cc-mrsz-player-match strong{font-weight:900;font-size:19px;font-variant-numeric:tabular-nums}
+.cc-mrsz-player-sets{grid-column:1/-1;color:var(--muted,#666);font-size:10px;font-variant-numeric:tabular-nums}
+.cc-mrsz-player-group{margin-top:7px;border:1px solid var(--line,#ddd);border-radius:8px;overflow:hidden}
+.cc-mrsz-player-group summary{padding:10px;font-size:11px;font-weight:800;cursor:pointer}
+.cc-mrsz-player-table-scroll{overflow:auto;padding:0 6px 8px}
+.cc-mrsz-player-group table{width:100%;border-collapse:collapse;font-size:10px}
+.cc-mrsz-player-group td,.cc-mrsz-player-group th{padding:6px 4px;border-bottom:1px solid var(--line,#ddd);text-align:right}
+.cc-mrsz-player-group td:nth-child(2),.cc-mrsz-player-group th:nth-child(2){text-align:left;min-width:120px}
