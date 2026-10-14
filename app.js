@@ -2308,6 +2308,7 @@ function ccMrszPlayerMenGroupButtonsHtml_(){
 function ccBindMrszPlayerMenGroup_(){
  document.querySelectorAll('[data-mrsz-player-men-group]').forEach(btn=>btn.addEventListener('click',()=>{
    ccMrszPlayerMenGroup_=btn.dataset.mrszPlayerMenGroup==='A'?'A':'B';
+   ccLeaguePlayerMatchScope_=ccMrszPlayerMenGroup_==='A'?'all':'beac';
    selectedStandingsRowTeamId='all';
    renderPlanner();
  }));
@@ -2347,7 +2348,7 @@ function ccPlayerPhotoStandingRows_(photo){
 
 function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
  const rows=ccMrszPlayerAllLeagueMatches_(label,withCanonical);
- const scope=label==='Férfi Budapest I. osztály – A csoport'?'all':ccLeaguePlayerMatchScope_;
+ const scope=ccLeaguePlayerMatchScope_;
  const filtered=scope==='all'?rows:rows.filter(m=>ccLeaguePlayerHasBeac_(m.homeName)||ccLeaguePlayerHasBeac_(m.awayName));
  const controls='<div class="cc-league-player-scope" role="group" aria-label="Bajnoki meccsek szűrése">'
   +'<button type="button" data-league-player-scope="beac" aria-pressed="'+(scope==='beac')+'" class="'+(scope==='beac'?'active':'')+'">BEAC meccsek</button>'
