@@ -96,3 +96,11 @@ test('mobile league match cards display readable set points on their own grid ro
  assert.ok(styles.includes('#plannerView .cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;'));
  assert.ok(styles.includes('#plannerView .cc-mrsz-player-league-matches .standings-match-team b{font-size:9px;white-space:normal;'));
 });
+
+test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
+ const html=fs.readFileSync('index.html','utf8');
+ const sw=fs.readFileSync('sw.js','utf8');
+ assert.ok(html.includes('styles.css?v=20261014-single-standings-beac-mobile-v5'));
+ assert.ok(html.includes('app.js?v=20261014-single-standings-beac-mobile-v5'));
+ assert.ok(sw.includes("club-control-player-20261014-single-standings-beac-mobile-v5"));
+});
