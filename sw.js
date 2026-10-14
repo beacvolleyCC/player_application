@@ -1,4 +1,4 @@
-const CACHE='club-control-player-v2-3-10-26o-p14g-coach-finance-calendar-safearea';
+const CACHE='club-control-player-20261014-mrsz-photo-r1';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
