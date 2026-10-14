@@ -104,3 +104,18 @@ test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>
  assert.ok(html.includes('app.js?v=20261014-single-standings-beac-mobile-v5'));
  assert.ok(sw.includes("club-control-player-20261014-single-standings-beac-mobile-v5"));
 });
+
+test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
+ const fixture={competitionLabel:w1,startsAt:'2026-10-16T19:30:00',homeName:'BEAC',awayName:'MAFC-ÉPK',homeSets:null,awaySets:null};
+ const official={...fixture,startsAt:'2026-10-16T17:30:00+00:00'};
+ context.ccMrszPlayerPhoto_.fixtures.push(fixture);
+ context.competitionLeagueInsights.data.matches=[official];
+ try{
+  const merged=context.qa.merge(w1,true);
+  assert.equal(merged.filter(x=>x.homeName==='BEAC'&&x.awayName==='MAFC-ÉPK').length,1);
+  const html=context.qa.html(w1,true);
+  assert.ok(html.includes('19:30'));
+  assert.ok(!html.includes('17:30'));
+  assert.equal(vm.runInContext("ccMrszPlayerLocalKickoff_('2026-11-01T23:30:00+00:00').date",context),'2026-11-02');
+ }finally{context.ccMrszPlayerPhoto_.fixtures.pop();context.competitionLeagueInsights.data.matches=[];}
+});

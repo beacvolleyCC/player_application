@@ -2318,13 +2318,24 @@ function ccMrszPlayerIsWomenI_(){
  return String(currentTeamData?.id||'')==='10000000-0000-4000-8000-000000000001'
   || /^BEAC Női I\.?$/i.test(String(currentTeamData?.teamName||currentTeamData?.name||''));
 }
+function ccMrszPlayerLocalKickoff_(value){
+ const raw=String(value||'');
+ const fallback={date:raw.slice(0,10),time:raw.slice(11,16)};
+ if(raw.length<17||!/(?:[zZ]|[+-]\\d{2}(?::?\\d{2})?)$/.test(raw))return fallback;
+ const instant=new Date(raw);
+ if(Number.isNaN(instant.getTime()))return fallback;
+ const pieces=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(instant);
+ const get=kind=>pieces.find(part=>part.type===kind)?.value||'';
+ return {date:get('year')+'-'+get('month')+'-'+get('day'),time:get('hour')+':'+get('minute')};
+}
+
 function ccMrszPlayerFixtureKey_(m){
  const key=x=>{const n=String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
    if(n.includes('kando'))return 'kando';if(n.includes('kozgaz'))return 'kozgaz';
    if(n.includes('semmelweis'))return 'semmelweis';if(n.includes('emericus'))return 'emericus';
    if(n.includes('rackeve'))return 'rackeve';if(n.includes('mtk')&&n.includes('kek'))return 'mtk-kek';
    if(n.includes('mtk'))return 'mtk';return n.replace(/\bbudapest\b/g,'').replace(/\bsport klub\b/g,'').replace(/[^a-z0-9]/g,'');};
- return String(m.startsAt||'').slice(0,10)+'|'+key(m.homeName)+'|'+key(m.awayName);
+ return ccMrszPlayerLocalKickoff_(m.startsAt).date+'|'+key(m.homeName)+'|'+key(m.awayName);
 }
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
@@ -2354,7 +2365,7 @@ function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
   +'<button type="button" data-league-player-scope="beac" aria-pressed="'+(scope==='beac')+'" class="'+(scope==='beac'?'active':'')+'">BEAC meccsek</button>'
   +'<button type="button" data-league-player-scope="all" aria-pressed="'+(scope==='all')+'" class="'+(scope==='all'?'active':'')+'">Összes bajnoki meccs</button></div>';
  const result=filtered.map(m=>{
-   const date=String(m.startsAt||'').slice(0,10),time=String(m.startsAt||'').slice(11,16);
+   const {date,time}=ccMrszPlayerLocalKickoff_(m.startsAt);
    const scored=m.homeSets!=null&&m.awaySets!=null&&Number.isFinite(Number(m.homeSets))&&Number.isFinite(Number(m.awaySets));
    const score=scored?(Number(m.homeSets)+'–'+Number(m.awaySets)):'–';
    const sets=Array.isArray(m.setScores)?m.setScores.map(x=>(Number(x.home)||0)+':'+(Number(x.away)||0)).join(' · '):'';
