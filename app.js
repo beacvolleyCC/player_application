@@ -2164,7 +2164,7 @@ function renderCompetitionStandings_(){
       </div>
     </div>
     ${ccMrszPlayerMenGroupButtonsHtml_()}
-    ${renderStandingsMatches_(allRows,selectedRow)}
+    ${ccMrszPlayerIsMensTeam_()?ccMrszPlayerLeagueScheduleHtml_('Férfi Budapest I. osztály – B csoport',true):renderStandingsMatches_(allRows,selectedRow)}
     ${selectedRow?renderStandingsInsights_(allRows,selectedRow):renderLeagueStandingsInsights_(allRows)}
   </div>`;
 }
