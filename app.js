@@ -2131,7 +2131,7 @@ function renderCompetitionStandings_(){
   }
   const contexts=Array.isArray(competitionStandings.contexts)?competitionStandings.contexts:[];
   if(!contexts.length){
-    return `<div class="standings-state"><b>Még nincs tabellaadat</b><span>Amint érkezik hivatalos bajnoki tabella, itt automatikusan megjelenik.</span></div>`;
+    return `<div class="standings-state"><b>Még nincs tabellaadat</b><span>Amint érkezik hivatalos bajnoki tabella, itt automatikusan megjelenik.</span></div>${ccMrszPlayerMenGroupButtonsHtml_()}`;
   }
   const ctx=activeStandingsContext_();
   const allRows=standingsDisplayRows_(ctx?.rows);
@@ -2142,7 +2142,7 @@ function renderCompetitionStandings_(){
   const meta=[ctx?.competitionLabel,ctx?.source].filter(Boolean).join(' · ');
   const updated=standingsDateLabel_(ctx?.updatedAt);
   if(!allRows.length){
-    return `<div class="standings-headline">${selector}<div><b>${escapeHtml_(ctx?.teamName||'Csapat')}</b>${meta?`<span>${escapeHtml_(meta)}</span>`:''}</div></div><div class="standings-state"><b>Ehhez a csapathoz még nincs hivatalos tabella</b><span>A BRSZ/MRSZ forrás frissítése után automatikusan megjelenik.</span></div>`;
+    return `<div class="standings-headline">${selector}<div><b>${escapeHtml_(ctx?.teamName||'Csapat')}</b>${meta?`<span>${escapeHtml_(meta)}</span>`:''}</div></div>${ccMrszPlayerMenGroupButtonsHtml_()}<div class="standings-state"><b>Ehhez a csapathoz még nincs hivatalos tabella</b><span>A BRSZ/MRSZ forrás frissítése után automatikusan megjelenik.</span></div>`;
   }
   return `<div class="competition-standings">
     <div class="standings-headline">
