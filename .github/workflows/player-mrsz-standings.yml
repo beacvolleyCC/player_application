@@ -1,0 +1,31 @@
+name: Player MRSZ standings QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - styles.css
+      - tests/mrsz-standings.test.cjs
+      - .github/workflows/player-mrsz-standings.yml
+  pull_request:
+    paths:
+      - app.js
+      - styles.css
+      - tests/mrsz-standings.test.cjs
+      - .github/workflows/player-mrsz-standings.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mrsz-standings:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse Player script
+        run: node --check app.js
+      - name: Check source standings, fixtures and scores
+        run: node --test tests/mrsz-standings.test.cjs
