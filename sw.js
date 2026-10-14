@@ -1,4 +1,4 @@
-const CACHE='club-control-player-20261014-mrsz-full-fixtures-v3';
+const CACHE='club-control-player-20261014-single-standings-beac-v4';
 const CORE=[
   './manifest.webmanifest',
   './icons/icon-192.png',
