@@ -10384,3 +10384,12 @@ body.dark{
 .cc-league-player-scope button:focus-visible{outline:2px solid currentColor;outline-offset:1px}
 .cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;color:var(--muted,#667);margin-top:3px}
 @media(max-width:620px){.cc-league-player-scope{display:flex;width:100%}.cc-league-player-scope button{flex:1;font-size:10px;white-space:normal}}
+
+/* Mobile league cards: show scores and per-set details in a legible second row. */
+@media(max-width:620px){
+  #plannerView .cc-mrsz-player-league-matches .standings-match-row{grid-template-columns:36px minmax(68px,1fr) 34px minmax(68px,1fr);}
+  #plannerView .cc-mrsz-player-league-matches .standings-match-place{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:2px 6px;padding:2px 4px 5px;text-align:left;min-width:0;}
+  #plannerView .cc-mrsz-player-league-matches .standings-match-place span{font-size:9px;line-height:1.2;white-space:normal;}
+  #plannerView .cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;line-height:1.2;white-space:normal;overflow:visible;text-overflow:clip;}
+  #plannerView .cc-mrsz-player-league-matches .standings-match-team b{font-size:9px;white-space:normal;overflow-wrap:anywhere;}
+}

@@ -89,3 +89,10 @@ test('existing Player main table is used rather than rendering another photo tab
  assert.ok(!view.includes('const photoMain=ccMrszPlayerMainScreenshotHtml_()'));
  assert.ok(view.includes('ccMrszPlayerLeagueScheduleHtml_(label,!requiresPhoto)'));
 });
+
+test('mobile league match cards display readable set points on their own grid row',()=>{
+ const styles=fs.readFileSync('styles.css','utf8');
+ assert.ok(styles.includes('#plannerView .cc-mrsz-player-league-matches .standings-match-place{grid-column:1/-1;display:flex;'));
+ assert.ok(styles.includes('#plannerView .cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;'));
+ assert.ok(styles.includes('#plannerView .cc-mrsz-player-league-matches .standings-match-team b{font-size:9px;white-space:normal;'));
+});
