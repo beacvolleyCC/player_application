@@ -10374,3 +10374,13 @@ body.dark{
 .cc-mrsz-photo-main-standings .standings-split{margin-top:9px}
 .cc-mrsz-photo-main-standings .standings-team-cell{cursor:default}
 @media(max-width:600px){.cc-mrsz-player-main-switch{padding:10px 4px}.cc-mrsz-player-main-switch>div{width:100%}.cc-mrsz-player-main-switch button{flex:1}}
+
+
+/* League matches reuse Player's original standing-match-row layout, BEAC by default. */
+.cc-mrsz-player-league-matches .standings-panel-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.cc-league-player-scope{display:inline-flex;gap:3px;align-items:center;padding:3px;max-width:100%;border-radius:10px;background:var(--soft,#e9eef2)}
+.cc-league-player-scope button{min-height:33px;padding:7px 12px;border:0;border-radius:8px;background:transparent;color:inherit;font-size:11px;font-weight:850;cursor:pointer}
+.cc-league-player-scope button.active{background:var(--card,#fff);box-shadow:0 1px 5px rgba(0,0,0,.12)}
+.cc-league-player-scope button:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+.cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;color:var(--muted,#667);margin-top:3px}
+@media(max-width:620px){.cc-league-player-scope{display:flex;width:100%}.cc-league-player-scope button{flex:1;font-size:10px;white-space:normal}}
