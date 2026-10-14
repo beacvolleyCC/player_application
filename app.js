@@ -2121,6 +2121,8 @@ function standingsDisplayRows_(rows){
 }
 
 function renderCompetitionStandings_(){
+  const photoMain=ccMrszPlayerMainScreenshotHtml_();
+  if(photoMain!==null)return photoMain;
   if(!competitionStandings.loaded && !competitionStandings.error){
     return `<div class="standings-state"><b>Tabella betöltése…</b><span>A bajnoki adatok frissítése folyamatban van.</span></div>`;
   }
@@ -2161,6 +2163,7 @@ function renderCompetitionStandings_(){
         </table>
       </div>
     </div>
+    ${ccMrszPlayerMenGroupButtonsHtml_()}
     ${renderStandingsMatches_(allRows,selectedRow)}
     ${selectedRow?renderStandingsInsights_(allRows,selectedRow):renderLeagueStandingsInsights_(allRows)}
   </div>`;
@@ -2282,6 +2285,44 @@ async function ccLoadMrszPlayerPhoto_(){
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],tables:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
+
+let ccMrszPlayerMenGroup_='B';
+function ccMrszPlayerIsMensTeam_(){
+ return String(currentTeamData?.id||'')==='10000000-0000-4000-8000-000000000003'||/férfi/i.test(String(currentTeamData?.teamName||currentTeamData?.name||''));
+}
+function ccMrszPlayerIsWomen2_(){
+ return String(currentTeamData?.id||'')==='10000000-0000-4000-8000-000000000002';
+}
+function ccMrszPlayerMenGroupButtonsHtml_(){
+ if(!ccMrszPlayerIsMensTeam_())return '';
+ return '<div class="cc-mrsz-player-main-switch"><span>Férfi I. osztály · csoport</span><div role="group" aria-label="Csoportválasztó">'
+  +['B','A'].map(g=>'<button type="button" data-mrsz-player-men-group="'+g+'" aria-pressed="'+(ccMrszPlayerMenGroup_===g)+'" class="'+(ccMrszPlayerMenGroup_===g?'active':'')+'">'+g+' csoport</button>').join('')+'</div></div>';
+}
+function ccBindMrszPlayerMenGroup_(){
+ document.querySelectorAll('[data-mrsz-player-men-group]').forEach(btn=>btn.addEventListener('click',()=>{
+   ccMrszPlayerMenGroup_=btn.dataset.mrszPlayerMenGroup==='A'?'A':'B';
+   selectedStandingsRowTeamId='all';
+   renderPlanner();
+ }));
+}
+function ccMrszPlayerMainScreenshotHtml_(){
+ const menA=ccMrszPlayerIsMensTeam_()&&ccMrszPlayerMenGroup_==='A',womenB=ccMrszPlayerIsWomen2_();
+ if(!menA&&!womenB)return null;
+ const label=menA?'Férfi Budapest I. osztály – A csoport':'Női Budapest II. osztály – B csoport';
+ const t=(ccMrszPlayerPhoto_.tables||[]).find(t=>String(t.competitionLabel)===label);
+ const rows=Array.isArray(t?.rows)?t.rows:[];
+ const heading='<div class="standings-headline"><div class="standings-context-title"><b>'+escapeHtml_(label)+'</b><span>MRSZ-képernyőkép · 2026.10.14. · nem élő frissítés</span></div></div>';
+ if(!ccMrszPlayerPhoto_.loaded)return heading+'<div class="standings-state">A bajnoki tabella betöltése…</div>'+ccMrszPlayerMenGroupButtonsHtml_();
+ if(ccMrszPlayerPhoto_.error)return heading+'<div class="standings-state">'+escapeHtml_(ccMrszPlayerPhoto_.error)+'</div>'+ccMrszPlayerMenGroupButtonsHtml_();
+ if(!rows.length)return heading+'<div class="standings-state">Ehhez a csoporthoz nincs mentett tabella.</div>'+ccMrszPlayerMenGroupButtonsHtml_();
+ const fixed=rows.map(r=>'<tr><td class="pos">'+(Number(r.position)||'–')+'</td><td class="team"><span class="standings-team-cell">'+standingsTeamLogoHtml_(r.teamName)+'<span class="standings-team-name">'+escapeHtml_(r.teamName||'–')+'</span></span></td></tr>').join('');
+ const stats=rows.map(r=>'<tr><td>'+(Number(r.played)||0)+'</td><td>'+(Number(r.wins)||0)+'</td><td>'+(Number(r.losses)||0)+'</td><td class="points group-end">'+(Number(r.tablePoints)||0)+'</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>').join('');
+ return '<div class="competition-standings cc-mrsz-photo-main-standings">'+heading+'<div class="standings-split" role="region" aria-label="Bajnoki tabella">'
+   +'<div class="standings-fixed"><table class="standings-table standings-table-fixed"><thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead><tbody>'+fixed+'</tbody></table></div>'
+   +'<div class="standings-scroll" tabindex="0"><table class="standings-table standings-table-stats"><thead><tr><th>M</th><th>GY</th><th>V</th><th class="points group-end">P</th><th>SZ</th><th>SZA</th><th>P</th><th>PA</th></tr></thead><tbody>'+stats+'</tbody></table></div>'
+   +'</div>'+ccMrszPlayerMenGroupButtonsHtml_()+'</div>';
+}
+
 function ccMrszPlayerPhotoHtml_(){
   const p=ccMrszPlayerPhoto_;
   if(!p.loaded)return '<section class="cc-mrsz-player-snapshot"><h3>MRSZ · beküldött eredmények</h3><p>Adatok betöltése…</p></section>';
@@ -2299,6 +2340,7 @@ function renderPlanner(){
     plannerList.innerHTML=renderCompetitionStandings_()+ccMrszPlayerPhotoHtml_();
     if(!ccMrszPlayerPhoto_.loaded&&!ccMrszPlayerPhoto_.loading)void ccLoadMrszPlayerPhoto_();
     bindStandingsTeamFilterClicks_();
+    ccBindMrszPlayerMenGroup_();
     document.getElementById('standingsTeamSelect')?.addEventListener('change',event=>{
       selectedStandingTeamId=String(event.target.value||'');
       try{localStorage.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
