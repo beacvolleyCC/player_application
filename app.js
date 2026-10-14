@@ -2273,7 +2273,7 @@ async function ccLoadCompetitionStandings_(){
 
 
 /* MRSZ screenshot snapshots are separate from the team's canonical BRSZ table. */
-let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],tables:[]};
+let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[]};
 async function ccLoadMrszPlayerPhoto_(){
   if(ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.loading||!ccSupabase||!SUPABASE_ENABLED)return;
   ccMrszPlayerPhoto_.loading=true;
@@ -2281,8 +2281,8 @@ async function ccLoadMrszPlayerPhoto_(){
     const {data,error}=await ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v1');
     if(error)throw error;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
-    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],tables:Array.isArray(p.tables)?p.tables:[]};
-  }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],tables:[]}}
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[]};
+  }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
 
@@ -2311,14 +2311,18 @@ function ccMrszPlayerIsWomenI_(){
   || /^BEAC Női I\.?$/i.test(String(currentTeamData?.teamName||currentTeamData?.name||''));
 }
 function ccMrszPlayerFixtureKey_(m){
- const key=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
-   .replace(/\bbudapest\b/g,'').replace(/\bsport klub\b/g,'').replace(/[^a-z0-9]/g,'');
+ const key=x=>{const n=String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+   if(n.includes('kando'))return 'kando';if(n.includes('kozgaz'))return 'kozgaz';
+   if(n.includes('semmelweis'))return 'semmelweis';if(n.includes('emericus'))return 'emericus';
+   if(n.includes('rackeve'))return 'rackeve';if(n.includes('mtk')&&n.includes('kek'))return 'mtk-kek';
+   if(n.includes('mtk'))return 'mtk';return n.replace(/\bbudapest\b/g,'').replace(/\bsport klub\b/g,'').replace(/[^a-z0-9]/g,'');};
  return String(m.startsAt||'').slice(0,10)+'|'+key(m.homeName)+'|'+key(m.awayName);
 }
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
  const unique=new Map();
+ for(const m of (ccMrszPlayerPhoto_.fixtures||[]).filter(x=>String(x.competitionLabel)===competitionLabel))unique.set(ccMrszPlayerFixtureKey_(m),m);
  for(const m of feed)unique.set(ccMrszPlayerFixtureKey_(m),m);
  for(const m of snapshot)unique.set(ccMrszPlayerFixtureKey_(m),m);
  return [...unique.values()].sort((a,b)=>String(a.startsAt||'').localeCompare(String(b.startsAt||'')));
