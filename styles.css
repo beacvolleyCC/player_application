@@ -10356,3 +10356,21 @@ body.dark{
 .cc-mrsz-player-group table{width:100%;border-collapse:collapse;font-size:10px}
 .cc-mrsz-player-group td,.cc-mrsz-player-group th{padding:6px 4px;border-bottom:1px solid var(--line,#ddd);text-align:right}
 .cc-mrsz-player-group td:nth-child(2),.cc-mrsz-player-group th:nth-child(2){text-align:left;min-width:120px}
+
+
+/* Primary Player standings: group switch immediately underneath the main table. */
+.cc-mrsz-player-main-switch{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ flex-wrap:wrap;padding:12px 8px 10px;border-top:1px solid var(--line,#ddd);
+}
+.cc-mrsz-player-main-switch>span{font-size:11px;font-weight:850}
+.cc-mrsz-player-main-switch>div{display:flex;gap:4px;padding:3px;border-radius:10px;background:var(--soft,#edf0f3)}
+.cc-mrsz-player-main-switch button{
+ min-height:34px;padding:6px 12px;border:1px solid transparent;border-radius:8px;
+ background:transparent;color:inherit;font-size:11px;font-weight:850;cursor:pointer;
+}
+.cc-mrsz-player-main-switch button.active{background:var(--card,#fff);border-color:var(--line,#ddd);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.cc-mrsz-player-main-switch button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.cc-mrsz-photo-main-standings .standings-split{margin-top:9px}
+.cc-mrsz-photo-main-standings .standings-team-cell{cursor:default}
+@media(max-width:600px){.cc-mrsz-player-main-switch{padding:10px 4px}.cc-mrsz-player-main-switch>div{width:100%}.cc-mrsz-player-main-switch button{flex:1}}
