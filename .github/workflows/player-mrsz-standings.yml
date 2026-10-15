@@ -6,12 +6,16 @@ on:
       - app.js
       - styles.css
       - tests/mrsz-standings.test.cjs
+      - competition-context-catalog.js
+      - tests/competition-context-catalog.test.cjs
       - .github/workflows/player-mrsz-standings.yml
   pull_request:
     paths:
       - app.js
       - styles.css
       - tests/mrsz-standings.test.cjs
+      - competition-context-catalog.js
+      - tests/competition-context-catalog.test.cjs
       - .github/workflows/player-mrsz-standings.yml
   workflow_dispatch:
 permissions:
@@ -29,3 +33,5 @@ jobs:
         run: node --check app.js
       - name: Check source standings, fixtures and scores
         run: node --test tests/mrsz-standings.test.cjs
+      - name: Validate canonical competition contexts
+        run: node --test tests/competition-context-catalog.test.cjs
