@@ -8,6 +8,7 @@ on:
       - tests/mrsz-standings.test.cjs
       - competition-context-catalog.js
       - tests/competition-context-catalog.test.cjs
+      - tests/league-context-ui.test.cjs
       - .github/workflows/player-mrsz-standings.yml
   pull_request:
     paths:
@@ -16,6 +17,7 @@ on:
       - tests/mrsz-standings.test.cjs
       - competition-context-catalog.js
       - tests/competition-context-catalog.test.cjs
+      - tests/league-context-ui.test.cjs
       - .github/workflows/player-mrsz-standings.yml
   workflow_dispatch:
 permissions:
@@ -35,3 +37,5 @@ jobs:
         run: node --test tests/mrsz-standings.test.cjs
       - name: Validate canonical competition contexts
         run: node --test tests/competition-context-catalog.test.cjs
+      - name: Check league context UI
+        run: node --test tests/league-context-ui.test.cjs
