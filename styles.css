@@ -10393,3 +10393,11 @@ body.dark{
   #plannerView .cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;line-height:1.2;white-space:normal;overflow:visible;text-overflow:clip;}
   #plannerView .cc-mrsz-player-league-matches .standings-match-team b{font-size:9px;white-space:normal;overflow-wrap:anywhere;}
 }
+
+/* MRSZ saved-league selector: single compact filter on phones and desktops. */
+.cc-player-league-selector{display:flex;align-items:flex-end;justify-content:flex-start;margin:0 0 12px;min-width:0}
+.cc-player-league-selector>label{display:grid;gap:6px;min-width:0;width:min(100%,460px);font-weight:700}
+.cc-player-league-selector>label>span{color:var(--muted,#737373);font-size:11px}
+.cc-player-league-selector select{display:block;width:100%;min-width:0;min-height:44px;padding:8px 12px;border-radius:11px;border:1px solid var(--line,#d7d7d7);background:var(--card,#fff);color:inherit;font:inherit;font-size:13px}
+.cc-player-league-selector select:disabled{opacity:.7}
+@media(max-width:760px){.cc-player-league-selector>label{width:100%}.cc-player-league-selector select{font-size:16px}}
