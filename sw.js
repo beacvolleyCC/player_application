@@ -1,6 +1,7 @@
-const CACHE='club-control-player-20261014-fixture-review-v7';
+const CACHE='club-control-player-20261015-league-context-v8';
 const CORE=[
   './manifest.webmanifest',
+  './competition-context-catalog.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
