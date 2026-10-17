@@ -2590,7 +2590,7 @@ function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
  const filtered=scope==='all'?rows:rows.filter(m=>ccLeaguePlayerHasBeac_(m.homeName)||ccLeaguePlayerHasBeac_(m.awayName));
  const controls=hasBeac?'<div class="cc-league-player-scope" role="group" aria-label="Bajnoki meccsek szűrése">'
   +'<button type="button" data-league-player-scope="beac" aria-pressed="'+(scope==='beac')+'" class="'+(scope==='beac'?'active':'')+'">BEAC meccsek</button>'
-  +'<button type="button" data-league-player-scope="all" aria-pressed="'+(scope==='all')+'" class="'+(scope==='all'?'active':'')+'">Összes bajnoki meccs</button></div>';
+  +'<button type="button" data-league-player-scope="all" aria-pressed="'+(scope==='all')+'" class="'+(scope==='all'?'active':'')+'">Összes bajnoki meccs</button></div>':'';
  return '<section class="standings-matches-panel cc-mrsz-player-league-matches"><div class="standings-panel-head"><b>Bajnoki mérkőzések</b><span>'+filtered.length+' / '+rows.length+' meccs</span>'+controls+'</div>'
   +'<div class="standings-match-list player-match-list">'+(filtered.map(ccPlayerScoreboardHtml_).join('')||'<div class="standings-match-empty">Nincs megjeleníthető mérkőzés.</div>')+'</div></section>';
 }
