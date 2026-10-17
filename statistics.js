@@ -162,7 +162,7 @@ function ccStatsPlayers_(data){
   const players=[...registry.values()].sort((a,b)=>b.nominated-a.nominated||b.starts-a.starts||a.name.localeCompare(b.name,'hu'));
   if(!players.length)return '<p class="cc-stats-muted">Nincs mentett játékosjegyzőkönyv ehhez a bajnoksághoz.</p>';
   return '<div class="cc-stats-pane"><section class="cc-stats-panel"><h4>Játékosstatisztikák</h4>'+
-    '<div class="cc-stats-player-scroll"><table><thead><tr><th>Játékos</th><th>Nevezés</th><th>K</th><th>CS</th><th>Utolsó nevezés</th></tr></thead><tbody>'+
+    '<div class="cc-stats-player-scroll"><table><thead><tr><th>Játékos</th><th title="A nevezés nem azonos a pályára lépéssel.">Nevezés</th><th>K</th><th>CS</th><th>Utolsó nevezés</th></tr></thead><tbody>'+
     players.map(p=>'<tr><td><b>'+ccPlayerProtocolNameHtml_(p)+'</b><small>'+escapeHtml_(p.team)+'</small></td><td>'+p.nominated+'</td><td>'+p.starts+'</td><td>'+p.substitutes+'</td><td>'+escapeHtml_(p.latest?ccMrszPlayerLocalKickoff_(p.latest).date:'–')+'</td></tr>').join('')+
     '</tbody></table></div></section></div>';
 }
