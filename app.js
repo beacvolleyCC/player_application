@@ -2386,9 +2386,84 @@ function ccLeaguePlayerHasBeac_(name){
 }
 function ccPlayerPhotoStandingRows_(photo){
  return (photo?.rows||[]).map((r,i)=>({...r,sourceTeamId:String(r.sourceTeamId||'photo-'+i),
-   focus:ccLeaguePlayerHasBeac_(r.teamName),position:r.position??i+1}));
+   focus:ccLeaguePlayerHasBeac_(r.teamName),position:photo?.partial===false?r.position:null}));
 }
 
+
+function ccPlayerProtocolProfileUrl_(raw){
+ try{
+  const v=String(raw||'').trim();if(!v)return '';
+  const u=new URL(v);
+  if(u.protocol!=='https:'||u.username||u.password)return '';
+  if(!['hunvolley.hu','www.hunvolley.hu','hunvolley.info','www.hunvolley.info','backoffice.hunvolley.hu'].includes(u.hostname.toLowerCase()))return '';
+  return u.href;
+ }catch(_){return ''}
+}
+function ccPlayerProtocolNameHtml_(item){
+ const name=String(item?.name||item||'').trim();
+ if(!name)return '–';
+ const url=ccPlayerProtocolProfileUrl_(item?.profileUrl);
+ return url?'<a href="'+escapeHtml_(url)+'" target="_blank" rel="noopener noreferrer">'+escapeHtml_(name)+' ↗</a>':escapeHtml_(name);
+}
+function ccPlayerProtocolRosterHtml_(team){
+ const players=Array.isArray(team?.players)?team.players:[];
+ const staff=Array.isArray(team?.staff)?team.staff:[];
+ const row=players.map(p=>'<tr><td>'+escapeHtml_(p.number||'–')+'</td><td>'+ccPlayerProtocolNameHtml_(p)+'</td><td>'+
+   escapeHtml_([p.designation==='K'?'Kezdő':p.designation==='CS'?'Csere':'',p.libero?'Libero '+p.libero:'',p.captain?'Kapitány':''].filter(Boolean).join(' · ')||'–')+'</td></tr>').join('');
+ return '<section class="player-protocol-team"><h4>'+ccPlayerProtocolNameHtml_(team)+'</h4><div class="player-protocol-scroll"><table><thead><tr><th>Mez</th><th>Játékos</th><th>Jelölés</th></tr></thead><tbody>'
+  +(row||'<tr><td colspan="3">Nincs mentett névsor.</td></tr>')+'</tbody></table></div>'
+  +(staff.length?'<div class="player-protocol-staff">'+staff.map(o=>'<div><span>'+escapeHtml_(o.role||'Stáb')+'</span><b>'+ccPlayerProtocolNameHtml_(o)+'</b></div>').join('')+'</div>':'')+'</section>';
+}
+function ccPlayerProtocolDetailHtml_(m){
+ const p=m?.protocol||{},kick=ccMrszPlayerLocalKickoff_(m.startsAt),teams=Array.isArray(p.teams)?p.teams:[],
+ score=m.homeSets!=null&&m.awaySets!=null?m.homeSets+' – '+m.awaySets:'VS.';
+ const sets=Array.isArray(m.setScores)?m.setScores.map((v,i)=>'<span>'+(i+1)+'. szett: <b>'+escapeHtml_(v.home)+' : '+escapeHtml_(v.away)+'</b></span>').join(''):'';
+ const officials=Array.isArray(p.officials)?p.officials:[];
+ const link=ccPlayerProtocolProfileUrl_(p.sourceUrl||m.sourceUrl);
+ return '<div class="player-protocol-report">'
+  +'<p class="player-protocol-note">Mentett Hunvolley-jegyzőkönyv · 2026/27 · nem élő adat</p>'
+  +'<div class="player-protocol-meta"><span>'+escapeHtml_(m.competitionLabel)+'</span><span>'+escapeHtml_(kick.date+' · '+kick.time)+'</span>'
+  +(m.matchCode?'<span>Meccskód: '+escapeHtml_(m.matchCode)+'</span>':'')+(m.venue?'<span>'+escapeHtml_(m.venue)+'</span>':'')+'</div>'
+  +'<div class="player-protocol-result"><span>'+escapeHtml_(m.homeName)+'</span><strong>'+escapeHtml_(score)+'</strong><span>'+escapeHtml_(m.awayName)+'</span></div>'
+  +(sets?'<div class="player-protocol-sets">'+sets+'</div>':'')
+  +'<div class="player-protocol-teams">'+teams.map(t=>ccPlayerProtocolRosterHtml_(t)).join('')+'</div>'
+  +(officials.length?'<section class="player-protocol-officials"><h4>Játékvezetők és hivatalos személyek</h4>'+officials.map(o=>'<div><span>'+escapeHtml_(o.role||'Hivatalos személy')+'</span><b>'+ccPlayerProtocolNameHtml_(o)+'</b></div>').join('')+'</section>':'')
+  +(link?'<a href="'+escapeHtml_(link)+'" target="_blank" rel="noopener noreferrer">Hunvolley-forrás ↗</a>':'')
+  +'<p class="player-protocol-note">A személy- és csapatadatlapok csak igazolt Hunvolley-URL-lel nyithatók meg.</p></div>';
+}
+function ccPlayerOpenProtocol_(matchCode,league){
+ const list=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m?.matchCode||'')===String(matchCode)&&String(m?.competitionLabel||'')===String(league)&&Array.isArray(m?.protocol?.teams));
+ if(list.length!==1)return;
+ const dialog=document.getElementById('playerProtocolDialog'),target=document.getElementById('playerProtocolContent');
+ if(!dialog||!target)return;
+ target.innerHTML=ccPlayerProtocolDetailHtml_(list[0]);
+ ccOpenDialog_(dialog);
+}
+function ccPlayerBindProtocols_(){
+ document.querySelectorAll('[data-player-protocol]').forEach(card=>{
+  const open=()=>ccPlayerOpenProtocol_(card.dataset.playerProtocol,card.dataset.playerProtocolLeague);
+  card.addEventListener('click',event=>{if(!event.target.closest('a,button'))open()});
+  card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('a,button')){event.preventDefault();open()}});
+ });
+}
+function ccPlayerScoreboardHtml_(m){
+ const kick=ccMrszPlayerLocalKickoff_(m.startsAt),home=String(m.homeName||''),away=String(m.awayName||'');
+ const score=m.homeSets!=null&&m.awaySets!=null&&Number.isInteger(Number(m.homeSets))&&Number.isInteger(Number(m.awaySets))&&Number(m.homeSets)+Number(m.awaySets)>0
+  ?Number(m.homeSets)+' – '+Number(m.awaySets):'VS.';
+ const sets=Array.isArray(m.setScores)?m.setScores.filter(x=>x&&x.home!=null&&x.away!=null)
+  .map(x=>Number(x.home)+':'+Number(x.away)).join(' · '):'';
+ const protocol=!!m.matchCode&&Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2;
+ return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+'"'
+  +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':'')
+  +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
+  +'<div class="player-match-top"><span>'+escapeHtml_(kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(kick.time||'')+'</span></div>'
+  +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b></div>'
+  +'<div class="player-match-result">'+(score==='VS.'?'<span class="player-match-vs">VS.</span>':'<strong>'+escapeHtml_(score)+'</strong>')+'</div>'
+  +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
+  +(sets?'<div class="player-match-sets">'+escapeHtml_(sets)+'</div>':'')+'</div>'
+  +'<div class="player-match-footer"><span>'+escapeHtml_(m.venue||'Helyszín nincs megadva')+'</span>'
+  +(protocol?'<span class="player-match-report-hint">Jegyzőkönyv ↗</span>':'')+'</div></article>';
+}
 function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
  const rows=ccMrszPlayerAllLeagueMatches_(label,withCanonical).filter(m=>!ccMrszPlayerUnverifiedSelfFixture_(m));
  const scope=ccLeaguePlayerMatchScope_;
@@ -2396,20 +2471,8 @@ function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
  const controls='<div class="cc-league-player-scope" role="group" aria-label="Bajnoki meccsek szűrése">'
   +'<button type="button" data-league-player-scope="beac" aria-pressed="'+(scope==='beac')+'" class="'+(scope==='beac'?'active':'')+'">BEAC meccsek</button>'
   +'<button type="button" data-league-player-scope="all" aria-pressed="'+(scope==='all')+'" class="'+(scope==='all'?'active':'')+'">Összes bajnoki meccs</button></div>';
- const result=filtered.map(m=>{
-   const {date,time}=ccMrszPlayerLocalKickoff_(m.startsAt);
-   const scored=m.homeSets!=null&&m.awaySets!=null&&Number.isFinite(Number(m.homeSets))&&Number.isFinite(Number(m.awaySets));
-   const score=scored?(Number(m.homeSets)+'–'+Number(m.awaySets)):'–';
-   const sets=Array.isArray(m.setScores)?m.setScores.map(x=>(Number(x.home)||0)+':'+(Number(x.away)||0)).join(' · '):'';
-   const home=String(m.homeName||''),away=String(m.awayName||''),venue=String(m.venue||'');
-   return '<div class="standings-match-row"><div class="standings-match-date"><b>'+escapeHtml_(date)+'</b><span>'+escapeHtml_(time)+'</span></div>'
-    +'<div class="standings-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<span><b>'+escapeHtml_(home||'–')+'</b></span></div>'
-    +'<div class="standings-match-score '+(scored?'has-score':'')+'">'+escapeHtml_(score)+'</div>'
-    +'<div class="standings-match-team away"><span><b>'+escapeHtml_(away||'–')+'</b></span>'+standingsTeamLogoHtml_(away,'match-logo')+'</div>'
-    +'<div class="standings-match-place"><span>'+escapeHtml_(venue)+'</span>'+(sets?'<small>Szettek: '+escapeHtml_(sets)+'</small>':'')+'</div></div>';
- }).join('');
  return '<section class="standings-matches-panel cc-mrsz-player-league-matches"><div class="standings-panel-head"><b>Bajnoki mérkőzések</b><span>'+filtered.length+' / '+rows.length+' meccs</span>'+controls+'</div>'
-  +'<div class="standings-match-list">'+(result||'<div class="standings-match-empty">Nincs BEAC-meccs ebben a szűrésben. A teljes bajnokság a fenti kapcsolóval elérhető.</div>')+'</div></section>';
+  +'<div class="standings-match-list player-match-list">'+(filtered.map(ccPlayerScoreboardHtml_).join('')||'<div class="standings-match-empty">Nincs BEAC-meccs ebben a szűrésben. A teljes bajnokság a fenti kapcsolóval elérhető.</div>')+'</div></section>';
 }
 
 function ccMrszPlayerMainScreenshotHtml_(forcedLabel=''){
@@ -2456,6 +2519,7 @@ function renderPlanner(){
     if(!ccMrszPlayerPhoto_.loaded&&!ccMrszPlayerPhoto_.loading)void ccLoadMrszPlayerPhoto_();
     bindStandingsTeamFilterClicks_();
     ccBindMrszPlayerMenGroup_();
+    ccPlayerBindProtocols_();
     document.querySelectorAll('[data-league-player-scope]').forEach(btn=>btn.addEventListener('click',()=>{
       ccLeaguePlayerMatchScope_=btn.dataset.leaguePlayerScope==='all'?'all':'beac';
       renderPlanner();
