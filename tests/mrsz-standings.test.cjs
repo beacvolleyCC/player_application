@@ -448,3 +448,17 @@ test('teams display only the last five completed results as W green / L red with
  const none=form({results:[]});
  assert.equal((none.match(/class="cc-stats-form-result no-data"/g)||[]).length,5);
 });
+
+test('Player competition statistics contain no decorative grey captions or explanatory footer',()=>{
+ const stats=fs.readFileSync('statistics.js','utf8');
+ const css=fs.readFileSync('statistics.css','utf8');
+ assert.ok(!stats.includes('<small>Forma, mérleg, szettarány</small>'));
+ assert.ok(!stats.includes('Elérhető eredmények · legutóbbi öt meccs'));
+ assert.ok(!stats.includes('const coverageNote='));
+ assert.ok(!stats.includes('class="cc-stats-source-note"'));
+ assert.ok(!stats.includes('Legfeljebb 5 mentett mérkőzés'));
+ assert.ok(stats.includes('title="Mentett eredmények alapján; egyes bajnoki adatok részlegesek lehetnek."'));
+ assert.ok(stats.includes('cc-stats-metric-value'));
+ assert.ok(css.includes('.cc-stats-metric>.cc-stats-metric-value'));
+ assert.ok(!stats.includes('<small>'+ "'+escapeHtml_(value||'Nincs elég adat')+'" +'</small>'));
+});
