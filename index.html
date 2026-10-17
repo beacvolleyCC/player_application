@@ -13,7 +13,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=20261015-league-context-v8">
+  <link rel="stylesheet" href="./styles.css?v=20261017-player-protocol-v9">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -506,6 +506,13 @@
     </div>
   </dialog>
 
+  <dialog id="playerProtocolDialog" class="event-dialog player-protocol-dialog" tabindex="-1" aria-label="Bajnoki mérkőzés jegyzőkönyve">
+    <div class="dialog-card event-dialog-card player-protocol-dialog-card">
+      <button class="dialog-x-btn" id="closePlayerProtocolDialog" type="button" aria-label="Jegyzőkönyv bezárása">×</button>
+      <div id="playerProtocolContent"></div>
+    </div>
+  </dialog>
+
   <dialog id="eventDialog" class="event-dialog" tabindex="-1">
     <div class="dialog-card event-dialog-card">
       <button class="dialog-x-btn" id="closeEventDialogBtn" type="button" aria-label="Bezárás">×</button>
@@ -529,6 +536,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
   <script src="./competition-context-catalog.js?v=20261015-lc1"></script>
-  <script src="./app.js?v=20261015-league-context-v8"></script>
+  <script src="./app.js?v=20261017-player-protocol-v9"></script>
 </body>
 </html>
