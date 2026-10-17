@@ -64,22 +64,22 @@ test('Saved selections from another BEAC team cannot show an unauthorised compet
  assert.equal(buildPlayer('men',saved).funcs.ccPlayerLeagueCurrent_(),menB);
  assert.equal(buildPlayer('women2',saved).funcs.ccPlayerLeagueCurrent_(),womenA);
 });
-test('Tabella is third, statistics fourth and profile last; all are main views',()=>{
+test('four bottom views: Tabella third, profile last, stats collapsible within Tabella',()=>{
  const nav=html.slice(html.indexOf('<nav class="bottom-nav">'),html.indexOf('</nav>',html.indexOf('<nav class="bottom-nav">')));
  const order=[...nav.matchAll(/data-view="([^"]+)" class="nav-btn/g)].map(x=>x[1]);
- assert.deepEqual(order,['homeView','plannerView','standingsView','statisticsView','profileView']);
+ assert.deepEqual(order,['homeView','plannerView','standingsView','profileView']);
  assert.ok(html.includes('id="standingsView" class="view'));
  assert.ok(html.includes('id="standingsContent"'));
  assert.ok(nav.includes('cc-icon-standings'));
-  assert.ok(nav.includes('cc-icon-statistics'));
-  assert.ok(html.includes('id="statisticsContent"'));
-  assert.ok(html.includes('id="statisticsView"'));
+ assert.ok(!nav.includes('cc-icon-statistics'));
+ assert.ok(!html.includes('id="statisticsView"'));
  assert.ok(!html.includes('id="plannerStandingsBtn"'));
- assert.ok(app.includes("const CC_PAGE_VIEWS=['homeView','plannerView','standingsView','statisticsView','profileView']"));
- assert.ok(app.includes("if(viewId==='standingsView'||viewId==='statisticsView'||viewId==='plannerView')renderPlanner();"));
+ assert.ok(app.includes("const CC_PAGE_VIEWS=['homeView','plannerView','standingsView','profileView']"));
+ assert.ok(app.includes("if(viewId==='standingsView'||viewId==='plannerView')renderPlanner();"));
  assert.ok(app.includes("if(viewId==='standingsView'&&previousView!=='standingsView')"));
  assert.ok(app.includes("selectedStandingsRowTeamId='all';"));
  assert.ok(app.includes('standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_()'));
+ assert.ok(app.includes("if(typeof ccMountStatisticsAccordion_==='function')ccMountStatisticsAccordion_();"));
  assert.ok(!app.includes("document.getElementById('plannerStandingsBtn')"));
 });
 test('Player never makes alphabetical sorting an official position',()=>{
