@@ -18,7 +18,7 @@ const matches=[
  {competitionLabel:w2,startsAt:'2026-10-13T18:20:00+02:00',homeName:'MTK Budapest kék',awayName:'RKSK felnőtt női',homeSets:3,awaySets:0},
  {competitionLabel:menA,startsAt:'2026-10-13T19:00:00+02:00',homeName:'MAFC-Kármán',awayName:'Ráckeve',homeSets:3,awaySets:0}
 ];
-const context={
+const context={ URL,document:{getElementById:()=>null},
  currentTeamData:{id:'10000000-0000-4000-8000-000000000001',teamName:'BEAC Női I.'},
  ccMrszPlayerPhoto_:{loaded:true,error:'',matches,fixtures,tables:[{
  competitionLabel:w1,partial:true,rows:[{position:1,teamName:'Semmelweis Egyetem',played:1,wins:1,losses:0,tablePoints:2,setsFor:3,setsAgainst:1,pointsFor:100,pointsAgainst:82}]
@@ -42,13 +42,13 @@ test('BEAC-only scope is default and all-league switch is visible',()=>{
  assert.ok(initial.includes('BEAC meccsek'));
  assert.ok(initial.includes('Összes bajnoki meccs'));
  assert.ok(initial.includes('data-league-player-scope="beac"'));
- assert.ok(!initial.includes('standings-match-row'));
+ assert.ok(!initial.includes('player-match-scoreboard'));
 });
 test('all leagues keep old styled match rows when all-league is selected',()=>{
  context.qa.setScope('all');
  for(const league of [w1,w2,menA,menB]){
   const html=context.qa.html(league,false);
-  assert.ok(html.includes('standings-match-row'),league);
+  assert.ok(html.includes('player-match-scoreboard'),league);
   assert.ok(html.includes('standings-match-list'));
   assert.ok(html.includes('1 / 1 meccs'));
  }
@@ -58,8 +58,8 @@ test('all leagues keep old styled match rows when all-league is selected',()=>{
 });
 test('unplayed fixture does not invent a 0:0 score',()=>{
  const html=context.qa.html(menB,false);
- assert.ok(html.includes('standings-match-score '));
- assert.ok(html.includes('>–</div>'));
+ assert.ok(html.includes('player-match-vs'));
+ assert.ok(html.includes('>VS.</span>'));
  assert.ok(!html.includes('0–0'));
 });
 test('persisted women I data is a partial standings source, with scored match details',()=>{
@@ -79,31 +79,32 @@ test('canonical feed and fixture matching do not double-count',()=>{
 });
 test("standings use men's full league schedule, not only BEAC matches",()=>{
  assert.ok(js.includes("ccMrszPlayerLeagueScheduleHtml_(label,!requiresPhoto)"));
- assert.ok(css.includes('.standings-match-row'));
+ assert.ok(css.includes('.player-match-scoreboard'));
 });
 
 test('existing Player main table is used rather than rendering another photo table',()=>{
  const start=js.indexOf('function renderCompetitionStandings_(){'),end=js.indexOf('\nfunction syncPlannerSectionUi_()',start);
  const view=js.slice(start,end);
- assert.ok(view.includes('const allRows=hasPhoto?ccPlayerPhotoStandingRows_'));
+ assert.ok(view.includes('const baseRows=hasPhoto?ccPlayerPhotoStandingRows_'));
+ assert.ok(view.includes('ccPlayerResultsOnlyStandings_(label,baseRows)'))
  assert.ok(!view.includes('const photoMain=ccMrszPlayerMainScreenshotHtml_()'));
  assert.ok(view.includes('ccMrszPlayerLeagueScheduleHtml_(label,!requiresPhoto)'));
 });
 
 test('mobile league match cards display readable set points on their own grid row',()=>{
  const styles=fs.readFileSync('styles.css','utf8');
- assert.ok(styles.includes('#plannerView .cc-mrsz-player-league-matches .standings-match-place{grid-column:1/-1;display:flex;'));
- assert.ok(styles.includes('#plannerView .cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;'));
- assert.ok(styles.includes('#plannerView .cc-mrsz-player-league-matches .standings-match-team b{font-size:9px;white-space:normal;'));
+ assert.ok(styles.includes('.player-match-sets{grid-column:1/-1;'));
+ assert.ok(styles.includes('.player-match-sets{font-size:10px'));
+ assert.ok(styles.includes('.player-match-scoreboard.has-protocol{cursor:pointer'));
 });
 
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261015-league-context-v8'));
- assert.ok(html.includes('app.js?v=20261015-league-context-v8'));
+ assert.ok(html.includes('styles.css?v=20261017-player-protocol-v9'));
+ assert.ok(html.includes('app.js?v=20261017-player-protocol-v9'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261015-league-context-v8"));
+ assert.ok(sw.includes("club-control-player-20261017-player-protocol-v9"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -171,7 +172,40 @@ test('women I self-fixture does not appear while other women results remain acce
   context.qa.setScope('all');
   const html=context.qa.html(w1,false);
   assert.ok(!html.includes('2026-11-10'));
-  assert.ok(html.includes('3–1'));
+  assert.ok(html.includes('3 – 1'));
   assert.ok(html.includes('1 / 1 meccs'));
  }finally{fixtures.pop();context.qa.setScope('beac');}
+});
+
+test('Player opens saved protocol from whole card and preserves verified-only link policy',()=>{
+ const item={competitionLabel:w1,matchCode:'2330',startsAt:'2026-10-16T19:30:00+02:00',homeName:'BEAC',awayName:'MAFC-ÉPK',
+  homeSets:3,awaySets:1,setScores:[{home:25,away:21},{home:23,away:25},{home:25,away:18},{home:25,away:13}],
+  protocol:{teams:[{name:'BEAC',players:[{number:'1',name:'Imre Eszter',designation:'K',captain:true}]},
+   {name:'MAFC-ÉPK',players:[{number:'5',name:'Stéger Babett',designation:'K'}]}],
+   officials:[{role:'I. játékvezető',name:'Juták Lili'}]}};
+ matches.push(item);context.qa.setScope('all');
+ try{
+  const card=context.qa.html(w1,false);
+  assert.ok(card.includes('data-player-protocol="2330"'));
+  assert.ok(card.includes('role="button" tabindex="0"'));
+  const detail=vm.runInContext('ccPlayerProtocolDetailHtml_',context)(item);
+  assert.ok(detail.includes('Kapitány'));
+  assert.ok(detail.includes('Imre Eszter'));
+  assert.ok(detail.includes('Juták Lili'));
+  const link=vm.runInContext('ccPlayerProtocolProfileUrl_',context);
+  assert.equal(link('https://hunvolley.hu/athlete/123'),'https://hunvolley.hu/athlete/123');
+  assert.equal(link('https://hunvolley.hu.evil.example/athlete/123'),'');
+ }finally{matches.pop();context.qa.setScope('beac');}
+});
+test('saved results update a separately labeled partial standings model without guessing rank',()=>{
+ const table=[{teamName:'Semmelweis Egyetem Sport Klub',position:1},
+  {teamName:'EMERICUS SE',position:2}];
+ const fn=vm.runInContext('ccPlayerResultsOnlyStandings_',context);
+ const model=fn(w1,table,[{...matches[0],setScores:[{home:25,away:20}]}]);
+ assert.equal(model.matched,1);
+ assert.equal(model.rows.find(x=>x.teamName==='Semmelweis Egyetem Sport Klub').wins,1);
+ assert.equal(model.rows.find(x=>x.teamName==='EMERICUS SE').losses,1);
+ assert.ok(model.rows.every(x=>x.position===null));
+ const view=js.slice(js.indexOf('function renderCompetitionStandings_(){'),js.indexOf('function syncPlannerSectionUi_()'));
+ assert.ok(view.includes('nem hivatalos tabella'));
 });
