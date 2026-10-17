@@ -2522,7 +2522,7 @@ function ccPlayerProtocolBadgesHtml_(player){
  if(p.libero)badges.push('<span class="player-roster-marker is-libero" title="Libero" aria-label="Libero">'+escapeHtml_(p.libero)+'</span>');
  // Blank playing designation in the uploaded match sheet: no court-entry mark.
  // Libero-only entries keep L1/L2 without implying they did not participate.
- if(!badges.length&&p.designation!=='K')badges.push('<span class="player-roster-marker is-no-entry" title="Nincs pályára lépési jelölés" aria-label="Nincs pályára lépési jelölés">–</span>');
+ if(!p.designation)badges.push('<span class="player-roster-marker is-no-entry" title="Nincs pályára lépési jelölés" aria-label="Nincs pályára lépési jelölés">–</span>');
  return '<span class="player-protocol-badges">'+badges.join('')+'</span>';
 }
 function ccPlayerProtocolRosterHtml_(team){
