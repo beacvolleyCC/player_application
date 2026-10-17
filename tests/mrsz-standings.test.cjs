@@ -403,7 +403,8 @@ test('incomplete results never name a best or worst performing league team',()=>
  assert.ok(overview.includes('const eligible=data.verifiedComplete'));
  assert.ok(overview.includes('Legjobb forma'));
  assert.ok(overview.includes('Legrosszabb forma'));
- assert.ok(overview.includes('csak teljes, ellenőrzött eredménysor'));
+ assert.ok(overview.includes("data.teams.every(t=>t.results.length>=5)"));
+ assert.ok(source.includes('title="Mentett eredmények alapján; egyes bajnoki adatok részlegesek lehetnek."'));
  assert.ok(!overview.includes('Legnagyobb feljövő'));
  assert.ok(!overview.includes('Legnagyobb visszaeső'));
 });
