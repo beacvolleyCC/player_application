@@ -9308,26 +9308,26 @@ dialog[open]:focus{
    PLAYER V2.3.10.26O-P11A — MOBILE STANDINGS HORIZONTAL SCROLL FIX
    Keep legacy planner max-content/clip rules away from standings.
    ========================================================== */
-#plannerView #plannerList:has(.competition-standings){
+:is(#plannerView,#standingsView) #plannerList:has(.competition-standings){
   display:block !important;
   width:100% !important;
   min-width:0 !important;
   max-width:100% !important;
   overflow:visible !important;
 }
-#plannerView .planner-scroll-viewport > .planner-card.planner-surface:has(.competition-standings){
+:is(#plannerView,#standingsView) .planner-scroll-viewport > .planner-card.planner-surface:has(.competition-standings){
   width:100% !important;
   min-width:0 !important;
   max-width:100% !important;
   overflow:visible !important;
 }
-#plannerView .competition-standings{
+:is(#plannerView,#standingsView) .competition-standings{
   width:100% !important;
   min-width:0 !important;
   max-width:100% !important;
   box-sizing:border-box !important;
 }
-#plannerView .standings-scroll{
+:is(#plannerView,#standingsView) .standings-scroll{
   display:block !important;
   width:100% !important;
   min-width:0 !important;
@@ -9339,13 +9339,13 @@ dialog[open]:focus{
   overscroll-behavior-x:contain;
   box-sizing:border-box !important;
 }
-#plannerView .standings-table{
+:is(#plannerView,#standingsView) .standings-table{
   width:700px !important;
   min-width:700px !important;
   max-width:none !important;
 }
 @media(max-width:620px){
-  #plannerView .standings-scroll{
+  :is(#plannerView,#standingsView) .standings-scroll{
     scrollbar-width:thin;
   }
 }
@@ -9357,7 +9357,7 @@ dialog[open]:focus{
    - no left yellow stripe on own team
    - team switcher stays hidden until actually needed
    ========================================================== */
-#plannerView .planner-title-row{
+:is(#plannerView,#standingsView) .planner-title-row{
   align-items:flex-start!important;
 }
 #plannerView #plannerSectionSubtitle{
@@ -9398,11 +9398,11 @@ dialog[open]:focus{
    - freeze # + team columns like the Player grid
    - narrower team column on mobile
    ========================================================== */
-#plannerView .standings-table{
+:is(#plannerView,#standingsView) .standings-table{
   min-width:650px !important;
   width:650px !important;
 }
-#plannerView .standings-table .pos{
+:is(#plannerView,#standingsView) .standings-table .pos{
   position:sticky !important;
   left:0 !important;
   z-index:4 !important;
@@ -9413,7 +9413,7 @@ dialog[open]:focus{
   padding-right:6px !important;
   background:var(--card) !important;
 }
-#plannerView .standings-table .team{
+:is(#plannerView,#standingsView) .standings-table .team{
   position:sticky !important;
   left:38px !important;
   z-index:3 !important;
@@ -9425,40 +9425,40 @@ dialog[open]:focus{
   background:var(--card) !important;
   box-shadow:1px 0 0 var(--line) !important;
 }
-#plannerView .standings-table thead .pos{
+:is(#plannerView,#standingsView) .standings-table thead .pos{
   z-index:6 !important;
   background:var(--soft) !important;
 }
-#plannerView .standings-table thead .team{
+:is(#plannerView,#standingsView) .standings-table thead .team{
   z-index:5 !important;
   background:var(--soft) !important;
 }
-#plannerView .standings-team-name{
+:is(#plannerView,#standingsView) .standings-team-name{
   display:block;
   max-width:100%;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-#plannerView .standings-table tr.focus .pos,
-#plannerView .standings-table tr.focus .team{
+:is(#plannerView,#standingsView) .standings-table tr.focus .pos,
+:is(#plannerView,#standingsView) .standings-table tr.focus .team{
   background:#fff1a8 !important;
 }
-.dark #plannerView .standings-table tr.focus .pos,
-.dark #plannerView .standings-table tr.focus .team{
+.dark :is(#plannerView,#standingsView) .standings-table tr.focus .pos,
+.dark :is(#plannerView,#standingsView) .standings-table tr.focus .team{
   background:#3a3014 !important;
 }
 @media(max-width:620px){
-  #plannerView .standings-table{
+  :is(#plannerView,#standingsView) .standings-table{
     min-width:620px !important;
     width:620px !important;
   }
-  #plannerView .standings-table .pos{
+  :is(#plannerView,#standingsView) .standings-table .pos{
     width:36px !important;
     min-width:36px !important;
     max-width:36px !important;
   }
-  #plannerView .standings-table .team{
+  :is(#plannerView,#standingsView) .standings-table .team{
     left:36px !important;
     width:132px !important;
     min-width:132px !important;
@@ -9472,7 +9472,7 @@ dialog[open]:focus{
    - compact BRSZ stat columns
    - iOS pull-to-refresh restored for standings
    ========================================================== */
-#plannerView .standings-split{
+:is(#plannerView,#standingsView) .standings-split{
   display:grid !important;
   grid-template-columns:154px minmax(0,1fr) !important;
   width:100% !important;
@@ -9482,7 +9482,7 @@ dialog[open]:focus{
   border-radius:12px !important;
   background:var(--card) !important;
 }
-#plannerView .standings-fixed{
+:is(#plannerView,#standingsView) .standings-fixed{
   position:relative !important;
   z-index:5 !important;
   width:154px !important;
@@ -9492,7 +9492,7 @@ dialog[open]:focus{
   background:var(--card) !important;
   box-shadow:1px 0 0 var(--line) !important;
 }
-#plannerView .standings-scroll{
+:is(#plannerView,#standingsView) .standings-scroll{
   width:100% !important;
   min-width:0 !important;
   max-width:100% !important;
@@ -9505,25 +9505,25 @@ dialog[open]:focus{
   border-radius:0 !important;
   background:var(--card) !important;
 }
-#plannerView .standings-table{
+:is(#plannerView,#standingsView) .standings-table{
   border-collapse:separate !important;
   border-spacing:0 !important;
   table-layout:fixed !important;
   font-size:9px !important;
   font-variant-numeric:tabular-nums !important;
 }
-#plannerView .standings-table-fixed{
+:is(#plannerView,#standingsView) .standings-table-fixed{
   width:154px !important;
   min-width:154px !important;
   max-width:154px !important;
 }
-#plannerView .standings-table-stats{
+:is(#plannerView,#standingsView) .standings-table-stats{
   width:430px !important;
   min-width:430px !important;
   max-width:430px !important;
 }
-#plannerView .standings-table th,
-#plannerView .standings-table td{
+:is(#plannerView,#standingsView) .standings-table th,
+:is(#plannerView,#standingsView) .standings-table td{
   box-sizing:border-box !important;
   height:31px !important;
   min-height:31px !important;
@@ -9533,7 +9533,7 @@ dialog[open]:focus{
   white-space:nowrap !important;
   vertical-align:middle !important;
 }
-#plannerView .standings-table thead th{
+:is(#plannerView,#standingsView) .standings-table thead th{
   height:29px !important;
   min-height:29px !important;
   position:static !important;
@@ -9543,8 +9543,8 @@ dialog[open]:focus{
   text-transform:uppercase !important;
   letter-spacing:.04em !important;
 }
-#plannerView .standings-table tbody tr:last-child td{border-bottom:0 !important;}
-#plannerView .standings-table-fixed .pos{
+:is(#plannerView,#standingsView) .standings-table tbody tr:last-child td{border-bottom:0 !important;}
+:is(#plannerView,#standingsView) .standings-table-fixed .pos{
   position:static !important;
   width:30px !important;
   min-width:30px !important;
@@ -9552,7 +9552,7 @@ dialog[open]:focus{
   background:var(--card) !important;
   font-weight:950 !important;
 }
-#plannerView .standings-table-fixed .team{
+:is(#plannerView,#standingsView) .standings-table-fixed .team{
   position:static !important;
   width:124px !important;
   min-width:124px !important;
@@ -9563,11 +9563,11 @@ dialog[open]:focus{
   background:var(--card) !important;
   box-shadow:none !important;
 }
-#plannerView .standings-table-fixed thead .pos,
-#plannerView .standings-table-fixed thead .team{
+:is(#plannerView,#standingsView) .standings-table-fixed thead .pos,
+:is(#plannerView,#standingsView) .standings-table-fixed thead .team{
   background:var(--soft) !important;
 }
-#plannerView .standings-team-name{
+:is(#plannerView,#standingsView) .standings-team-name{
   display:block !important;
   overflow:hidden !important;
   text-overflow:ellipsis !important;
@@ -9575,32 +9575,32 @@ dialog[open]:focus{
   font-weight:900 !important;
 }
 /* M, GY, V, P */
-#plannerView .standings-table-stats th:nth-child(-n+4),
-#plannerView .standings-table-stats td:nth-child(-n+4){width:38px !important;min-width:38px !important;max-width:38px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(-n+4),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(-n+4){width:38px !important;min-width:38px !important;max-width:38px !important;}
 /* Szett */
-#plannerView .standings-table-stats th:nth-child(5),
-#plannerView .standings-table-stats td:nth-child(5){width:56px !important;min-width:56px !important;max-width:56px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(5),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(5){width:56px !important;min-width:56px !important;max-width:56px !important;}
 /* Szettarány */
-#plannerView .standings-table-stats th:nth-child(6),
-#plannerView .standings-table-stats td:nth-child(6){width:72px !important;min-width:72px !important;max-width:72px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(6),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(6){width:72px !important;min-width:72px !important;max-width:72px !important;}
 /* Pontok */
-#plannerView .standings-table-stats th:nth-child(7),
-#plannerView .standings-table-stats td:nth-child(7){width:66px !important;min-width:66px !important;max-width:66px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(7),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(7){width:66px !important;min-width:66px !important;max-width:66px !important;}
 /* Pontarány */
-#plannerView .standings-table-stats th:nth-child(8),
-#plannerView .standings-table-stats td:nth-child(8){width:84px !important;min-width:84px !important;max-width:84px !important;}
-#plannerView .standings-table tr.focus td{background:#fff7cf !important;}
-#plannerView .standings-table-fixed tr.focus .pos,
-#plannerView .standings-table-fixed tr.focus .team{background:#fff1a8 !important;}
-.dark #plannerView .standings-table tr.focus td{background:#302a16 !important;}
-.dark #plannerView .standings-table-fixed tr.focus .pos,
-.dark #plannerView .standings-table-fixed tr.focus .team{background:#3a3014 !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(8),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(8){width:84px !important;min-width:84px !important;max-width:84px !important;}
+:is(#plannerView,#standingsView) .standings-table tr.focus td{background:#fff7cf !important;}
+:is(#plannerView,#standingsView) .standings-table-fixed tr.focus .pos,
+:is(#plannerView,#standingsView) .standings-table-fixed tr.focus .team{background:#fff1a8 !important;}
+.dark :is(#plannerView,#standingsView) .standings-table tr.focus td{background:#302a16 !important;}
+.dark :is(#plannerView,#standingsView) .standings-table-fixed tr.focus .pos,
+.dark :is(#plannerView,#standingsView) .standings-table-fixed tr.focus .team{background:#3a3014 !important;}
 @media(max-width:620px){
-  #plannerView .standings-split{grid-template-columns:150px minmax(0,1fr) !important;}
-  #plannerView .standings-fixed,
-  #plannerView .standings-table-fixed{width:150px !important;min-width:150px !important;max-width:150px !important;}
-  #plannerView .standings-table-fixed .pos{width:28px !important;min-width:28px !important;max-width:28px !important;}
-  #plannerView .standings-table-fixed .team{width:122px !important;min-width:122px !important;max-width:122px !important;}
+  :is(#plannerView,#standingsView) .standings-split{grid-template-columns:150px minmax(0,1fr) !important;}
+  :is(#plannerView,#standingsView) .standings-fixed,
+  :is(#plannerView,#standingsView) .standings-table-fixed{width:150px !important;min-width:150px !important;max-width:150px !important;}
+  :is(#plannerView,#standingsView) .standings-table-fixed .pos{width:28px !important;min-width:28px !important;max-width:28px !important;}
+  :is(#plannerView,#standingsView) .standings-table-fixed .team{width:122px !important;min-width:122px !important;max-width:122px !important;}
 }
 
 
@@ -9609,12 +9609,12 @@ dialog[open]:focus{
    - stat widths follow numeric values instead of long headers
    - ratio headers wrap to two compact lines
    ========================================================== */
-#plannerView .standings-table-stats{
+:is(#plannerView,#standingsView) .standings-table-stats{
   width:326px !important;
   min-width:326px !important;
   max-width:326px !important;
 }
-#plannerView .standings-table-stats thead th{
+:is(#plannerView,#standingsView) .standings-table-stats thead th{
   padding:0 2px !important;
   font-size:6.3px !important;
   line-height:1.05 !important;
@@ -9623,36 +9623,36 @@ dialog[open]:focus{
   text-overflow:clip !important;
   letter-spacing:.025em !important;
 }
-#plannerView .standings-table-stats tbody td{
+:is(#plannerView,#standingsView) .standings-table-stats tbody td{
   padding:0 2px !important;
   font-size:8.8px !important;
 }
 /* M / GY / V / P — single or two-digit numeric cells */
-#plannerView .standings-table-stats th:nth-child(-n+4),
-#plannerView .standings-table-stats td:nth-child(-n+4){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(-n+4),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(-n+4){
   width:28px !important;min-width:28px !important;max-width:28px !important;
 }
 /* Szett — e.g. 35–7 */
-#plannerView .standings-table-stats th:nth-child(5),
-#plannerView .standings-table-stats td:nth-child(5){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(5),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(5){
   width:46px !important;min-width:46px !important;max-width:46px !important;
 }
 /* Szettarány — e.g. 5.000 */
-#plannerView .standings-table-stats th:nth-child(6),
-#plannerView .standings-table-stats td:nth-child(6){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(6),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(6){
   width:52px !important;min-width:52px !important;max-width:52px !important;
 }
 /* Pontok — e.g. 987–775 */
-#plannerView .standings-table-stats th:nth-child(7),
-#plannerView .standings-table-stats td:nth-child(7){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(7),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(7){
   width:62px !important;min-width:62px !important;max-width:62px !important;
 }
 /* Pontarány — e.g. 1.274 */
-#plannerView .standings-table-stats th:nth-child(8),
-#plannerView .standings-table-stats td:nth-child(8){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(8),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(8){
   width:54px !important;min-width:54px !important;max-width:54px !important;
 }
-#plannerView .standings-table-stats .hdr-wrap{
+:is(#plannerView,#standingsView) .standings-table-stats .hdr-wrap{
   display:inline-block !important;
   max-width:100% !important;
   text-align:center !important;
@@ -9661,94 +9661,94 @@ dialog[open]:focus{
 /* ==========================================================
    PLAYER V2.3.10.26O-P12 — TEAM LOGOS + STANDINGS FILTER + MATCH PANEL
    ========================================================== */
-#plannerView .standings-team-cell{display:flex;align-items:center;gap:5px;min-width:0;width:100%;}
-#plannerView .standings-team-logo{width:18px;height:18px;min-width:18px;object-fit:contain;display:block;}
-#plannerView .standings-team-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-#plannerView .standings-table-stats .group-end{border-right:1px solid color-mix(in srgb,var(--black) 24%,transparent) !important;}
-#plannerView .standings-table-stats thead th{white-space:nowrap !important;font-size:6.6px !important;}
-#plannerView .standings-table-stats th:nth-child(-n+4),
-#plannerView .standings-table-stats td:nth-child(-n+4){width:26px !important;min-width:26px !important;max-width:26px !important;}
-#plannerView .standings-table-stats th:nth-child(5),
-#plannerView .standings-table-stats td:nth-child(5){width:42px !important;min-width:42px !important;max-width:42px !important;}
-#plannerView .standings-table-stats th:nth-child(6),
-#plannerView .standings-table-stats td:nth-child(6){width:45px !important;min-width:45px !important;max-width:45px !important;}
-#plannerView .standings-table-stats th:nth-child(7),
-#plannerView .standings-table-stats td:nth-child(7){width:58px !important;min-width:58px !important;max-width:58px !important;}
-#plannerView .standings-table-stats th:nth-child(8),
-#plannerView .standings-table-stats td:nth-child(8){width:48px !important;min-width:48px !important;max-width:48px !important;}
-#plannerView .standings-table-stats{width:297px !important;min-width:297px !important;max-width:297px !important;}
-#plannerView .standings-filter-fields .filter-bar{grid-template-columns:minmax(0,1fr) !important;}
-#plannerView .standings-filter-fields select{width:100%;}
+:is(#plannerView,#standingsView) .standings-team-cell{display:flex;align-items:center;gap:5px;min-width:0;width:100%;}
+:is(#plannerView,#standingsView) .standings-team-logo{width:18px;height:18px;min-width:18px;object-fit:contain;display:block;}
+:is(#plannerView,#standingsView) .standings-team-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+:is(#plannerView,#standingsView) .standings-table-stats .group-end{border-right:1px solid color-mix(in srgb,var(--black) 24%,transparent) !important;}
+:is(#plannerView,#standingsView) .standings-table-stats thead th{white-space:nowrap !important;font-size:6.6px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(-n+4),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(-n+4){width:26px !important;min-width:26px !important;max-width:26px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(5),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(5){width:42px !important;min-width:42px !important;max-width:42px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(6),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(6){width:45px !important;min-width:45px !important;max-width:45px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(7),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(7){width:58px !important;min-width:58px !important;max-width:58px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(8),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(8){width:48px !important;min-width:48px !important;max-width:48px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats{width:297px !important;min-width:297px !important;max-width:297px !important;}
+:is(#plannerView,#standingsView) .standings-filter-fields .filter-bar{grid-template-columns:minmax(0,1fr) !important;}
+:is(#plannerView,#standingsView) .standings-filter-fields select{width:100%;}
 #plannerView .planner-view-actions [hidden]{display:none !important;}
 
-#plannerView .standings-matches-panel{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden;}
-#plannerView .standings-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border-bottom:1px solid var(--line);}
-#plannerView .standings-panel-head>b{font-size:11px;}
-#plannerView .standings-panel-head>span{font-size:7.5px;color:var(--muted);font-weight:800;}
-#plannerView .standings-match-list{display:grid;}
-#plannerView .standings-match-row{display:grid;grid-template-columns:52px minmax(90px,1fr) 44px minmax(90px,1fr) 76px;align-items:center;gap:6px;min-height:52px;padding:6px 8px;border-bottom:1px solid var(--line);}
-#plannerView .standings-match-row:last-child{border-bottom:0;}
-#plannerView .standings-match-date{display:grid;gap:1px;text-align:left;font-variant-numeric:tabular-nums;}
-#plannerView .standings-match-date b{font-size:8px;white-space:nowrap;}
-#plannerView .standings-match-date span{font-size:7px;color:var(--muted);}
-#plannerView .standings-match-team{display:flex;align-items:center;gap:5px;min-width:0;padding:3px 4px;border-radius:7px;}
-#plannerView .standings-match-team.away{justify-content:flex-end;text-align:right;}
-#plannerView .standings-match-team.is-own{background:#fff3ad;}
-.dark #plannerView .standings-match-team.is-own{background:#3a3014;}
-#plannerView .standings-match-team>span{display:grid;gap:1px;min-width:0;}
-#plannerView .standings-match-team b{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#plannerView .standings-match-team small{font-size:6.5px;color:var(--muted);white-space:nowrap;}
-#plannerView .standings-team-logo.match-logo{width:22px;height:22px;min-width:22px;}
-#plannerView .standings-match-score{font-size:15px;font-weight:950;text-align:center;font-variant-numeric:tabular-nums;}
-#plannerView .standings-match-score:not(.has-score){font-size:10px;color:var(--muted);}
-#plannerView .standings-match-place{text-align:right;display:grid;gap:1px;min-width:0;}
-#plannerView .standings-match-place span,#plannerView .standings-match-place small{font-size:6.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#plannerView .standings-form-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-top:1px solid var(--line);}
-#plannerView .standings-form-row>span{font-size:7.5px;color:var(--muted);font-weight:800;}
-#plannerView .standings-form-row>div{display:flex;gap:4px;}
-#plannerView .standings-form-row b{width:20px;height:20px;border-radius:999px;display:grid;place-items:center;font-size:7px;}
-#plannerView .standings-form-row b.win{background:#e5f3e8;color:#246235;}
-#plannerView .standings-form-row b.loss{background:#fae4e4;color:#8b2929;}
+:is(#plannerView,#standingsView) .standings-matches-panel{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden;}
+:is(#plannerView,#standingsView) .standings-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border-bottom:1px solid var(--line);}
+:is(#plannerView,#standingsView) .standings-panel-head>b{font-size:11px;}
+:is(#plannerView,#standingsView) .standings-panel-head>span{font-size:7.5px;color:var(--muted);font-weight:800;}
+:is(#plannerView,#standingsView) .standings-match-list{display:grid;}
+:is(#plannerView,#standingsView) .standings-match-row{display:grid;grid-template-columns:52px minmax(90px,1fr) 44px minmax(90px,1fr) 76px;align-items:center;gap:6px;min-height:52px;padding:6px 8px;border-bottom:1px solid var(--line);}
+:is(#plannerView,#standingsView) .standings-match-row:last-child{border-bottom:0;}
+:is(#plannerView,#standingsView) .standings-match-date{display:grid;gap:1px;text-align:left;font-variant-numeric:tabular-nums;}
+:is(#plannerView,#standingsView) .standings-match-date b{font-size:8px;white-space:nowrap;}
+:is(#plannerView,#standingsView) .standings-match-date span{font-size:7px;color:var(--muted);}
+:is(#plannerView,#standingsView) .standings-match-team{display:flex;align-items:center;gap:5px;min-width:0;padding:3px 4px;border-radius:7px;}
+:is(#plannerView,#standingsView) .standings-match-team.away{justify-content:flex-end;text-align:right;}
+:is(#plannerView,#standingsView) .standings-match-team.is-own{background:#fff3ad;}
+.dark :is(#plannerView,#standingsView) .standings-match-team.is-own{background:#3a3014;}
+:is(#plannerView,#standingsView) .standings-match-team>span{display:grid;gap:1px;min-width:0;}
+:is(#plannerView,#standingsView) .standings-match-team b{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+:is(#plannerView,#standingsView) .standings-match-team small{font-size:6.5px;color:var(--muted);white-space:nowrap;}
+:is(#plannerView,#standingsView) .standings-team-logo.match-logo{width:22px;height:22px;min-width:22px;}
+:is(#plannerView,#standingsView) .standings-match-score{font-size:15px;font-weight:950;text-align:center;font-variant-numeric:tabular-nums;}
+:is(#plannerView,#standingsView) .standings-match-score:not(.has-score){font-size:10px;color:var(--muted);}
+:is(#plannerView,#standingsView) .standings-match-place{text-align:right;display:grid;gap:1px;min-width:0;}
+:is(#plannerView,#standingsView) .standings-match-place span,:is(#plannerView,#standingsView) .standings-match-place small{font-size:6.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+:is(#plannerView,#standingsView) .standings-form-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-top:1px solid var(--line);}
+:is(#plannerView,#standingsView) .standings-form-row>span{font-size:7.5px;color:var(--muted);font-weight:800;}
+:is(#plannerView,#standingsView) .standings-form-row>div{display:flex;gap:4px;}
+:is(#plannerView,#standingsView) .standings-form-row b{width:20px;height:20px;border-radius:999px;display:grid;place-items:center;font-size:7px;}
+:is(#plannerView,#standingsView) .standings-form-row b.win{background:#e5f3e8;color:#246235;}
+:is(#plannerView,#standingsView) .standings-form-row b.loss{background:#fae4e4;color:#8b2929;}
 @media(max-width:620px){
-  #plannerView .standings-match-panel{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  #plannerView .standings-match-list{min-width:610px;}
-  #plannerView .standings-match-row{grid-template-columns:48px 155px 42px 155px 150px;}
+  :is(#plannerView,#standingsView) .standings-match-panel{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  :is(#plannerView,#standingsView) .standings-match-list{min-width:610px;}
+  :is(#plannerView,#standingsView) .standings-match-row{grid-template-columns:48px 155px 42px 155px 150px;}
 }
 
 
 /* ==========================================================
    PLAYER V2.3.10.26O-P12A — COMPACT MATCH ROWS + CLICK FILTER
    ========================================================== */
-#plannerView .standings-team-filter-btn{
+:is(#plannerView,#standingsView) .standings-team-filter-btn{
   appearance:none;-webkit-appearance:none;border:0;background:transparent;color:inherit;font:inherit;margin:0;
   text-align:inherit;cursor:pointer;min-width:0;box-sizing:border-box;
 }
-#plannerView .standings-table-fixed .standings-team-filter-btn{width:100%;height:100%;padding:0;}
-#plannerView .standings-team-filter-btn:focus-visible{outline:2px solid currentColor;outline-offset:-2px;border-radius:5px;}
-#plannerView .standings-match-row{
+:is(#plannerView,#standingsView) .standings-table-fixed .standings-team-filter-btn{width:100%;height:100%;padding:0;}
+:is(#plannerView,#standingsView) .standings-team-filter-btn:focus-visible{outline:2px solid currentColor;outline-offset:-2px;border-radius:5px;}
+:is(#plannerView,#standingsView) .standings-match-row{
   grid-template-columns:40px minmax(0,1fr) 38px minmax(0,1fr) 62px;
   gap:3px;min-height:48px;padding:5px 6px;
 }
-#plannerView .standings-match-date b{font-size:7.4px;}
-#plannerView .standings-match-date span{font-size:6.2px;}
-#plannerView .standings-match-team{gap:3px;padding:2px 3px;min-height:34px;}
-#plannerView .standings-match-team b{font-size:7.2px;}
-#plannerView .standings-match-team small{font-size:6px;}
-#plannerView .standings-team-logo.match-logo{width:19px;height:19px;min-width:19px;}
-#plannerView .standings-match-score{font-size:13px;line-height:1;}
-#plannerView .standings-match-place{padding-left:2px;}
-#plannerView .standings-match-place span,#plannerView .standings-match-place small{font-size:5.9px;line-height:1.15;}
+:is(#plannerView,#standingsView) .standings-match-date b{font-size:7.4px;}
+:is(#plannerView,#standingsView) .standings-match-date span{font-size:6.2px;}
+:is(#plannerView,#standingsView) .standings-match-team{gap:3px;padding:2px 3px;min-height:34px;}
+:is(#plannerView,#standingsView) .standings-match-team b{font-size:7.2px;}
+:is(#plannerView,#standingsView) .standings-match-team small{font-size:6px;}
+:is(#plannerView,#standingsView) .standings-team-logo.match-logo{width:19px;height:19px;min-width:19px;}
+:is(#plannerView,#standingsView) .standings-match-score{font-size:13px;line-height:1;}
+:is(#plannerView,#standingsView) .standings-match-place{padding-left:2px;}
+:is(#plannerView,#standingsView) .standings-match-place span,:is(#plannerView,#standingsView) .standings-match-place small{font-size:5.9px;line-height:1.15;}
 @media(max-width:620px){
-  #plannerView .standings-matches-panel{overflow:hidden;}
-  #plannerView .standings-match-list{min-width:0 !important;width:100%;}
-  #plannerView .standings-match-row{
+  :is(#plannerView,#standingsView) .standings-matches-panel{overflow:hidden;}
+  :is(#plannerView,#standingsView) .standings-match-list{min-width:0 !important;width:100%;}
+  :is(#plannerView,#standingsView) .standings-match-row{
     grid-template-columns:36px minmax(68px,1fr) 34px minmax(68px,1fr) 54px;
     gap:2px;padding:5px 5px;
   }
-  #plannerView .standings-team-logo.match-logo{width:18px;height:18px;min-width:18px;}
-  #plannerView .standings-match-team b{font-size:6.8px;}
-  #plannerView .standings-match-score{font-size:12px;}
-  #plannerView .standings-match-place span,#plannerView .standings-match-place small{font-size:5.5px;}
+  :is(#plannerView,#standingsView) .standings-team-logo.match-logo{width:18px;height:18px;min-width:18px;}
+  :is(#plannerView,#standingsView) .standings-match-team b{font-size:6.8px;}
+  :is(#plannerView,#standingsView) .standings-match-score{font-size:12px;}
+  :is(#plannerView,#standingsView) .standings-match-place span,:is(#plannerView,#standingsView) .standings-match-place small{font-size:5.5px;}
 }
 
 
@@ -9759,7 +9759,7 @@ dialog[open]:focus{
    - filter footer disappears entirely when no reset is needed
    - standings widths target one-screen fit on common iPhone portrait widths
    ========================================================== */
-#plannerView .planner-section-tabs{display:none !important;}
+:is(#plannerView,#standingsView) .planner-section-tabs{display:none !important;}
 #plannerView .planner-view-actions{gap:5px !important;}
 #plannerView .planner-view-actions .view-mode-btn,
 #plannerView #plannerFilterBtn{
@@ -9767,7 +9767,7 @@ dialog[open]:focus{
   min-width:38px !important;
   height:38px !important;
 }
-#plannerView .cc-icon-standings{
+:is(#plannerView,#standingsView) .cc-icon-standings{
   width:25px;
   height:25px;
   fill:none;
@@ -9775,11 +9775,11 @@ dialog[open]:focus{
   stroke-width:1.5;
   vector-effect:non-scaling-stroke;
 }
-#plannerView #plannerStandingsBtn.active{
+:is(#plannerView,#standingsView) #plannerStandingsBtn.active{
   background:#fff0a3 !important;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.12) !important;
 }
-.dark #plannerView #plannerStandingsBtn.active{background:#d5a72f !important;}
+.dark :is(#plannerView,#standingsView) #plannerStandingsBtn.active{background:#d5a72f !important;}
 
 /* No active filter = no empty footer rule, padding or reserved space. */
 .filter-panel.no-active-filter .filter-panel-actions{
@@ -9792,88 +9792,88 @@ dialog[open]:focus{
 
 /* Shrink the fixed team pane and numeric columns to content width.
    Horizontal scrolling intentionally remains available as a fallback. */
-#plannerView .standings-split{
+:is(#plannerView,#standingsView) .standings-split{
   grid-template-columns:120px minmax(0,1fr) !important;
 }
-#plannerView .standings-fixed,
-#plannerView .standings-table-fixed{
+:is(#plannerView,#standingsView) .standings-fixed,
+:is(#plannerView,#standingsView) .standings-table-fixed{
   width:120px !important;
   min-width:120px !important;
   max-width:120px !important;
 }
-#plannerView .standings-table-fixed .pos{
+:is(#plannerView,#standingsView) .standings-table-fixed .pos{
   width:22px !important;
   min-width:22px !important;
   max-width:22px !important;
   padding:0 2px !important;
   font-size:8px !important;
 }
-#plannerView .standings-table-fixed .team{
+:is(#plannerView,#standingsView) .standings-table-fixed .team{
   width:98px !important;
   min-width:98px !important;
   max-width:98px !important;
   padding-left:4px !important;
   padding-right:3px !important;
 }
-#plannerView .standings-team-cell{gap:3px !important;}
-#plannerView .standings-team-logo{
+:is(#plannerView,#standingsView) .standings-team-cell{gap:3px !important;}
+:is(#plannerView,#standingsView) .standings-team-logo{
   width:15px !important;
   height:15px !important;
   min-width:15px !important;
 }
-#plannerView .standings-team-name{font-size:7.6px !important;}
+:is(#plannerView,#standingsView) .standings-team-name{font-size:7.6px !important;}
 
-#plannerView .standings-table-stats{
+:is(#plannerView,#standingsView) .standings-table-stats{
   width:234px !important;
   min-width:234px !important;
   max-width:234px !important;
 }
-#plannerView .standings-table-stats th,
-#plannerView .standings-table-stats td{
+:is(#plannerView,#standingsView) .standings-table-stats th,
+:is(#plannerView,#standingsView) .standings-table-stats td{
   padding-left:1px !important;
   padding-right:1px !important;
 }
-#plannerView .standings-table-stats thead th{
+:is(#plannerView,#standingsView) .standings-table-stats thead th{
   font-size:6px !important;
   letter-spacing:0 !important;
 }
-#plannerView .standings-table-stats tbody td{font-size:8px !important;}
+:is(#plannerView,#standingsView) .standings-table-stats tbody td{font-size:8px !important;}
 /* M / GY / V / championship P */
-#plannerView .standings-table-stats th:nth-child(-n+4),
-#plannerView .standings-table-stats td:nth-child(-n+4){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(-n+4),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(-n+4){
   width:22px !important;min-width:22px !important;max-width:22px !important;
 }
 /* SZ */
-#plannerView .standings-table-stats th:nth-child(5),
-#plannerView .standings-table-stats td:nth-child(5){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(5),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(5){
   width:34px !important;min-width:34px !important;max-width:34px !important;
 }
 /* SZA */
-#plannerView .standings-table-stats th:nth-child(6),
-#plannerView .standings-table-stats td:nth-child(6){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(6),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(6){
   width:36px !important;min-width:36px !important;max-width:36px !important;
 }
 /* point pair */
-#plannerView .standings-table-stats th:nth-child(7),
-#plannerView .standings-table-stats td:nth-child(7){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(7),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(7){
   width:42px !important;min-width:42px !important;max-width:42px !important;
 }
 /* PA */
-#plannerView .standings-table-stats th:nth-child(8),
-#plannerView .standings-table-stats td:nth-child(8){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(8),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(8){
   width:34px !important;min-width:34px !important;max-width:34px !important;
 }
-#plannerView .standings-table-stats .points{font-weight:950 !important;}
-#plannerView .standings-table-stats .group-end{
+:is(#plannerView,#standingsView) .standings-table-stats .points{font-weight:950 !important;}
+:is(#plannerView,#standingsView) .standings-table-stats .group-end{
   border-right:1px solid color-mix(in srgb,var(--black) 28%,transparent) !important;
 }
 @media(max-width:370px){
-  #plannerView .standings-split{grid-template-columns:114px minmax(0,1fr) !important;}
-  #plannerView .standings-fixed,
-  #plannerView .standings-table-fixed{width:114px !important;min-width:114px !important;max-width:114px !important;}
-  #plannerView .standings-table-fixed .pos{width:21px !important;min-width:21px !important;max-width:21px !important;}
-  #plannerView .standings-table-fixed .team{width:93px !important;min-width:93px !important;max-width:93px !important;}
-  #plannerView .standings-team-name{font-size:7.2px !important;}
+  :is(#plannerView,#standingsView) .standings-split{grid-template-columns:114px minmax(0,1fr) !important;}
+  :is(#plannerView,#standingsView) .standings-fixed,
+  :is(#plannerView,#standingsView) .standings-table-fixed{width:114px !important;min-width:114px !important;max-width:114px !important;}
+  :is(#plannerView,#standingsView) .standings-table-fixed .pos{width:21px !important;min-width:21px !important;max-width:21px !important;}
+  :is(#plannerView,#standingsView) .standings-table-fixed .team{width:93px !important;min-width:93px !important;max-width:93px !important;}
+  :is(#plannerView,#standingsView) .standings-team-name{font-size:7.2px !important;}
 }
 
 
@@ -9883,32 +9883,32 @@ dialog[open]:focus{
    - wider screens use the full standings panel width
    - horizontal scrolling remains as a safety fallback
    ========================================================== */
-#plannerView .standings-split{
+:is(#plannerView,#standingsView) .standings-split{
   --standings-left:120px;
   grid-template-columns:var(--standings-left) minmax(0,1fr) !important;
   width:100% !important;
 }
-#plannerView .standings-fixed,
-#plannerView .standings-table-fixed{
+:is(#plannerView,#standingsView) .standings-fixed,
+:is(#plannerView,#standingsView) .standings-table-fixed{
   width:var(--standings-left) !important;
   min-width:var(--standings-left) !important;
   max-width:var(--standings-left) !important;
 }
-#plannerView .standings-table-fixed .pos{
+:is(#plannerView,#standingsView) .standings-table-fixed .pos{
   width:22px !important;
   min-width:22px !important;
   max-width:22px !important;
 }
-#plannerView .standings-table-fixed .team{
+:is(#plannerView,#standingsView) .standings-table-fixed .team{
   width:calc(var(--standings-left) - 22px) !important;
   min-width:calc(var(--standings-left) - 22px) !important;
   max-width:calc(var(--standings-left) - 22px) !important;
 }
-#plannerView .standings-scroll{
+:is(#plannerView,#standingsView) .standings-scroll{
   width:100% !important;
   min-width:0 !important;
 }
-#plannerView .standings-table-stats{
+:is(#plannerView,#standingsView) .standings-table-stats{
   width:100% !important;
   min-width:234px !important;
   max-width:none !important;
@@ -9916,46 +9916,46 @@ dialog[open]:focus{
 }
 /* On portrait the numeric columns stay extremely compact; on wider panels
    these percentages distribute the available width instead of leaving a hole. */
-#plannerView .standings-table-stats th:nth-child(-n+4),
-#plannerView .standings-table-stats td:nth-child(-n+4){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(-n+4),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(-n+4){
   width:8.5% !important;min-width:20px !important;max-width:none !important;
 }
-#plannerView .standings-table-stats th:nth-child(5),
-#plannerView .standings-table-stats td:nth-child(5){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(5),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(5){
   width:13% !important;min-width:31px !important;max-width:none !important;
 }
-#plannerView .standings-table-stats th:nth-child(6),
-#plannerView .standings-table-stats td:nth-child(6){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(6),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(6){
   width:15% !important;min-width:35px !important;max-width:none !important;
 }
-#plannerView .standings-table-stats th:nth-child(7),
-#plannerView .standings-table-stats td:nth-child(7){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(7),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(7){
   width:20% !important;min-width:42px !important;max-width:none !important;
 }
-#plannerView .standings-table-stats th:nth-child(8),
-#plannerView .standings-table-stats td:nth-child(8){
+:is(#plannerView,#standingsView) .standings-table-stats th:nth-child(8),
+:is(#plannerView,#standingsView) .standings-table-stats td:nth-child(8){
   width:18% !important;min-width:34px !important;max-width:none !important;
 }
 @media (min-width:621px){
-  #plannerView .standings-split{--standings-left:clamp(150px,18vw,240px);}
-  #plannerView .standings-table-fixed .pos{
+  :is(#plannerView,#standingsView) .standings-split{--standings-left:clamp(150px,18vw,240px);}
+  :is(#plannerView,#standingsView) .standings-table-fixed .pos{
     width:30px !important;min-width:30px !important;max-width:30px !important;
   }
-  #plannerView .standings-table-fixed .team{
+  :is(#plannerView,#standingsView) .standings-table-fixed .team{
     width:calc(var(--standings-left) - 30px) !important;
     min-width:calc(var(--standings-left) - 30px) !important;
     max-width:calc(var(--standings-left) - 30px) !important;
   }
-  #plannerView .standings-team-name{font-size:8.3px !important;}
-  #plannerView .standings-table-stats thead th{font-size:6.5px !important;}
-  #plannerView .standings-table-stats tbody td{font-size:8.5px !important;}
+  :is(#plannerView,#standingsView) .standings-team-name{font-size:8.3px !important;}
+  :is(#plannerView,#standingsView) .standings-table-stats thead th{font-size:6.5px !important;}
+  :is(#plannerView,#standingsView) .standings-table-stats tbody td{font-size:8.5px !important;}
 }
 @media (max-width:370px){
-  #plannerView .standings-split{--standings-left:114px;}
-  #plannerView .standings-table-fixed .pos{
+  :is(#plannerView,#standingsView) .standings-split{--standings-left:114px;}
+  :is(#plannerView,#standingsView) .standings-table-fixed .pos{
     width:21px !important;min-width:21px !important;max-width:21px !important;
   }
-  #plannerView .standings-table-fixed .team{
+  :is(#plannerView,#standingsView) .standings-table-fixed .team{
     width:calc(var(--standings-left) - 21px) !important;
     min-width:calc(var(--standings-left) - 21px) !important;
     max-width:calc(var(--standings-left) - 21px) !important;
@@ -9965,7 +9965,7 @@ dialog[open]:focus{
 /* ==========================================================
    PLAYER V2.3.10.26O-P13 — COMPETITION INSIGHTS + MONOGRAM FALLBACK
    ========================================================== */
-#plannerView .standings-team-monogram{
+:is(#plannerView,#standingsView) .standings-team-monogram{
   display:grid !important;
   place-items:center;
   border-radius:999px;
@@ -9976,28 +9976,28 @@ dialog[open]:focus{
   font-weight:900;
   line-height:1;
 }
-#plannerView .standings-team-monogram.match-logo{font-size:7px !important;}
-.dark #plannerView .standings-team-monogram{background:#23231f;}
+:is(#plannerView,#standingsView) .standings-team-monogram.match-logo{font-size:7px !important;}
+.dark :is(#plannerView,#standingsView) .standings-team-monogram{background:#23231f;}
 
-#plannerView .standings-insights-panel{
+:is(#plannerView,#standingsView) .standings-insights-panel{
   margin-top:12px;
   border:1px solid var(--line);
   border-radius:12px;
   background:var(--card);
   overflow:hidden;
 }
-#plannerView .standings-insights-state{
+:is(#plannerView,#standingsView) .standings-insights-state{
   padding:14px 12px;
   color:var(--muted);
   font-size:8px;
 }
-#plannerView .standings-insights-summary{
+:is(#plannerView,#standingsView) .standings-insights-summary{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:0;
   border-bottom:1px solid var(--line);
 }
-#plannerView .standings-insights-summary>div{
+:is(#plannerView,#standingsView) .standings-insights-summary>div{
   min-height:56px;
   display:grid;
   align-content:center;
@@ -10005,73 +10005,73 @@ dialog[open]:focus{
   padding:8px 9px;
   border-right:1px solid var(--line);
 }
-#plannerView .standings-insights-summary>div:last-child{border-right:0;}
-#plannerView .standings-insights-summary span{
+:is(#plannerView,#standingsView) .standings-insights-summary>div:last-child{border-right:0;}
+:is(#plannerView,#standingsView) .standings-insights-summary span{
   color:var(--muted);
   font-size:6.5px;
   font-weight:800;
 }
-#plannerView .standings-insights-summary>b,
-#plannerView .standings-insights-summary>div>b{
+:is(#plannerView,#standingsView) .standings-insights-summary>b,
+:is(#plannerView,#standingsView) .standings-insights-summary>div>b{
   font-size:13px;
   line-height:1;
   font-weight:950;
 }
-#plannerView .standings-insights-summary .form>div{
+:is(#plannerView,#standingsView) .standings-insights-summary .form>div{
   display:flex;
   align-items:center;
   gap:3px;
   min-height:20px;
 }
-#plannerView .standings-insights-summary .form b{
+:is(#plannerView,#standingsView) .standings-insights-summary .form b{
   width:18px;height:18px;border-radius:999px;display:grid;place-items:center;font-size:6.5px;font-weight:950;
 }
-#plannerView .standings-insights-summary .form b.win{background:#e5f3e8;color:#246235;}
-#plannerView .standings-insights-summary .form b.loss{background:#fae4e4;color:#8b2929;}
-.dark #plannerView .standings-insights-summary .form b.win{background:#17351e;color:#9ed6aa;}
-.dark #plannerView .standings-insights-summary .form b.loss{background:#3a1919;color:#e8a2a2;}
-#plannerView .standings-insights-summary .muted{font-size:10px;color:var(--muted);}
+:is(#plannerView,#standingsView) .standings-insights-summary .form b.win{background:#e5f3e8;color:#246235;}
+:is(#plannerView,#standingsView) .standings-insights-summary .form b.loss{background:#fae4e4;color:#8b2929;}
+.dark :is(#plannerView,#standingsView) .standings-insights-summary .form b.win{background:#17351e;color:#9ed6aa;}
+.dark :is(#plannerView,#standingsView) .standings-insights-summary .form b.loss{background:#3a1919;color:#e8a2a2;}
+:is(#plannerView,#standingsView) .standings-insights-summary .muted{font-size:10px;color:var(--muted);}
 
-#plannerView .standings-insights-grid{
+:is(#plannerView,#standingsView) .standings-insights-grid{
   display:grid;
   grid-template-columns:minmax(0,1.55fr) minmax(120px,.7fr) minmax(150px,.85fr);
   gap:8px;
   padding:10px;
 }
-#plannerView .standings-insight-card{
+:is(#plannerView,#standingsView) .standings-insight-card{
   min-width:0;
   border:1px solid var(--line);
   border-radius:10px;
   background:color-mix(in srgb,var(--card) 92%,var(--soft));
   padding:9px;
 }
-#plannerView .standings-insight-card.chart{min-height:148px;}
+:is(#plannerView,#standingsView) .standings-insight-card.chart{min-height:148px;}
 #plannerView .insight-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px;}
 #plannerView .insight-title b{font-size:8px;}
 #plannerView .insight-title span{font-size:6px;color:var(--muted);white-space:nowrap;}
-#plannerView .standings-position-chart{display:block;width:100%;height:112px;overflow:visible;}
-#plannerView .standings-position-chart .grid{stroke:color-mix(in srgb,var(--line) 82%,transparent);stroke-width:1;}
-#plannerView .standings-position-chart .trend{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;}
-#plannerView .standings-position-chart circle{fill:var(--card);stroke:currentColor;stroke-width:2;}
-#plannerView .standings-position-chart text{fill:var(--muted);font-size:7px;font-weight:800;}
-#plannerView .standings-chart-empty{height:112px;display:grid;place-items:center;text-align:center;padding:10px;color:var(--muted);font-size:7px;line-height:1.35;}
+:is(#plannerView,#standingsView) .standings-position-chart{display:block;width:100%;height:112px;overflow:visible;}
+:is(#plannerView,#standingsView) .standings-position-chart .grid{stroke:color-mix(in srgb,var(--line) 82%,transparent);stroke-width:1;}
+:is(#plannerView,#standingsView) .standings-position-chart .trend{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;}
+:is(#plannerView,#standingsView) .standings-position-chart circle{fill:var(--card);stroke:currentColor;stroke-width:2;}
+:is(#plannerView,#standingsView) .standings-position-chart text{fill:var(--muted);font-size:7px;font-weight:800;}
+:is(#plannerView,#standingsView) .standings-chart-empty{height:112px;display:grid;place-items:center;text-align:center;padding:10px;color:var(--muted);font-size:7px;line-height:1.35;}
 #plannerView .record-grid,#plannerView .strength-grid{display:grid;gap:6px;}
 #plannerView .record-grid>div,#plannerView .strength-grid>div{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);}
 #plannerView .record-grid>div:last-child,#plannerView .strength-grid>div:last-child{border-bottom:0;}
 #plannerView .record-grid span,#plannerView .strength-grid span{font-size:6.5px;color:var(--muted);font-weight:800;}
 #plannerView .record-grid b,#plannerView .strength-grid b{font-size:9px;font-variant-numeric:tabular-nums;}
-#plannerView .standings-coverage-note{padding:7px 10px;border-top:1px solid var(--line);font-size:6.5px;color:var(--muted);line-height:1.35;}
+:is(#plannerView,#standingsView) .standings-coverage-note{padding:7px 10px;border-top:1px solid var(--line);font-size:6.5px;color:var(--muted);line-height:1.35;}
 
 @media(max-width:620px){
-  #plannerView .standings-insights-grid{grid-template-columns:1fr 1fr;}
-  #plannerView .standings-insight-card.chart{grid-column:1/-1;}
+  :is(#plannerView,#standingsView) .standings-insights-grid{grid-template-columns:1fr 1fr;}
+  :is(#plannerView,#standingsView) .standings-insight-card.chart{grid-column:1/-1;}
 }
 @media(max-width:390px){
-  #plannerView .standings-insights-summary{grid-template-columns:repeat(2,minmax(0,1fr));}
-  #plannerView .standings-insights-summary>div:nth-child(2){border-right:0;}
-  #plannerView .standings-insights-summary>div:nth-child(-n+2){border-bottom:1px solid var(--line);}
-  #plannerView .standings-insights-grid{grid-template-columns:1fr;}
-  #plannerView .standings-insight-card.chart{grid-column:auto;}
+  :is(#plannerView,#standingsView) .standings-insights-summary{grid-template-columns:repeat(2,minmax(0,1fr));}
+  :is(#plannerView,#standingsView) .standings-insights-summary>div:nth-child(2){border-right:0;}
+  :is(#plannerView,#standingsView) .standings-insights-summary>div:nth-child(-n+2){border-bottom:1px solid var(--line);}
+  :is(#plannerView,#standingsView) .standings-insights-grid{grid-template-columns:1fr;}
+  :is(#plannerView,#standingsView) .standings-insight-card.chart{grid-column:auto;}
 }
 #plannerView .position-delta{
   display:inline-flex;
@@ -10091,43 +10091,43 @@ dialog[open]:focus{
 /* ==========================================================
    PLAYER V2.3.10.26O-P14 — LEAGUE FORM + OPPONENT TREND
    ========================================================== */
-#plannerView .cc-icon-standings{stroke-width:1.5 !important;stroke-linecap:round;fill:none !important;}
-#plannerView .standings-match-team>span{min-width:0;display:grid;gap:1px;}
-#plannerView .standings-team-status{display:flex !important;align-items:center;gap:3px;min-width:0;color:var(--muted);font-size:5.6px !important;line-height:1.05;white-space:nowrap;}
-#plannerView .league-pos-trend{display:inline-flex;align-items:center;font-weight:950;font-size:5.8px;line-height:1;}
-#plannerView .league-pos-trend.up{color:#2e7d45;}
-#plannerView .league-pos-trend.down{color:#a33434;}
-#plannerView .league-pos-trend.flat{color:var(--muted);}
-#plannerView .league-form-dots{display:inline-flex;align-items:center;gap:2px;vertical-align:middle;}
-#plannerView .league-form-dots i{display:block;width:5px;height:5px;border-radius:999px;background:var(--line);}
-#plannerView .league-form-dots i.win{background:#4f9a62;}
-#plannerView .league-form-dots i.loss{background:#c76666;}
-#plannerView .league-form-empty{font-size:6px;color:var(--muted);}
-#plannerView .standings-match-empty{padding:12px;color:var(--muted);font-size:7px;}
-#plannerView .league-overview-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--line);}
-#plannerView .league-overview-summary>div{min-width:0;padding:8px 9px;border-right:1px solid var(--line);display:grid;gap:3px;align-content:center;}
-#plannerView .league-overview-summary>div:last-child{border-right:0;}
-#plannerView .league-overview-summary span{font-size:6px;color:var(--muted);font-weight:850;}
-#plannerView .league-overview-summary b{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#plannerView .league-overview-summary small{font-size:6.3px;color:var(--muted);}
-#plannerView .league-form-list{padding:9px 10px 10px;}
-#plannerView .league-form-team{width:100%;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 2px;text-align:left;cursor:pointer;}
-#plannerView .league-form-team:first-of-type{border-top:0;}
-#plannerView .league-form-team-main{display:flex;align-items:center;gap:7px;min-width:0;}
-#plannerView .league-form-team-main>span{display:grid;gap:2px;min-width:0;}
-#plannerView .league-form-team-main b{font-size:7.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#plannerView .league-form-team-main small{display:flex;align-items:center;gap:4px;font-size:6px;color:var(--muted);}
-#plannerView .standings-team-logo.league-logo{width:22px;height:22px;min-width:22px;}
-#plannerView .league-form-team-right{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
-#plannerView .league-form-team-right em{font-style:normal;font-size:6.5px;font-weight:900;color:var(--muted);min-width:24px;text-align:right;}
+:is(#plannerView,#standingsView) .cc-icon-standings{stroke-width:1.5 !important;stroke-linecap:round;fill:none !important;}
+:is(#plannerView,#standingsView) .standings-match-team>span{min-width:0;display:grid;gap:1px;}
+:is(#plannerView,#standingsView) .standings-team-status{display:flex !important;align-items:center;gap:3px;min-width:0;color:var(--muted);font-size:5.6px !important;line-height:1.05;white-space:nowrap;}
+:is(#plannerView,#standingsView) .league-pos-trend{display:inline-flex;align-items:center;font-weight:950;font-size:5.8px;line-height:1;}
+:is(#plannerView,#standingsView) .league-pos-trend.up{color:#2e7d45;}
+:is(#plannerView,#standingsView) .league-pos-trend.down{color:#a33434;}
+:is(#plannerView,#standingsView) .league-pos-trend.flat{color:var(--muted);}
+:is(#plannerView,#standingsView) .league-form-dots{display:inline-flex;align-items:center;gap:2px;vertical-align:middle;}
+:is(#plannerView,#standingsView) .league-form-dots i{display:block;width:5px;height:5px;border-radius:999px;background:var(--line);}
+:is(#plannerView,#standingsView) .league-form-dots i.win{background:#4f9a62;}
+:is(#plannerView,#standingsView) .league-form-dots i.loss{background:#c76666;}
+:is(#plannerView,#standingsView) .league-form-empty{font-size:6px;color:var(--muted);}
+:is(#plannerView,#standingsView) .standings-match-empty{padding:12px;color:var(--muted);font-size:7px;}
+:is(#plannerView,#standingsView) .league-overview-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--line);}
+:is(#plannerView,#standingsView) .league-overview-summary>div{min-width:0;padding:8px 9px;border-right:1px solid var(--line);display:grid;gap:3px;align-content:center;}
+:is(#plannerView,#standingsView) .league-overview-summary>div:last-child{border-right:0;}
+:is(#plannerView,#standingsView) .league-overview-summary span{font-size:6px;color:var(--muted);font-weight:850;}
+:is(#plannerView,#standingsView) .league-overview-summary b{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+:is(#plannerView,#standingsView) .league-overview-summary small{font-size:6.3px;color:var(--muted);}
+:is(#plannerView,#standingsView) .league-form-list{padding:9px 10px 10px;}
+:is(#plannerView,#standingsView) .league-form-team{width:100%;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 2px;text-align:left;cursor:pointer;}
+:is(#plannerView,#standingsView) .league-form-team:first-of-type{border-top:0;}
+:is(#plannerView,#standingsView) .league-form-team-main{display:flex;align-items:center;gap:7px;min-width:0;}
+:is(#plannerView,#standingsView) .league-form-team-main>span{display:grid;gap:2px;min-width:0;}
+:is(#plannerView,#standingsView) .league-form-team-main b{font-size:7.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+:is(#plannerView,#standingsView) .league-form-team-main small{display:flex;align-items:center;gap:4px;font-size:6px;color:var(--muted);}
+:is(#plannerView,#standingsView) .standings-team-logo.league-logo{width:22px;height:22px;min-width:22px;}
+:is(#plannerView,#standingsView) .league-form-team-right{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+:is(#plannerView,#standingsView) .league-form-team-right em{font-style:normal;font-size:6.5px;font-weight:900;color:var(--muted);min-width:24px;text-align:right;}
 @media(max-width:620px){
-  #plannerView .league-overview-summary{grid-template-columns:repeat(2,minmax(0,1fr));}
-  #plannerView .league-overview-summary>div:nth-child(2){border-right:0;}
-  #plannerView .league-overview-summary>div:nth-child(-n+2){border-bottom:1px solid var(--line);}
+  :is(#plannerView,#standingsView) .league-overview-summary{grid-template-columns:repeat(2,minmax(0,1fr));}
+  :is(#plannerView,#standingsView) .league-overview-summary>div:nth-child(2){border-right:0;}
+  :is(#plannerView,#standingsView) .league-overview-summary>div:nth-child(-n+2){border-bottom:1px solid var(--line);}
 }
 @media(max-width:390px){
-  #plannerView .standings-team-status{gap:2px;font-size:5.2px !important;}
-  #plannerView .league-form-dots i{width:4px;height:4px;}
+  :is(#plannerView,#standingsView) .standings-team-status{gap:2px;font-size:5.2px !important;}
+  :is(#plannerView,#standingsView) .league-form-dots i{width:4px;height:4px;}
 }
 
 
@@ -10139,26 +10139,26 @@ dialog[open]:focus{
    - restrained gold accents
    - supplied light/dark team logo variants
    ========================================================== */
-#plannerView .standings-team-logo-switch{
+:is(#plannerView,#standingsView) .standings-team-logo-switch{
   position:relative;
   display:block !important;
   overflow:hidden;
   background:transparent;
   border:0;
 }
-#plannerView .standings-team-logo-switch > img{
+:is(#plannerView,#standingsView) .standings-team-logo-switch > img{
   width:100%;
   height:100%;
   display:block;
   object-fit:contain;
 }
-#plannerView .standings-team-logo-switch > .logo-dark{display:none;}
-.dark #plannerView .standings-team-logo-switch > .logo-light{display:none;}
-.dark #plannerView .standings-team-logo-switch > .logo-dark{display:block;}
+:is(#plannerView,#standingsView) .standings-team-logo-switch > .logo-dark{display:none;}
+.dark :is(#plannerView,#standingsView) .standings-team-logo-switch > .logo-light{display:none;}
+.dark :is(#plannerView,#standingsView) .standings-team-logo-switch > .logo-dark{display:block;}
 
 /* Own-team highlight stays horizontal only — no vertical yellow rail. */
-#plannerView .standings-table tr.focus .team,
-#plannerView .standings-table-fixed tr.focus .team{
+:is(#plannerView,#standingsView) .standings-table tr.focus .team,
+:is(#plannerView,#standingsView) .standings-table-fixed tr.focus .team{
   box-shadow:none !important;
 }
 
@@ -10210,12 +10210,12 @@ body.dark{
 .dark .avatar-option:hover{background:#22272d !important;}
 .dark .avatar-option.selected,
 .dark .avatar-mode-btn.active{background:#2a2515 !important;border-color:#d5a72f !important;}
-.dark #plannerView .standings-team-monogram{background:var(--soft) !important;}
+.dark :is(#plannerView,#standingsView) .standings-team-monogram{background:var(--soft) !important;}
 .dark .planner-section-tab.active{background:var(--soft) !important;color:var(--black) !important;}
-.dark #plannerView .standings-table tr.focus td{background:rgba(247,183,0,.11) !important;}
-.dark #plannerView .standings-table-fixed tr.focus .team{background:rgba(247,183,0,.14) !important;box-shadow:none !important;}
-.dark #plannerView .standings-match-team.is-own{background:rgba(247,183,0,.14) !important;}
-.dark #plannerView #plannerStandingsBtn.active{background:#d5a72f !important;color:#101214 !important;}
+.dark :is(#plannerView,#standingsView) .standings-table tr.focus td{background:rgba(247,183,0,.11) !important;}
+.dark :is(#plannerView,#standingsView) .standings-table-fixed tr.focus .team{background:rgba(247,183,0,.14) !important;box-shadow:none !important;}
+.dark :is(#plannerView,#standingsView) .standings-match-team.is-own{background:rgba(247,183,0,.14) !important;}
+.dark :is(#plannerView,#standingsView) #plannerStandingsBtn.active{background:#d5a72f !important;color:#101214 !important;}
 .dark .bottom-nav .nav-btn.active > .cc-geo-nav-icon{background:#d5a72f !important;color:#101214 !important;}
 .dark .bottom-nav::before{background:#d5a72f !important;}
 
@@ -10387,11 +10387,11 @@ body.dark{
 
 /* Mobile league cards: show scores and per-set details in a legible second row. */
 @media(max-width:620px){
-  #plannerView .cc-mrsz-player-league-matches .standings-match-row{grid-template-columns:36px minmax(68px,1fr) 34px minmax(68px,1fr);}
-  #plannerView .cc-mrsz-player-league-matches .standings-match-place{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:2px 6px;padding:2px 4px 5px;text-align:left;min-width:0;}
-  #plannerView .cc-mrsz-player-league-matches .standings-match-place span{font-size:9px;line-height:1.2;white-space:normal;}
-  #plannerView .cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;line-height:1.2;white-space:normal;overflow:visible;text-overflow:clip;}
-  #plannerView .cc-mrsz-player-league-matches .standings-match-team b{font-size:9px;white-space:normal;overflow-wrap:anywhere;}
+  :is(#plannerView,#standingsView) .cc-mrsz-player-league-matches .standings-match-row{grid-template-columns:36px minmax(68px,1fr) 34px minmax(68px,1fr);}
+  :is(#plannerView,#standingsView) .cc-mrsz-player-league-matches .standings-match-place{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:2px 6px;padding:2px 4px 5px;text-align:left;min-width:0;}
+  :is(#plannerView,#standingsView) .cc-mrsz-player-league-matches .standings-match-place span{font-size:9px;line-height:1.2;white-space:normal;}
+  :is(#plannerView,#standingsView) .cc-mrsz-player-league-matches .standings-match-place small{display:block;font-size:10px;line-height:1.2;white-space:normal;overflow:visible;text-overflow:clip;}
+  :is(#plannerView,#standingsView) .cc-mrsz-player-league-matches .standings-match-team b{font-size:9px;white-space:normal;overflow-wrap:anywhere;}
 }
 
 /* MRSZ saved-league selector: single compact filter on phones and desktops. */
@@ -10444,3 +10444,23 @@ body.dark{
 .player-protocol-staff span,.player-protocol-officials span{color:var(--muted,#666)}
 .player-protocol-report a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:650px){.player-protocol-dialog .dialog-card{width:calc(100vw - 12px);max-height:94dvh}.player-protocol-teams{grid-template-columns:minmax(0,1fr)}.player-protocol-result{padding:12px 5px;gap:5px}.player-protocol-result strong{font-size:26px}}
+
+/* v10: fourth bottom navigation button, independent standings page. */
+#standingsView{min-width:0;max-width:100%}
+#standingsView .section-head{margin-bottom:14px}
+#standingsView .cc-standings-page-content{min-width:0;display:grid;gap:14px}
+#standingsView .cc-player-league-selector{margin:0}
+#standingsView .cc-player-league-selector>label{max-width:100%}
+#standingsView .competition-standings{min-width:0;margin:0}
+#standingsView .standings-split{max-width:100%;min-width:0}
+#standingsView .standings-scroll{min-width:0;overflow-x:auto}
+#standingsView .cc-player-league-selector select{min-height:44px}
+.bottom-nav .nav-btn[data-view="standingsView"] .cc-bottom-standings{display:grid;place-items:center}
+.bottom-nav .nav-btn[data-view="standingsView"] .cc-icon-standings{display:block;width:30px;height:30px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-width:1.65;vector-effect:non-scaling-stroke}
+@media(max-width:760px) and (orientation:portrait){
+ #standingsView{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+ #standingsView .cc-player-league-selector select{font-size:16px}
+ .bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+ .bottom-nav .nav-btn{min-width:0}
+ .bottom-nav .nav-btn[data-view="standingsView"] .cc-icon-standings{width:27px;height:27px}
+}

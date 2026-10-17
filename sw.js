@@ -1,4 +1,4 @@
-const CACHE='club-control-player-20261017-player-protocol-v9';
+const CACHE='club-control-player-20261017-player-league-nav-v10';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
