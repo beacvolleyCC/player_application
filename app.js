@@ -2411,7 +2411,7 @@ function ccPlayerMatchTeamKey_(value){
   budapestiegyetemiatletikaiclub:'beac',beac:'beac',
   budapestiegyetemiatletikaiclubii:'beacii',beacii:'beacii',
   semmelweisegyetemsportklub:'semmelweis',semmelweisegyetem:'semmelweis',
-  kando:'kando',kandosc:'kando',kandosportklub:'kando',obudaiegyetemkandosc:'kando',
+  kando:'kando',kandosc:'kando',kandosportklub:'kando',kandosportclub:'kando',obudaiegyetemkandosc:'kando',
   btdse:'btdse',btdsetaksony:'btdse',broziktibortaksonyidiaksportegyesulet:'btdse',
   kozgaznoi:'kozgaznoi',kozgazsc:'kozgaznoi',
   mtkbudapest:'mtk',mtk:'mtk',mtkbudapestkek:'mtkkek',mtkkek:'mtkkek',
