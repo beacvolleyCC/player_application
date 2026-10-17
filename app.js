@@ -2374,12 +2374,10 @@ function ccMrszPlayerLocalKickoff_(value){
 }
 
 function ccMrszPlayerFixtureKey_(m){
- const key=x=>{const n=String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-   if(n.includes('kando'))return 'kando';if(n.includes('kozgaz'))return 'kozgaz';
-   if(n.includes('semmelweis'))return 'semmelweis';if(n.includes('emericus'))return 'emericus';
-   if(n.includes('rackeve'))return 'rackeve';if(n.includes('mtk')&&n.includes('kek'))return 'mtk-kek';
-   if(n.includes('mtk'))return 'mtk';return n.replace(/\bbudapest\b/g,'').replace(/\bsport klub\b/g,'').replace(/[^a-z0-9]/g,'');};
- return ccMrszPlayerLocalKickoff_(m.startsAt).date+'|'+key(m.homeName)+'|'+key(m.awayName);
+ // Exactly-known aliases only: never merge different squads with a partial
+ // name match, e.g. Kandó II or MTK U20 vs their adult teams.
+ return ccMrszPlayerLocalKickoff_(m.startsAt).date+'|'
+  +ccPlayerMatchTeamKey_(m.homeName)+'|'+ccPlayerMatchTeamKey_(m.awayName);
 }
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
@@ -2413,7 +2411,8 @@ function ccPlayerMatchTeamKey_(value){
   budapestiegyetemiatletikaiclub:'beac',beac:'beac',
   budapestiegyetemiatletikaiclubii:'beacii',beacii:'beacii',
   semmelweisegyetemsportklub:'semmelweis',semmelweisegyetem:'semmelweis',
-  kando:'kando',kandosportklub:'kando',obudaiegyetemkandosc:'kando',
+  kando:'kando',kandosc:'kando',kandosportklub:'kando',kandosportclub:'kando',obudaiegyetemkandosc:'kando',
+  btdse:'btdse',btdsetaksony:'btdse',broziktibortaksonyidiaksportegyesulet:'btdse',
   kozgaznoi:'kozgaznoi',kozgazsc:'kozgaznoi',
   mtkbudapest:'mtk',mtk:'mtk',mtkbudapestkek:'mtkkek',mtkkek:'mtkkek',
   emericusse:'emericus',emericus:'emericus',
@@ -2521,12 +2520,15 @@ function ccPlayerProtocolBadgesHtml_(player){
   +'<path class="sub-out" d="M25 14H7m5-4-5 4 5 4"/></svg></span>');
  if(p.captain===true)badges.push('<span class="player-roster-marker is-captain" title="Kapitány" aria-label="Kapitány">C</span>');
  if(p.libero)badges.push('<span class="player-roster-marker is-libero" title="Libero" aria-label="Libero">'+escapeHtml_(p.libero)+'</span>');
- return '<span class="player-protocol-badges">'+(badges.join('')||'')+'</span>';
+ // Blank playing designation in the uploaded match sheet: no court-entry mark.
+ // Libero-only entries keep L1/L2 without implying they did not participate.
+ if(!p.designation)badges.push('<span class="player-roster-marker is-no-entry" title="Nincs pályára lépési jelölés" aria-label="Nincs pályára lépési jelölés">–</span>');
+ return '<span class="player-protocol-badges">'+badges.join('')+'</span>';
 }
 function ccPlayerProtocolRosterHtml_(team){
  const players=Array.isArray(team?.players)?team.players:[];
  const staff=Array.isArray(team?.staff)?team.staff:[];
- const row=players.map(p=>'<tr><td>'+escapeHtml_(p.number||'–')+'</td><td>'+ccPlayerProtocolNameHtml_(p)+'</td><td>'+
+ const row=players.map(p=>'<tr><td>'+escapeHtml_(p.number||'–')+'</td><td>'+(p.designation==='K'?'<strong class="player-protocol-starter">'+ccPlayerProtocolNameHtml_(p)+'</strong>':ccPlayerProtocolNameHtml_(p))+'</td><td>'+
    ccPlayerProtocolBadgesHtml_(p)+'</td></tr>').join('');
  return '<section class="player-protocol-team"><h4>'+ccPlayerProtocolNameHtml_(team)+'</h4><div class="player-protocol-scroll"><table><thead><tr><th>Mez</th><th>Játékos</th><th></th></tr></thead><tbody>'
   +(row||'<tr><td colspan="3">Nincs mentett névsor.</td></tr>')+'</tbody></table></div>'
@@ -2580,7 +2582,7 @@ function ccPlayerScoreboardHtml_(m){
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
   +(sets?'<div class="player-match-sets">'+escapeHtml_(sets)+'</div>':'')+'</div>'
   +'<div class="player-match-footer"><span>'+escapeHtml_(m.venue||'Helyszín nincs megadva')+'</span>'
-  +(protocol?'<span class="player-match-report-hint">Jegyzőkönyv ↗</span>':'')+'</div></article>';
+  +'</div></article>';
 }
 function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
  const rows=ccMrszPlayerAllLeagueMatches_(label,withCanonical).filter(m=>!ccMrszPlayerUnverifiedSelfFixture_(m));
