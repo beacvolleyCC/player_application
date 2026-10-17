@@ -1,4 +1,4 @@
-const CACHE='club-control-player-20261017-kando-roster-v13';
+const CACHE='club-control-player-20261017-stats-v14';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
