@@ -6,6 +6,7 @@ let ccStatsTab_='overview';
 let ccStatsExpanded_=false;
 let ccStatsTeam_='';
 let ccStatsCompare_=['',''];
+let ccStatsPlayersTeam_='all';
 
 function ccStatsSource_(){
   const league=ccPlayerLeagueCurrent_();
@@ -140,31 +141,78 @@ function ccStatsMatches_(data){
       (hasSheet?'<button type="button" data-cc-stats-protocol="'+escapeHtml_(m.matchCode)+'" aria-label="Jegyzőkönyv megnyitása">Jegyzőkönyv ↗</button>':'')+'</div>';
     }).join('')+'</div></section></div>';
 }
+function ccStatsPlayerRows_(data){
+  // Only a verified player ID on the correct side of a completed saved match
+  // supports a player-specific nomination-based W/L record. K/CS are protocol
+  // markings, not evidence of individual court time.
+  const registry=new Map(),conflicted=new Set(),seenMatches=new Set();
+  for(const m of data.played||[]){
+    const home=ccPlayerMatchTeamKey_(m.homeName),away=ccPlayerMatchTeamKey_(m.awayName);
+    const h=Number(m.homeSets),a=Number(m.awaySets);
+    if(!home||!away||home===away||!((h===3&&a>=0&&a<=2)||(a===3&&h>=0&&h<=2)))continue;
+    if(!Array.isArray(m.protocol?.teams))continue;
+    const fixture=String(m.matchCode||'')||ccMrszPlayerLocalKickoff_(m.startsAt).date+'|'+home+'|'+away;
+    const matchKey=String(data.league||'')+'|'+fixture;
+    if(seenMatches.has(matchKey))continue;
+    seenMatches.add(matchKey);
+    const processedSides=new Set();
+    for(const team of m.protocol.teams){
+      const key=ccPlayerMatchTeamKey_(team.name);
+      if(!key||(key!==home&&key!==away)||processedSides.has(key)||!Array.isArray(team.players))continue;
+      processedSides.add(key);
+      const sideIds=team.players.map(p=>String(p.code||'').trim()).filter(Boolean);
+      // No reliable player attribution from a broken duplicate-ID roster.
+      if(new Set(sideIds).size!==sideIds.length)continue;
+      for(const p of team.players){
+        const name=String(p.name||'').trim(),code=String(p.code||'').trim();
+        if(!name||!/^\\d{4,6}$/.test(code))continue;
+        const id=key+'|'+code;
+        const norm=n=>String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('hu').replace(/\s+/g,' ').trim();
+        const previous=registry.get(id);
+        if(previous&&norm(previous.name)!==norm(name)){conflicted.add(id);continue}
+        if(!previous)registry.set(id,{id,name,code,team:team.name,teamKey:key,
+          nominated:0,won:0,lost:0,starts:0,substitutes:0,unmarked:0,
+          latest:'',profileUrl:''});
+        const row=registry.get(id);
+        row.nominated++;
+        row[key===home?(h===3?'won':'lost'):(a===3?'won':'lost')]++;
+        if(p.designation==='K')row.starts++;
+        else if(p.designation==='CS')row.substitutes++;
+        else row.unmarked++;
+        row.latest=String(m.startsAt||'')>row.latest?String(m.startsAt||''):row.latest;
+        if(ccPlayerProtocolProfileUrl_(p.profileUrl))row.profileUrl=p.profileUrl;
+      }
+    }
+  }
+  return [...registry.values()].filter(row=>!conflicted.has(row.id))
+    .sort((a,b)=>b.nominated-a.nominated||b.won-a.won||a.name.localeCompare(b.name,'hu'));
+}
 function ccStatsPlayers_(data){
-  const registry=new Map();
-  data.played.forEach(m=>{
-    if(!Array.isArray(m.protocol?.teams))return;
-    m.protocol.teams.forEach(team=>(team.players||[]).forEach(p=>{
-      const name=String(p.name||'').trim(),code=String(p.code||'').trim();
-      if(!name)return;
-      const teamKey=ccPlayerMatchTeamKey_(team.name);
-      const id=code?'id:'+code:'name:'+teamKey+':'+name.toLocaleLowerCase('hu');
-      if(!registry.has(id))registry.set(id,{name,code,team:team.name,shirts:new Set(),nominated:0,starts:0,substitutes:0,latest:'',profileUrl:''});
-      const row=registry.get(id);
-      row.nominated++;
-      if(p.designation==='K')row.starts++;
-      if(p.designation==='CS')row.substitutes++;
-      if(p.number)row.shirts.add(String(p.number));
-      row.latest=String(m.startsAt||'')>row.latest?String(m.startsAt||''):row.latest;
-      if(ccPlayerProtocolProfileUrl_(p.profileUrl))row.profileUrl=p.profileUrl;
-    }));
-  });
-  const players=[...registry.values()].sort((a,b)=>b.nominated-a.nominated||b.starts-a.starts||a.name.localeCompare(b.name,'hu'));
-  if(!players.length)return '<p class="cc-stats-muted">Nincs mentett játékosjegyzőkönyv ehhez a bajnoksághoz.</p>';
-  return '<div class="cc-stats-pane"><section class="cc-stats-panel"><h4>Játékosstatisztikák</h4>'+
-    '<div class="cc-stats-player-scroll"><table><thead><tr><th>Játékos</th><th title="A nevezés nem azonos a pályára lépéssel.">Nevezés</th><th>K</th><th>CS</th><th>Utolsó nevezés</th></tr></thead><tbody>'+
-    players.map(p=>'<tr><td><b>'+ccPlayerProtocolNameHtml_(p)+'</b><small>'+escapeHtml_(p.team)+'</small></td><td>'+p.nominated+'</td><td>'+p.starts+'</td><td>'+p.substitutes+'</td><td>'+escapeHtml_(p.latest?ccMrszPlayerLocalKickoff_(p.latest).date:'–')+'</td></tr>').join('')+
-    '</tbody></table></div></section></div>';
+  const players=ccStatsPlayerRows_(data);
+  if(!players.length)return '<div class="cc-stats-pane"><section class="cc-stats-panel"><h4>Játékosok</h4><p>Nincs ellenőrzött játékosnévsor a mentett jegyzőkönyvekben.</p></section></div>';
+  const teams=[...new Map(players.map(p=>[p.teamKey,p.team])).entries()]
+    .sort((a,b)=>a[1].localeCompare(b[1],'hu'));
+  const current=ccStatsPlayersTeam_==='all'||teams.some(([key])=>key===ccStatsPlayersTeam_)
+    ?ccStatsPlayersTeam_:'all';
+  const listed=current==='all'?players:players.filter(p=>p.teamKey===current);
+  const choose='<label class="cc-stats-players-filter">Csapat<select data-cc-stats-player-team aria-label="Játékosok csapat szerinti szűrése">'
+    +'<option value="all" '+(current==='all'?'selected':'')+'>Összes csapat</option>'
+    +teams.map(([key,name])=>'<option value="'+escapeHtml_(key)+'" '+(current===key?'selected':'')+'>'+escapeHtml_(name)+'</option>').join('')
+    +'</select></label>';
+  return '<div class="cc-stats-pane"><section class="cc-stats-panel cc-stats-player-panel"><div class="cc-stats-player-toolbar"><h4>Játékosok</h4>'+choose+'</div>'
+    +'<div class="cc-stats-player-scroll"><table class="cc-stats-player-table"><thead><tr>'
+    +'<th>Játékos</th><th title="Mérkőzések, amelyek jegyzőkönyvében a játékos szerepel">Nevezés</th>'
+    +'<th title="A játékos nevezett csapatának győzelmei ezeken a mérkőzéseken">Győzelem</th>'
+    +'<th title="A játékos nevezett csapatának vereségei ezeken a mérkőzéseken">Vereség</th>'
+    +'<th title="K jelölés a jegyzőkönyvben">Kezdő</th>'
+    +'<th title="CS jelölés a jegyzőkönyvben; nem bizonyít tényleges pályára lépést">Csere</th>'
+    +'<th title="K/CS nélküli jegyzőkönyvi sor; nem bizonyítja, hogy a játékos nem lépett pályára">Jelölés nélkül</th>'
+    +'</tr></thead><tbody>'+listed.map(p=>
+      '<tr><td><b>'+ccPlayerProtocolNameHtml_(p)+'</b><small>'+escapeHtml_(p.team)+'</small></td>'
+      +'<td>'+p.nominated+'</td><td class="cc-stats-won">'+p.won+'</td>'
+      +'<td class="cc-stats-lost">'+p.lost+'</td><td>'+p.starts+'</td>'
+      +'<td>'+p.substitutes+'</td><td>'+(p.unmarked||'–')+'</td></tr>'
+    ).join('')+'</tbody></table></div></section></div>';
 }
 function ccStatsComparison_(data){
   if(data.teams.length<2)return '<p class="cc-stats-muted">Az összehasonlításhoz legalább két csapat szükséges.</p>';
@@ -207,8 +255,8 @@ function ccRenderStatisticsPage_(){
   const view=document.getElementById('standingsView'),host=document.getElementById('statisticsContent');
   if(!view?.classList.contains('active')||!details?.open||!host)return;
   const data=ccStatsSource_();
-  // Keep the Match and Player views implemented but out of the interface for now.
-  const tabs=[['overview','Áttekintés'],['teams','Csapatok'],['compare','Összehasonlítás']];
+  // Matches stay in the normal league list; verified player nominations are a separate tab.
+  const tabs=[['overview','Áttekintés'],['teams','Csapatok'],['players','Játékosok'],['compare','Összehasonlítás']];
   if(!tabs.some(([id])=>id===ccStatsTab_))ccStatsTab_='overview';
   const nav='<div class="cc-stats-tab-scroll"><div class="cc-stats-tabs" role="tablist" aria-label="Statisztikai nézet">'+
     tabs.map(([id,label])=>'<button type="button" role="tab" data-cc-stats-tab="'+id+'" aria-selected="'+(ccStatsTab_===id)+'" class="'+(ccStatsTab_===id?'active':'')+'">'+label+'</button>').join('')+
@@ -221,7 +269,7 @@ document.getElementById('standingsView')?.addEventListener('click',event=>{
   if(!event.target.closest('#statisticsContent'))return;
   const tab=event.target.closest('[data-cc-stats-tab]');
   if(tab){
-    if(!['overview','teams','compare'].includes(tab.dataset.ccStatsTab))return;
+    if(!['overview','teams','players','compare'].includes(tab.dataset.ccStatsTab))return;
     ccStatsTab_=tab.dataset.ccStatsTab;ccRenderStatisticsPage_();return;
   }
   const team=event.target.closest('[data-cc-stats-team]');
@@ -231,6 +279,10 @@ document.getElementById('standingsView')?.addEventListener('click',event=>{
 });
 document.getElementById('standingsView')?.addEventListener('change',event=>{
   if(!event.target.closest('#statisticsContent'))return;
+  if(event.target.matches('[data-cc-stats-player-team]')){
+    ccStatsPlayersTeam_=event.target.value;
+    ccRenderStatisticsPage_();return;
+  }
   if(event.target.matches('[data-cc-stats-compare]')){
     const side=event.target.dataset.ccStatsCompare==='a'?0:1;
     ccStatsCompare_[side]=event.target.value;
