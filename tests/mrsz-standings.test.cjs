@@ -347,8 +347,8 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(doc.includes('id="statisticsView"'));
  assert.ok(stats.includes("'Javuló forma'"));
  assert.ok(stats.includes("'Romló forma'"));
- assert.ok(stats.includes("'Helyezésváltozás'"));
- assert.ok(stats.includes("'Játékosstatisztikák'"));
+ assert.ok(stats.includes('Helyezésváltozás'));
+ assert.ok(stats.includes('Játékosstatisztikák'));
  assert.ok(stats.includes('A nevezés nem azonos a pályára lépéssel.'));
  assert.ok(sw.includes("'./statistics.js'"));
  assert.ok(sw.includes("'./statistics.css'"));
