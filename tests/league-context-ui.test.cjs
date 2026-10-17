@@ -74,6 +74,8 @@ test('Tabella is a fourth bottom nav view with its original icon, not a Menetren
  assert.ok(!html.includes('id="plannerStandingsBtn"'));
  assert.ok(app.includes("const CC_PAGE_VIEWS=['homeView','plannerView','profileView','standingsView']"));
  assert.ok(app.includes("if(viewId==='standingsView'||viewId==='plannerView')renderPlanner();"));
+ assert.ok(app.includes("if(viewId==='standingsView'&&previousView!=='standingsView')"));
+ assert.ok(app.includes("selectedStandingsRowTeamId='all';"));
  assert.ok(app.includes('standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_()'));
  assert.ok(!app.includes("document.getElementById('plannerStandingsBtn')"));
 });
