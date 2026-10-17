@@ -1,9 +1,9 @@
-const CACHE='club-control-player-20261017-standings-stats-v15';
+const CACHE='club-control-player-20261017-three-tabs-wl-v16';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
-  './statistics.js?v=20261017-standings-stats-v15',
-  './statistics.css?v=20261017-standings-stats-v15',
+  './statistics.js?v=20261017-three-tabs-wl-v16',
+  './statistics.css?v=20261017-three-tabs-wl-v16',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
