@@ -101,12 +101,12 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-standings-stats-v15'));
- assert.ok(html.includes('statistics.css?v=20261017-standings-stats-v15'));
- assert.ok(html.includes('app.js?v=20261017-standings-stats-v15'));
- assert.ok(html.includes('statistics.js?v=20261017-standings-stats-v15'));
+ assert.ok(html.includes('styles.css?v=20261017-three-tabs-wl-v16'));
+ assert.ok(html.includes('statistics.css?v=20261017-three-tabs-wl-v16'));
+ assert.ok(html.includes('app.js?v=20261017-three-tabs-wl-v16'));
+ assert.ok(html.includes('statistics.js?v=20261017-three-tabs-wl-v16'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261017-standings-stats-v15"));
+ assert.ok(sw.includes("club-control-player-20261017-three-tabs-wl-v16"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -351,8 +351,8 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('Helyezésváltozás'));
  assert.ok(stats.includes('Játékosstatisztikák'));
  assert.ok(stats.includes('A nevezés nem azonos a pályára lépéssel.'));
- assert.ok(sw.includes("'./statistics.js?v=20261017-standings-stats-v15'"));
- assert.ok(sw.includes("'./statistics.css?v=20261017-standings-stats-v15'"));
+ assert.ok(sw.includes("'./statistics.js?v=20261017-three-tabs-wl-v16'"));
+ assert.ok(sw.includes("'./statistics.css?v=20261017-three-tabs-wl-v16'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
@@ -406,4 +406,45 @@ test('incomplete results never name a best or worst performing league team',()=>
  assert.ok(overview.includes('csak teljes, ellenőrzött eredménysor'));
  assert.ok(!overview.includes('Legnagyobb feljövő'));
  assert.ok(!overview.includes('Legnagyobb visszaeső'));
+});
+
+
+test('statistics accordion exposes exactly three tabs; match and player views stay implemented but hidden',()=>{
+ const source=fs.readFileSync('statistics.js','utf8');
+ const line=source.split('\n').find(x=>x.includes('const tabs='));
+ assert.ok(line);
+ assert.ok(line.includes("['overview','Áttekintés']"));
+ assert.ok(line.includes("['teams','Csapatok']"));
+ assert.ok(line.includes("['compare','Összehasonlítás']"));
+ assert.ok(!line.includes("['matches','Meccsek']"));
+ assert.ok(!line.includes("['players','Játékosok']"));
+ assert.ok(source.includes('function ccStatsMatches_(data)'));
+ assert.ok(source.includes('function ccStatsPlayers_(data)'));
+ assert.ok(source.includes("if(!tabs.some(([id])=>id===ccStatsTab_))ccStatsTab_='overview'"));
+});
+
+test('teams display only the last five completed results as W green / L red with missing slots neutral',()=>{
+ const stats=fs.readFileSync('statistics.js','utf8');
+ const style=fs.readFileSync('statistics.css','utf8');
+ const sandbox={document:{getElementById:()=>null},escapeHtml_:v=>String(v??'')};
+ vm.createContext(sandbox);
+ vm.runInContext(stats,sandbox);
+ const form=vm.runInContext('ccStatsFormHtml_',sandbox);
+ const seq=[true,true,false,true,false,true,false];
+ const html=form({results:seq.map((win,i)=>({win,opponent:'Ellenfél '+i,score:'3–1'}))});
+ const cells=[...html.matchAll(/class="cc-stats-form-result (win|loss)"[^>]*>(W|L)<\/span>/g)];
+ assert.equal(cells.length,5,'exactly the last five are shown');
+ assert.deepEqual(cells.map(x=>x[2]),['L','W','L','W','L']);
+ assert.ok(!html.includes('Ellenfél 0'),'older games are excluded');
+ assert.ok(!html.includes('Ellenfél 1'),'older games are excluded');
+ const short=form({results:[{win:true,opponent:'X',score:'3–0'},{win:false,opponent:'Y',score:'0–3'}]});
+ assert.equal((short.match(/class="cc-stats-form-result no-data"/g)||[]).length,3);
+ assert.ok(short.indexOf('no-data')<short.indexOf('class="cc-stats-form-result win"'));
+ assert.ok(style.includes('.cc-stats-form-result.win{color:#217547'));
+ assert.ok(style.includes('.cc-stats-form-result.loss{color:#ad3638'));
+ assert.ok(style.includes('.dark .cc-stats-form-result.win'));
+ assert.ok(style.includes('.dark .cc-stats-form-result.loss'));
+ assert.ok(stats.includes('Utolsó 5 mérkőzés'));
+ const none=form({results:[]});
+ assert.equal((none.match(/class="cc-stats-form-result no-data"/g)||[]).length,5);
 });
