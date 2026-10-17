@@ -2439,6 +2439,7 @@ function ccPlayerOpenProtocol_(matchCode,league){
  target.innerHTML=ccPlayerProtocolDetailHtml_(list[0]);
  ccOpenDialog_(dialog);
 }
+document.getElementById('closePlayerProtocolDialog')?.addEventListener('click',()=>ccCloseDialog_(document.getElementById('playerProtocolDialog')));
 function ccPlayerBindProtocols_(){
  document.querySelectorAll('[data-player-protocol]').forEach(card=>{
   const open=()=>ccPlayerOpenProtocol_(card.dataset.playerProtocol,card.dataset.playerProtocolLeague);
