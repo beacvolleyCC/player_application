@@ -350,8 +350,8 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('Helyezésváltozás'));
  assert.ok(stats.includes('Játékosstatisztikák'));
  assert.ok(stats.includes('A nevezés nem azonos a pályára lépéssel.'));
- assert.ok(sw.includes("'./statistics.js'"));
- assert.ok(sw.includes("'./statistics.css'"));
+ assert.ok(sw.includes("'./statistics.js?v=20261017-stats-v14'"));
+ assert.ok(sw.includes("'./statistics.css?v=20261017-stats-v14'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
