@@ -102,11 +102,11 @@ test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
  assert.ok(html.includes('styles.css?v=20261017-clean-stats-v17'));
- assert.ok(html.includes('statistics.css?v=20261018-player-wl-v18'));
+ assert.ok(html.includes('statistics.css?v=20261018-player-compact-v19'));
  assert.ok(html.includes('app.js?v=20261017-clean-stats-v17'));
- assert.ok(html.includes('statistics.js?v=20261018-player-wl-v18'));
+ assert.ok(html.includes('statistics.js?v=20261018-player-compact-v19'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261018-player-wl-v18"));
+ assert.ok(sw.includes("club-control-player-20261018-player-compact-v19"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -352,8 +352,8 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('ccStatsPlayerRows_'));
  assert.ok(stats.includes('Jelölés nélkül'));
  assert.ok(stats.includes('nem bizonyít tényleges pályára lépést'));
- assert.ok(sw.includes("'./statistics.js?v=20261018-player-wl-v18'"));
- assert.ok(sw.includes("'./statistics.css?v=20261018-player-wl-v18'"));
+ assert.ok(sw.includes("'./statistics.js?v=20261018-player-compact-v19'"));
+ assert.ok(sw.includes("'./statistics.css?v=20261018-player-compact-v19'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
