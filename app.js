@@ -3642,6 +3642,12 @@ function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
   const navView=viewId;
   const nextSection=viewId==='standingsView'?'standings':'schedule';
+  if(viewId==='standingsView'&&previousView!=='standingsView'){
+    // The standalone Tabella must never inherit a hidden row filter from
+    // the old Menetrend toolbar. Row-specific statistics remain selectable.
+    selectedStandingsRowTeamId='all';
+    try{localStorage.setItem('cc-standings-row-team','all')}catch(_){}
+  }
   // Keep the schedule's view mode independent of the bottom-level Tabella.
   if(plannerSection!==nextSection){
     plannerSection=nextSection;
