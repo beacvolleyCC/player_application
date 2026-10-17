@@ -10,6 +10,7 @@ on:
       - index.html
       - sw.js
       - tests/mrsz-standings.test.cjs
+      - tests/player-statistics-wl.test.cjs
       - competition-context-catalog.js
       - tests/competition-context-catalog.test.cjs
       - tests/league-context-ui.test.cjs
@@ -23,6 +24,7 @@ on:
       - index.html
       - sw.js
       - tests/mrsz-standings.test.cjs
+      - tests/player-statistics-wl.test.cjs
       - competition-context-catalog.js
       - tests/competition-context-catalog.test.cjs
       - tests/league-context-ui.test.cjs
@@ -45,6 +47,8 @@ jobs:
         run: node --check statistics.js
       - name: Check source standings, fixtures and scores
         run: node --test tests/mrsz-standings.test.cjs
+      - name: Validate player W/L and K/CS roster statistics
+        run: node --test tests/player-statistics-wl.test.cjs
       - name: Validate canonical competition contexts
         run: node --test tests/competition-context-catalog.test.cjs
       - name: Check league context UI
