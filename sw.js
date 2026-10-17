@@ -2,6 +2,8 @@ const CACHE='club-control-player-20261017-stats-v14';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
+  './statistics.js',
+  './statistics.css',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
@@ -54,7 +56,7 @@ self.addEventListener('fetch', event => {
   const url=new URL(event.request.url);
   const isAppFile = url.origin===self.location.origin && (
     event.request.mode==='navigate' ||
-    /\/(index\.html|app\.js|styles\.css|config\.js)$/.test(url.pathname)
+    /\/(index\.html|app\.js|styles\.css|statistics\.js|statistics\.css|config\.js)$/.test(url.pathname)
   );
 
   if(isAppFile){
