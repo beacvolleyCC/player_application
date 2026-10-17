@@ -4,7 +4,11 @@ on:
     branches: [main]
     paths:
       - app.js
+      - statistics.js
       - styles.css
+      - statistics.css
+      - index.html
+      - sw.js
       - tests/mrsz-standings.test.cjs
       - competition-context-catalog.js
       - tests/competition-context-catalog.test.cjs
@@ -13,7 +17,11 @@ on:
   pull_request:
     paths:
       - app.js
+      - statistics.js
       - styles.css
+      - statistics.css
+      - index.html
+      - sw.js
       - tests/mrsz-standings.test.cjs
       - competition-context-catalog.js
       - tests/competition-context-catalog.test.cjs
@@ -33,6 +41,8 @@ jobs:
           node-version: '22'
       - name: Parse Player script
         run: node --check app.js
+      - name: Parse Player statistics script
+        run: node --check statistics.js
       - name: Check source standings, fixtures and scores
         run: node --test tests/mrsz-standings.test.cjs
       - name: Validate canonical competition contexts
