@@ -35,8 +35,9 @@ let teamPlayerDirectory = [];
 let currentAvatarId = '';
 let teamAvatarByPlayerId = new Map();
 let avatarPickerMode = 'monogram';
-let plannerSection=localStorage.getItem('cc-planner-section')||'schedule';
-if(!['schedule','standings'].includes(plannerSection)) plannerSection='schedule';
+// Tabella has its own bottom-level view. Old persisted Menetrend/Tabella state
+// must not reopen a different view inside Menetrend after the navigation update.
+let plannerSection='schedule';
 let competitionStandings={contexts:[],loaded:false,error:''};
 let competitionInsights={key:'',loaded:false,loading:false,error:'',data:null};
 let competitionLeagueInsights={key:'',loaded:false,loading:false,error:'',data:null};
@@ -2186,12 +2187,8 @@ function renderCompetitionStandings_(){
 }
 
 function syncPlannerSectionUi_(){
-  const standings=plannerSection==='standings';
-  const standingsBtn=document.getElementById('plannerStandingsBtn');
-  if(standingsBtn){
-    standingsBtn.classList.toggle('active',standings);
-    standingsBtn.setAttribute('aria-pressed',standings?'true':'false');
-  }
+  // The Menetrend toolbar only controls grid/calendar views now.
+  const standings=false;
   const title=document.getElementById('plannerSectionTitle');
   const subtitle=document.getElementById('plannerSectionSubtitle');
   if(title) title.textContent=standings?'Tabella':'Menetrend';
@@ -2293,16 +2290,41 @@ let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:
 
 /* Read-only league browser shares the saved MRSZ source used by Manager. */
 let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-player-league-context-v1')||'')}catch(_){return''}})();
-function ccPlayerLeagueCatalog_(){return window.CCCompetitionContextCatalog?.build({season:'2026/27',fixtures:ccMrszPlayerPhoto_.fixtures,matches:ccMrszPlayerPhoto_.matches,tables:ccMrszPlayerPhoto_.tables})||[];}
+function ccPlayerLeagueCatalog_(){
+ // This is the Player's authorised VISIBILITY filter, not the underlying
+ // league source catalog (which remains shared with Manager).
+ const all=window.CCCompetitionContextCatalog?.build({
+  season:'2026/27',fixtures:ccMrszPlayerPhoto_.fixtures,
+  matches:ccMrszPlayerPhoto_.matches,tables:ccMrszPlayerPhoto_.tables
+ })||[];
+ const women1=['Női Budapest I. osztály'];
+ const women2=['Női Budapest II. osztály – A csoport','Női Budapest II. osztály – B csoport'];
+ const men=['Férfi Budapest I. osztály – A csoport','Férfi Budapest I. osztály – B csoport'];
+ const allowed=ccMrszPlayerIsMensTeam_()?men:ccMrszPlayerIsWomen2_()?women2:women1;
+ return allowed.map(label=>all.find(entry=>entry.competitionLabel===label)||{
+  // Known competition/group with no imported results yet; this is only an
+  // empty navigation option. It never creates a fictional standings snapshot.
+  id:'2026/27|'+label,season:'2026/27',competitionLabel:label,
+  group:/– ([AB]) csoport$/.exec(label)?.[1]||null,
+  fixtureCount:0,matchCount:0,standingsRowCount:0,standingsStatus:'missing',
+  source:'missing',participants:[]
+ });
+}
 function ccPlayerLeagueDefault_(){
- if(ccMrszPlayerIsMensTeam_())return ccMrszPlayerMenGroup_==='A'?'Férfi Budapest I. osztály – A csoport':'Férfi Budapest I. osztály – B csoport';
+ if(ccMrszPlayerIsMensTeam_())return 'Férfi Budapest I. osztály – B csoport';
  return ccMrszPlayerIsWomen2_()?'Női Budapest II. osztály – B csoport':'Női Budapest I. osztály';
 }
-function ccPlayerLeagueCurrent_(){return ccPlayerLeagueCatalog_().find(c=>c.competitionLabel===ccPlayerLeagueSelection_)?.competitionLabel||ccPlayerLeagueDefault_();}
+function ccPlayerLeagueCurrent_(){
+ // An old selection from another team must never leak into the current
+ // team's league picker or show another competition's results.
+ return ccPlayerLeagueCatalog_().find(c=>c.competitionLabel===ccPlayerLeagueSelection_)?.competitionLabel||ccPlayerLeagueDefault_();
+}
 function ccPlayerLeagueSelectorHtml_(){
  const entries=ccPlayerLeagueCatalog_(),current=ccPlayerLeagueCurrent_();
- return '<div class="cc-player-league-selector"><label><span>Bajnokság / csoport</span><select id="ccPlayerLeagueSelect" aria-label="Bajnokság és csoport" '+(entries.length?'':'disabled')+'>'+
- (entries.length?entries.map(c=>'<option value="'+escapeHtml_(c.competitionLabel)+'" '+(c.competitionLabel===current?'selected':'')+'>'+escapeHtml_(c.competitionLabel)+'</option>').join(''):'<option>Mentett bajnokságok betöltése…</option>')+'</select></label></div>';
+ if(entries.length<2)return '';
+ return '<div class="cc-player-league-selector"><label><span>Bajnokság / csoport</span><select id="ccPlayerLeagueSelect" aria-label="Bajnokság és csoport">'
+ +entries.map(c=>'<option value="'+escapeHtml_(c.competitionLabel)+'" '+(c.competitionLabel===current?'selected':'')+'>'+escapeHtml_(c.competitionLabel)+'</option>').join('')
+ +'</select></label></div>';
 }
 function ccPlayerClearLeagueSelection_(){ccPlayerLeagueSelection_='';try{localStorage.removeItem('cc-player-league-context-v1')}catch(_){}}
 
@@ -2325,11 +2347,8 @@ function ccMrszPlayerIsMensTeam_(){
 function ccMrszPlayerIsWomen2_(){
  return String(currentTeamData?.id||'')==='10000000-0000-4000-8000-000000000002';
 }
-function ccMrszPlayerMenGroupButtonsHtml_(){
- if(!ccMrszPlayerIsMensTeam_())return '';
- return '<div class="cc-mrsz-player-main-switch"><span>Férfi I. osztály · csoport</span><div role="group" aria-label="Csoportválasztó">'
-  +['B','A'].map(g=>'<button type="button" data-mrsz-player-men-group="'+g+'" aria-pressed="'+(ccMrszPlayerMenGroup_===g)+'" class="'+(ccMrszPlayerMenGroup_===g?'active':'')+'">'+g+' csoport</button>').join('')+'</div></div>';
-}
+function ccMrszPlayerMenGroupButtonsHtml_(){return '';}
+
 function ccBindMrszPlayerMenGroup_(){
  document.querySelectorAll('[data-mrsz-player-men-group]').forEach(btn=>btn.addEventListener('click',()=>{
    ccPlayerClearLeagueSelection_();ccMrszPlayerMenGroup_=btn.dataset.mrszPlayerMenGroup==='A'?'A':'B';
@@ -2566,7 +2585,9 @@ function renderPlanner(){
   if(plannerSection==='standings'){
     const jumpBtn=document.getElementById('jumpCurrentBtn');
     if(jumpBtn) jumpBtn.hidden=true;
-    plannerList.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_();
+    const standingsContent=document.getElementById('standingsContent');
+    if(!standingsContent)return;
+    standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_();
     document.getElementById('ccPlayerLeagueSelect')?.addEventListener('change',event=>{
       const label=String(event.target.value||'');
       if(!ccPlayerLeagueCatalog_().some(c=>c.competitionLabel===label))return;
@@ -3590,9 +3611,9 @@ async function ccSaveMedicalAppointment_(options={}){
   finally{ccMedicalBusy_=false;d.classList.remove('is-saving')}
 }
 
-const CC_PAGE_VIEWS=['homeView','plannerView','profileView'];
+const CC_PAGE_VIEWS=['homeView','plannerView','profileView','standingsView'];
 function ccPageSwipeBlocked_(target){
-  return !!target?.closest?.('button,a,input,select,textarea,label,dialog,[role="button"],.card,.event-card,.planner-card,.filter-panel,.notification-swipe-row,.notification-swipe-scroll,.planner-scroll-viewport,.matrix-scroll,.calendar-shell,.attendance-slider,.settings-card,.profile-card,[data-no-page-swipe]');
+  return !!target?.closest?.('button,a,input,select,textarea,label,dialog,[role="button"],.card,.event-card,.planner-card,.filter-panel,.notification-swipe-row,.notification-swipe-scroll,.planner-scroll-viewport,.matrix-scroll,.standings-scroll,.standings-split,.calendar-shell,.attendance-slider,.settings-card,.profile-card,[data-no-page-swipe]');
 }
 function ccAnimatePageArrival_(viewId,dir){
   const view=document.getElementById(viewId);if(!view||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return;
@@ -3620,12 +3641,19 @@ function ccBindBackgroundPageSwipe_(){
 function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
   const navView=viewId;
+  const nextSection=viewId==='standingsView'?'standings':'schedule';
+  // Keep the schedule's view mode independent of the bottom-level Tabella.
+  if(plannerSection!==nextSection){
+    plannerSection=nextSection;
+    try{localStorage.setItem('cc-planner-section','schedule')}catch(_){}
+  }
 
   forcePlannerPageTop_();
 
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===navView));
   ccSyncNavMotionIndicator_();
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
+  if(viewId==='standingsView'||viewId==='plannerView')renderPlanner();
 
   if(viewId==='plannerView'){
     if(previousView!=='plannerView') plannerUserPositioned=false;
@@ -3680,18 +3708,6 @@ if('serviceWorker' in navigator){
 
 
 
-document.getElementById('plannerStandingsBtn')?.addEventListener('click',()=>{
-  const entering=plannerSection!=='standings';
-  plannerSection='standings';
-  try{localStorage.setItem('cc-planner-section',plannerSection)}catch(_){}
-  syncPlannerPageLock_();
-  forcePlannerPageTop_();
-  renderPlanner();
-  // Tabella always opens with its team filter immediately available.
-  if(entering || document.getElementById('plannerFilterPanel')?.classList.contains('is-collapsed')){
-    requestAnimationFrame(()=>toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true));
-  }
-});
 
 document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
   btn.addEventListener('click',()=>{
