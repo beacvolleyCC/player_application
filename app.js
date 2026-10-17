@@ -2148,12 +2148,14 @@ function renderCompetitionStandings_(){
     return `<div class="standings-state"><b>Még nincs tabellaadat</b><span>Amint érkezik hivatalos bajnoki tabella, itt automatikusan megjelenik.</span></div>${ccMrszPlayerMenGroupButtonsHtml_()}`;
   }
   const ctx=activeStandingsContext_();
-  const allRows=hasPhoto?ccPlayerPhotoStandingRows_(photo):standingsDisplayRows_(ctx?.rows);
+  const baseRows=hasPhoto?ccPlayerPhotoStandingRows_(photo):standingsDisplayRows_(ctx?.rows);
+  const savedTable=ccPlayerResultsOnlyStandings_(label,baseRows);
+  const allRows=savedTable?.rows||baseRows;
   if(!hasPhoto)syncStandingsFilterControl_(allRows);
-  const rows=hasPhoto?allRows:filteredStandingsRows_(ctx?.rows);
-  const selectedRow=hasPhoto?null:selectedStandingsRow_(allRows);
+  const rows=hasPhoto||savedTable?allRows:filteredStandingsRows_(ctx?.rows);
+  const selectedRow=hasPhoto||savedTable?null:selectedStandingsRow_(allRows);
   const selector=PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED && contexts.length>1 ? `<label class="standings-team-picker"><span>Csapat</span><select id="standingsTeamSelect">${contexts.map(c=>`<option value="${escapeHtml_(String(c.contextTeamId||''))}" ${String(c.contextTeamId||'')===String(ctx?.contextTeamId||'')?'selected':''}>${escapeHtml_(c.teamName||'Csapat')}</option>`).join('')}</select></label>` : '';
-  const meta=hasPhoto?label+' · '+(photo.partial?'részleges, eredményekből számított állás':'mentett MRSZ-tabella (2026.10.14.)'):[ctx?.competitionLabel,ctx?.source].filter(Boolean).join(' · ');
+  const meta=savedTable?label+' · Beküldött eredményekből számított részleges állás ('+savedTable.matched+'/'+savedTable.sourceMatches+' feldolgozott meccs) · nem hivatalos tabella':hasPhoto?label+' · '+(photo.partial?'részleges, eredményekből számított állás':'mentett MRSZ-tabella (2026.10.14.)'):[ctx?.competitionLabel,ctx?.source].filter(Boolean).join(' · ');
   const updated=hasPhoto?'':standingsDateLabel_(ctx?.updatedAt);
   if(!allRows.length){
     return `<div class="standings-headline">${selector}<div><b>${escapeHtml_(ctx?.teamName||'Csapat')}</b>${meta?`<span>${escapeHtml_(meta)}</span>`:''}</div></div>${ccMrszPlayerMenGroupButtonsHtml_()}<div class="standings-state"><b>Ehhez a csapathoz még nincs hivatalos tabella</b><span>A BRSZ/MRSZ forrás frissítése után automatikusan megjelenik.</span></div>`;
@@ -2384,6 +2386,59 @@ function ccLeaguePlayerHasBeac_(name){
  const value=String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  return /^beac(?:\s+ii\.?)?$/.test(value)||value.startsWith('budapesti egyetemi atletikai club');
 }
+// Calculated from the available saved results only, never presented as an official table.
+// The source feed may be incomplete; keep original federation snapshots intact.
+function ccPlayerMatchTeamKey_(value){
+ const key=String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const aliases={
+  budapestiegyetemiatletikaiclub:'beac',beac:'beac',
+  budapestiegyetemiatletikaiclubii:'beacii',beacii:'beacii',
+  semmelweisegyetemsportklub:'semmelweis',semmelweisegyetem:'semmelweis',
+  kando:'kando',kandosportklub:'kando',obudaiegyetemkandosc:'kando',
+  kozgaznoi:'kozgaznoi',kozgazsc:'kozgaznoi',
+  mtkbudapest:'mtk',mtk:'mtk',mtkbudapestkek:'mtkkek',mtkkek:'mtkkek',
+  emericusse:'emericus',emericus:'emericus',
+  rackevese:'rackeve',rackeve:'rackeve'
+ };
+ return aliases[key]||key;
+}
+function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.matches){
+ const teams=Array.isArray(roster)?roster:[];
+ const saved=Array.isArray(matches)?matches.filter(m=>String(m?.competitionLabel)===String(league)):[];
+ if(!teams.length||!saved.length)return null;
+ const lookup=new Map(),records=teams.map(r=>({...r,position:null,played:0,wins:0,losses:0,tablePoints:0,
+   setsFor:0,setsAgainst:0,pointsFor:0,pointsAgainst:0,source:'saved_results_only'}));
+ for(const row of records){
+  const key=ccPlayerMatchTeamKey_(row.teamName);
+  if(!key||lookup.has(key)){lookup.set(key,null);continue}
+  lookup.set(key,row);
+ }
+ const seen=new Set();let matched=0;
+ for(const m of saved){
+  const home=lookup.get(ccPlayerMatchTeamKey_(m.homeName)),away=lookup.get(ccPlayerMatchTeamKey_(m.awayName));
+  if(!home||!away||home===away)continue;
+  const h=Number(m.homeSets),a=Number(m.awaySets);
+  if(!Number.isInteger(h)||!Number.isInteger(a)||!((h===3&&a>=0&&a<=2)||(a===3&&h>=0&&h<=2)))continue;
+  const kickoff=ccMrszPlayerLocalKickoff_(m.startsAt).date;
+  const key=kickoff+'|'+ccPlayerMatchTeamKey_(m.homeName)+'|'+ccPlayerMatchTeamKey_(m.awayName);
+  if(seen.has(key))continue;
+  seen.add(key);
+  const setPoints=Array.isArray(m.setScores)&&m.setScores.length===h+a?m.setScores:[];
+  if(setPoints.length&&setPoints.some(v=>v?.home==null||v?.away==null||!Number.isSafeInteger(Number(v.home))||!Number.isSafeInteger(Number(v.away))))continue;
+  matched++;
+  for(const [row,won,setsFor,setsAgainst,homeSide] of [[home,h>a,h,a,true],[away,a>h,a,h,false]]){
+   row.played++;row.wins+=Number(won);row.losses+=Number(!won);row.tablePoints+=won?2:1;
+   row.setsFor+=setsFor;row.setsAgainst+=setsAgainst;
+   if(setPoints.length){
+    row.pointsFor+=setPoints.reduce((sum,sc)=>sum+Number(homeSide?sc.home:sc.away),0);
+    row.pointsAgainst+=setPoints.reduce((sum,sc)=>sum+Number(homeSide?sc.away:sc.home),0);
+   }else{row.pointsFor=null;row.pointsAgainst=null}
+  }
+ }
+ if(!matched)return null;
+ return {rows:records.sort((a,b)=>b.tablePoints-a.tablePoints||b.wins-a.wins||b.setsFor-a.setsFor||String(a.teamName).localeCompare(String(b.teamName),'hu')),
+   matched,sourceMatches:saved.length,partial:true};
+}
 function ccPlayerPhotoStandingRows_(photo){
  return (photo?.rows||[]).map((r,i)=>({...r,sourceTeamId:String(r.sourceTeamId||'photo-'+i),
    focus:ccLeaguePlayerHasBeac_(r.teamName),position:photo?.partial===false?r.position:null}));
@@ -2482,13 +2537,15 @@ function ccMrszPlayerMainScreenshotHtml_(forcedLabel=''){
  const label=forcedLabel||(menA?'Férfi Budapest I. osztály – A csoport':womenB?'Női Budapest II. osztály – B csoport':'Női Budapest I. osztály');
  const groupButtons=forcedLabel?'':ccMrszPlayerMenGroupButtonsHtml_();
  const t=(ccMrszPlayerPhoto_.tables||[]).find(t=>String(t.competitionLabel)===label);
- const rows=Array.isArray(t?.rows)?t.rows:[];
- const heading='<div class="standings-headline"><div class="standings-context-title"><b>'+escapeHtml_(label)+'</b><span>MRSZ · 2026.10.14. · '+(t?.partial?'részleges, eredményekből számított állás':'mentett tabella-pillanatkép')+' · nem élő szinkron</span></div></div>';
+ const originalRows=Array.isArray(t?.rows)?t.rows:[];
+ const savedTable=ccPlayerResultsOnlyStandings_(label,originalRows);
+ const rows=savedTable?.rows||originalRows;
+ const heading='<div class="standings-headline"><div class="standings-context-title"><b>'+escapeHtml_(label)+'</b><span>'+(savedTable?'Beküldött eredményekből számított részleges állás ('+savedTable.matched+'/'+savedTable.sourceMatches+' feldolgozott meccs) · nem hivatalos tabella':'MRSZ · 2026.10.14. · '+(t?.partial?'részleges, eredményekből számított állás':'mentett tabella-pillanatkép'))+' · nem élő szinkron</span></div></div>';
  if(!ccMrszPlayerPhoto_.loaded)return heading+'<div class="standings-state">A bajnoki tabella betöltése…</div>'+groupButtons;
  if(ccMrszPlayerPhoto_.error)return heading+'<div class="standings-state">'+escapeHtml_(ccMrszPlayerPhoto_.error)+'</div>'+groupButtons;
  if(!rows.length)return heading+'<div class="standings-state">Ehhez a csoporthoz nincs hiteles mentett tabella.</div>'+groupButtons+(forcedLabel?ccMrszPlayerLeagueScheduleHtml_(label,false):'');
- const fixed=rows.map(r=>'<tr><td class="pos">'+(Number(r.position)||'–')+'</td><td class="team"><span class="standings-team-cell">'+standingsTeamLogoHtml_(r.teamName)+'<span class="standings-team-name">'+escapeHtml_(r.teamName||'–')+'</span></span></td></tr>').join('');
- const stats=rows.map(r=>'<tr><td>'+(Number(r.played)||0)+'</td><td>'+(Number(r.wins)||0)+'</td><td>'+(Number(r.losses)||0)+'</td><td class="points group-end">'+(Number(r.tablePoints)||0)+'</td><td>'+(r.setsFor!=null&&r.setsAgainst!=null?Number(r.setsFor)+'–'+Number(r.setsAgainst):'–')+'</td><td>'+(r.setsAgainst>0?(Number(r.setsFor)/Number(r.setsAgainst)).toFixed(3):'–')+'</td><td>'+(r.pointsFor!=null&&r.pointsAgainst!=null?Number(r.pointsFor)+'–'+Number(r.pointsAgainst):'–')+'</td><td>'+(r.pointsAgainst>0?(Number(r.pointsFor)/Number(r.pointsAgainst)).toFixed(3):'–')+'</td></tr>').join('');
+ const fixed=rows.map(r=>'<tr><td class="pos">'+(!savedTable&&t?.partial===false&&Number(r.position)>0?Number(r.position):'–')+'</td><td class="team"><span class="standings-team-cell">'+standingsTeamLogoHtml_(r.teamName)+'<span class="standings-team-name">'+escapeHtml_(r.teamName||'–')+'</span></span></td></tr>').join('');
+ const stats=rows.map(r=>'<tr><td>'+(r.played==null?'–':Number(r.played))+'</td><td>'+(r.wins==null?'–':Number(r.wins))+'</td><td>'+(r.losses==null?'–':Number(r.losses))+'</td><td class="points group-end">'+(r.tablePoints==null?'–':Number(r.tablePoints))+'</td><td>'+(r.setsFor!=null&&r.setsAgainst!=null?Number(r.setsFor)+'–'+Number(r.setsAgainst):'–')+'</td><td>'+(r.setsAgainst>0?(Number(r.setsFor)/Number(r.setsAgainst)).toFixed(3):'–')+'</td><td>'+(r.pointsFor!=null&&r.pointsAgainst!=null?Number(r.pointsFor)+'–'+Number(r.pointsAgainst):'–')+'</td><td>'+(r.pointsAgainst>0?(Number(r.pointsFor)/Number(r.pointsAgainst)).toFixed(3):'–')+'</td></tr>').join('');
  return '<div class="competition-standings cc-mrsz-photo-main-standings">'+heading+'<div class="standings-split" role="region" aria-label="Bajnoki tabella">'
    +'<div class="standings-fixed"><table class="standings-table standings-table-fixed"><thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead><tbody>'+fixed+'</tbody></table></div>'
    +'<div class="standings-scroll" tabindex="0"><table class="standings-table standings-table-stats"><thead><tr><th>M</th><th>GY</th><th>V</th><th class="points group-end">P</th><th>SZ</th><th>SZA</th><th>P</th><th>PA</th></tr></thead><tbody>'+stats+'</tbody></table></div>'
