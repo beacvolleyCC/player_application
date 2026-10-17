@@ -13,7 +13,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=20261017-standings-protocol-v11">
+  <link rel="stylesheet" href="./styles.css?v=20261017-bottom-order-v12">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -332,6 +332,14 @@
       </span>
       <small>Menetrend</small>
     </button>
+    <button data-view="standingsView" class="nav-btn" type="button" aria-label="Tabella">
+      <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-standings" aria-hidden="true">
+        <svg class="cc-icon cc-icon-standings" viewBox="0 0 32 32" focusable="false">
+          <path d="M5 7H27 M5 11.5H27 M5 16H27 M5 20.5H27 M5 25H27"></path>
+        </svg>
+      </span>
+      <small>Tabella</small>
+    </button>
     <button data-view="profileView" class="nav-btn">
       <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-profile" aria-hidden="true">
         <svg viewBox="0 0 36 36" focusable="false">
@@ -340,14 +348,6 @@
         </svg>
       </span>
       <small>Profil</small>
-    </button>
-    <button data-view="standingsView" class="nav-btn" type="button" aria-label="Tabella">
-      <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-standings" aria-hidden="true">
-        <svg class="cc-icon cc-icon-standings" viewBox="0 0 32 32" focusable="false">
-          <path d="M5 7H27 M5 11.5H27 M5 16H27 M5 20.5H27 M5 25H27"></path>
-        </svg>
-      </span>
-      <small>Tabella</small>
     </button>
   </nav>
 
@@ -548,6 +548,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
   <script src="./competition-context-catalog.js?v=20261015-lc1"></script>
-  <script src="./app.js?v=20261017-standings-protocol-v11"></script>
+  <script src="./app.js?v=20261017-bottom-order-v12"></script>
 </body>
 </html>
