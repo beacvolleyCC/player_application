@@ -172,3 +172,22 @@
  .cc-stats-players-filter select{max-width:68%;flex:1}
  .cc-stats-player-table th:first-child,.cc-stats-player-table td:first-child{min-width:136px;max-width:150px}
 }
+
+/* Compact player statistics: all six numeric measures fit on phone screens. */
+#standingsView .cc-stats-player-panel{padding:10px 6px;gap:8px}
+#standingsView .cc-stats-player-table{width:100%;min-width:0!important;table-layout:fixed;white-space:normal}
+#standingsView .cc-stats-player-table th,#standingsView .cc-stats-player-table td{padding:7px 2px;font-size:10px;text-align:center;overflow-wrap:normal}
+#standingsView .cc-stats-player-table th{font-size:9px!important;white-space:normal;line-height:1.15}
+#standingsView .cc-stats-player-table th:first-child,#standingsView .cc-stats-player-table td:first-child{width:37%;min-width:0;max-width:none;position:static;box-shadow:none;text-align:left}
+#standingsView .cc-stats-player-table th:not(:first-child),#standingsView .cc-stats-player-table td:not(:first-child){width:10.5%;font-variant-numeric:tabular-nums}
+#standingsView .cc-stats-player-table td:first-child b{font-size:10px;overflow-wrap:anywhere}
+#standingsView .cc-stats-player-table td:first-child small{font-size:8px;margin-top:2px;overflow-wrap:anywhere}
+@media(max-width:390px){
+ #standingsView .cc-stats-player-panel{padding:9px 4px}
+ #standingsView .cc-stats-player-table th,#standingsView .cc-stats-player-table td{padding:6px 1px;font-size:9px}
+ #standingsView .cc-stats-player-table th{font-size:8px!important}
+ #standingsView .cc-stats-player-table th:first-child,#standingsView .cc-stats-player-table td:first-child{width:37%;min-width:0;max-width:none}
+}
+/* Keep match cards inset instead of filling the outer league panel edge to edge. */
+#standingsView .cc-mrsz-player-league-matches .standings-match-list{box-sizing:border-box;width:calc(100% - 20px)!important;margin:0 10px 10px;min-width:0!important}
+@media(max-width:440px){#standingsView .cc-mrsz-player-league-matches .standings-match-list{width:calc(100% - 12px)!important;margin:0 6px 6px}}
