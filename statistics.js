@@ -211,7 +211,7 @@ function ccStatsPlayers_(data){
       '<tr><td><b>'+ccPlayerProtocolNameHtml_(p)+'</b><small>'+escapeHtml_(p.team)+'</small></td>'
       +'<td>'+p.nominated+'</td><td class="cc-stats-won">'+p.won+'</td>'
       +'<td class="cc-stats-lost">'+p.lost+'</td><td>'+p.starts+'</td>'
-      +'<td>'+p.substitutes+'</td><td>'+(p.unmarked||'–')+'</td></tr>'
+      +'<td>'+p.substitutes+'</td><td>'+p.unmarked+'</td></tr>'
     ).join('')+'</tbody></table></div></section></div>';
 }
 function ccStatsComparison_(data){
