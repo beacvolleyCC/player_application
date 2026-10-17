@@ -2157,9 +2157,9 @@ function renderCompetitionStandings_(){
   const selectedRow=hasPhoto||savedTable?null:selectedStandingsRow_(allRows);
   const selector=PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED && contexts.length>1 ? `<label class="standings-team-picker"><span>Csapat</span><select id="standingsTeamSelect">${contexts.map(c=>`<option value="${escapeHtml_(String(c.contextTeamId||''))}" ${String(c.contextTeamId||'')===String(ctx?.contextTeamId||'')?'selected':''}>${escapeHtml_(c.teamName||'Csapat')}</option>`).join('')}</select></label>` : '';
   const meta=savedTable?label+' · Beküldött eredményekből számított részleges állás ('+savedTable.matched+'/'+savedTable.sourceMatches+' feldolgozott meccs) · nem hivatalos tabella':hasPhoto?label+' · '+(photo.partial?'részleges, eredményekből számított állás':'mentett MRSZ-tabella (2026.10.14.)'):[ctx?.competitionLabel,ctx?.source].filter(Boolean).join(' · ');
-  const updated=hasPhoto?'':standingsDateLabel_(ctx?.updatedAt);
+  const updated='';
   if(!allRows.length){
-    return `<div class="standings-headline">${selector}<div><b>${escapeHtml_(ctx?.teamName||'Csapat')}</b>${meta?`<span>${escapeHtml_(meta)}</span>`:''}</div></div>${ccMrszPlayerMenGroupButtonsHtml_()}<div class="standings-state"><b>Ehhez a csapathoz még nincs hivatalos tabella</b><span>A BRSZ/MRSZ forrás frissítése után automatikusan megjelenik.</span></div>`;
+    return `<div class="standings-state">Még nincs rögzített eredmény.</div>${ccMrszPlayerLeagueScheduleHtml_(label,false)}`;
   }
   return `<div class="competition-standings">
     <div class="standings-headline">
@@ -2422,41 +2422,75 @@ function ccPlayerMatchTeamKey_(value){
  return aliases[key]||key;
 }
 function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.matches){
- const teams=Array.isArray(roster)?roster:[];
+ const base=Array.isArray(roster)?roster:[];
  const saved=Array.isArray(matches)?matches.filter(m=>String(m?.competitionLabel)===String(league)):[];
- if(!teams.length||!saved.length)return null;
- const lookup=new Map(),records=teams.map(r=>({...r,position:null,played:0,wins:0,losses:0,tablePoints:0,
-   setsFor:0,setsAgainst:0,pointsFor:0,pointsAgainst:0,source:'saved_results_only'}));
- for(const row of records){
-  const key=ccPlayerMatchTeamKey_(row.teamName);
-  if(!key||lookup.has(key)){lookup.set(key,null);continue}
-  lookup.set(key,row);
+ if(!saved.length)return null;
+ const fixtures=(ccMrszPlayerPhoto_.fixtures||[]).filter(m=>String(m?.competitionLabel)===String(league));
+ const unique=new Map();
+ function add(name,sourceRow){
+  const raw=String(name||'').trim(),key=ccPlayerMatchTeamKey_(raw);
+  if(key&&!unique.has(key))unique.set(key,{...(sourceRow||{}),teamName:raw});
  }
- const seen=new Set();let matched=0;
+ for(const row of base)add(row.teamName,row);
+ if(!base.length)for(const m of [...fixtures,...saved]){
+  if(ccMrszPlayerUnverifiedSelfFixture_(m))continue;
+  add(m.homeName);add(m.awayName);
+ }
+ for(const m of saved){add(m.homeName);add(m.awayName)}
+ if(!unique.size)return null;
+ const records=[...unique.values()].map(r=>({...r,position:null,played:0,wins:0,losses:0,tablePoints:0,
+   setsFor:0,setsAgainst:0,pointsFor:0,pointsAgainst:0,source:'saved_results_only'}));
+ const lookup=new Map(records.map(r=>[ccPlayerMatchTeamKey_(r.teamName),r]));
+ const byFixture=new Map();
  for(const m of saved){
+  const hk=ccPlayerMatchTeamKey_(m.homeName),ak=ccPlayerMatchTeamKey_(m.awayName);
+  if(!hk||!ak||hk===ak||!lookup.has(hk)||!lookup.has(ak))continue;
+  const h=Number(m.homeSets),a=Number(m.awaySets);
+  if(!Number.isInteger(h)||!Number.isInteger(a)||!((h===3&&a>=0&&a<=2)||(a===3&&h>=0&&h<=2)))continue;
+  const day=ccMrszPlayerLocalKickoff_(m.startsAt).date;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(day))continue;
+  const key=day+'|'+hk+'|'+ak;
+  const previous=byFixture.get(key);
+  if(previous){
+   if(previous.homeSets!==m.homeSets||previous.awaySets!==m.awaySets
+      ||JSON.stringify(previous.setScores||[])!==JSON.stringify(m.setScores||[]))byFixture.set(key,null);
+  }else if(!byFixture.has(key))byFixture.set(key,m);
+ }
+ let matched=0;
+ for(const m of byFixture.values()){
+  if(!m)continue;
   const home=lookup.get(ccPlayerMatchTeamKey_(m.homeName)),away=lookup.get(ccPlayerMatchTeamKey_(m.awayName));
   if(!home||!away||home===away)continue;
   const h=Number(m.homeSets),a=Number(m.awaySets);
-  if(!Number.isInteger(h)||!Number.isInteger(a)||!((h===3&&a>=0&&a<=2)||(a===3&&h>=0&&h<=2)))continue;
-  const kickoff=ccMrszPlayerLocalKickoff_(m.startsAt).date;
-  const key=kickoff+'|'+ccPlayerMatchTeamKey_(m.homeName)+'|'+ccPlayerMatchTeamKey_(m.awayName);
-  if(seen.has(key))continue;
-  seen.add(key);
-  const setPoints=Array.isArray(m.setScores)&&m.setScores.length===h+a?m.setScores:[];
-  if(setPoints.length&&setPoints.some(v=>v?.home==null||v?.away==null||!Number.isSafeInteger(Number(v.home))||!Number.isSafeInteger(Number(v.away))))continue;
+  const setPoints=Array.isArray(m.setScores)&&m.setScores.length===h+a?m.setScores:null;
+  const validSets=setPoints&&setPoints.every((pair,i)=>{
+   const x=Number(pair?.home),y=Number(pair?.away);
+   return pair?.home!=null&&pair?.away!=null&&Number.isSafeInteger(x)&&Number.isSafeInteger(y)
+    &&x>=0&&y>=0&&x!==y&&Math.max(x,y)>=(i===4?15:25)&&Math.abs(x-y)>=2;
+  });
+  if(setPoints&&!validSets)continue;
+  if(validSets){
+   const hw=setPoints.filter(x=>Number(x.home)>Number(x.away)).length;
+   if(hw!==h||setPoints.length-hw!==a)continue;
+  }
   matched++;
-  for(const [row,won,setsFor,setsAgainst,homeSide] of [[home,h>a,h,a,true],[away,a>h,a,h,false]]){
-   row.played++;row.wins+=Number(won);row.losses+=Number(!won);row.tablePoints+=won?2:1;
-   row.setsFor+=setsFor;row.setsAgainst+=setsAgainst;
-   if(setPoints.length){
-    row.pointsFor+=setPoints.reduce((sum,sc)=>sum+Number(homeSide?sc.home:sc.away),0);
-    row.pointsAgainst+=setPoints.reduce((sum,sc)=>sum+Number(homeSide?sc.away:sc.home),0);
-   }else{row.pointsFor=null;row.pointsAgainst=null}
+  for(const [row,won,forSets,againstSets,isHome] of [[home,h>a,h,a,true],[away,a>h,a,h,false]]){
+   row.played++;row.wins+=Number(won);row.losses+=Number(!won);
+   row.tablePoints+=won?2:1;row.setsFor+=forSets;row.setsAgainst+=againstSets;
+   if(!validSets){row.pointsFor=null;row.pointsAgainst=null}
+   else if(row.pointsFor!==null&&row.pointsAgainst!==null){
+    row.pointsFor+=setPoints.reduce((sum,p)=>sum+Number(isHome?p.home:p.away),0);
+    row.pointsAgainst+=setPoints.reduce((sum,p)=>sum+Number(isHome?p.away:p.home),0);
+   }
   }
  }
  if(!matched)return null;
- return {rows:records.sort((a,b)=>b.tablePoints-a.tablePoints||b.wins-a.wins||b.setsFor-a.setsFor||String(a.teamName).localeCompare(String(b.teamName),'hu')),
-   matched,sourceMatches:saved.length,partial:true};
+ const difference=r=>r.pointsFor==null?-Infinity:r.pointsFor-r.pointsAgainst;
+ records.sort((a,b)=>b.tablePoints-a.tablePoints||b.wins-a.wins
+   ||(b.setsFor-b.setsAgainst)-(a.setsFor-a.setsAgainst)
+   ||difference(b)-difference(a)||a.teamName.localeCompare(b.teamName,'hu'));
+ records.forEach((r,i)=>{r.position=i+1});
+ return {rows:records,matched,sourceMatches:saved.length,partial:true};
 }
 function ccPlayerPhotoStandingRows_(photo){
  return (photo?.rows||[]).map((r,i)=>({...r,sourceTeamId:String(r.sourceTeamId||'photo-'+i),
@@ -2559,11 +2593,11 @@ function ccMrszPlayerMainScreenshotHtml_(forcedLabel=''){
  const originalRows=Array.isArray(t?.rows)?t.rows:[];
  const savedTable=ccPlayerResultsOnlyStandings_(label,originalRows);
  const rows=savedTable?.rows||originalRows;
- const heading='<div class="standings-headline"><div class="standings-context-title"><b>'+escapeHtml_(label)+'</b><span>'+(savedTable?'Beküldött eredményekből számított részleges állás ('+savedTable.matched+'/'+savedTable.sourceMatches+' feldolgozott meccs) · nem hivatalos tabella':'MRSZ · 2026.10.14. · '+(t?.partial?'részleges, eredményekből számított állás':'mentett tabella-pillanatkép'))+' · nem élő szinkron</span></div></div>';
+ const heading='<div class="standings-headline"><div class="standings-context-title"><b>'+escapeHtml_(label)+'</b></div></div>';
  if(!ccMrszPlayerPhoto_.loaded)return heading+'<div class="standings-state">A bajnoki tabella betöltése…</div>'+groupButtons;
  if(ccMrszPlayerPhoto_.error)return heading+'<div class="standings-state">'+escapeHtml_(ccMrszPlayerPhoto_.error)+'</div>'+groupButtons;
- if(!rows.length)return heading+'<div class="standings-state">Ehhez a csoporthoz nincs hiteles mentett tabella.</div>'+groupButtons+(forcedLabel?ccMrszPlayerLeagueScheduleHtml_(label,false):'');
- const fixed=rows.map(r=>'<tr><td class="pos">'+(!savedTable&&t?.partial===false&&Number(r.position)>0?Number(r.position):'–')+'</td><td class="team"><span class="standings-team-cell">'+standingsTeamLogoHtml_(r.teamName)+'<span class="standings-team-name">'+escapeHtml_(r.teamName||'–')+'</span></span></td></tr>').join('');
+ if(!rows.length)return heading+'<div class="standings-state">Még nincs rögzített eredmény.</div>'+groupButtons+ccMrszPlayerLeagueScheduleHtml_(label,false);
+ const fixed=rows.map(r=>'<tr><td class="pos">'+(Number.isInteger(Number(r.position))&&Number(r.position)>0?Number(r.position):'–')+'</td><td class="team"><span class="standings-team-cell">'+standingsTeamLogoHtml_(r.teamName)+'<span class="standings-team-name">'+escapeHtml_(r.teamName||'–')+'</span></span></td></tr>').join('');
  const stats=rows.map(r=>'<tr><td>'+(r.played==null?'–':Number(r.played))+'</td><td>'+(r.wins==null?'–':Number(r.wins))+'</td><td>'+(r.losses==null?'–':Number(r.losses))+'</td><td class="points group-end">'+(r.tablePoints==null?'–':Number(r.tablePoints))+'</td><td>'+(r.setsFor!=null&&r.setsAgainst!=null?Number(r.setsFor)+'–'+Number(r.setsAgainst):'–')+'</td><td>'+(r.setsAgainst>0?(Number(r.setsFor)/Number(r.setsAgainst)).toFixed(3):'–')+'</td><td>'+(r.pointsFor!=null&&r.pointsAgainst!=null?Number(r.pointsFor)+'–'+Number(r.pointsAgainst):'–')+'</td><td>'+(r.pointsAgainst>0?(Number(r.pointsFor)/Number(r.pointsAgainst)).toFixed(3):'–')+'</td></tr>').join('');
  return '<div class="competition-standings cc-mrsz-photo-main-standings">'+heading+'<div class="standings-split" role="region" aria-label="Bajnoki tabella">'
    +'<div class="standings-fixed"><table class="standings-table standings-table-fixed"><thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead><tbody>'+fixed+'</tbody></table></div>'
