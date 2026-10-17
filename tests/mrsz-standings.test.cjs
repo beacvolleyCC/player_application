@@ -101,10 +101,12 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-kando-roster-v13'));
- assert.ok(html.includes('app.js?v=20261017-kando-roster-v13'));
+ assert.ok(html.includes('styles.css?v=20261017-stats-v14'));
+ assert.ok(html.includes('statistics.css?v=20261017-stats-v14'));
+ assert.ok(html.includes('app.js?v=20261017-stats-v14'));
+ assert.ok(html.includes('statistics.js?v=20261017-stats-v14'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261017-kando-roster-v13"));
+ assert.ok(sw.includes("club-control-player-20261017-stats-v14"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -211,13 +213,17 @@ test('saved results update a separately labeled partial standings model without 
  assert.ok(view.includes("const meta='';"));
 });
 
-test('fourth bottom nav has independent standings content and schedule controls remain in Menetrend',()=>{
+test('standings stays independent, statistics follows it and profile remains last',()=>{
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('id="standingsContent"'));
+ assert.ok(html.includes('id="statisticsContent"'));
+ assert.ok(html.indexOf('data-view="standingsView"')<html.indexOf('data-view="statisticsView"'));
+ assert.ok(html.indexOf('data-view="statisticsView"')<html.indexOf('data-view="profileView"'));
+ assert.ok(js.includes("'standingsView','statisticsView','profileView'"));
  assert.ok(html.includes('data-view="standingsView" class="nav-btn"'));
  assert.ok(!html.includes('id="plannerStandingsBtn"'));
  assert.ok(js.includes('standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_()'));
- assert.ok(js.includes("const nextSection=viewId==='standingsView'?'standings':'schedule'"));
+ assert.ok(js.includes("const nextSection=(viewId==='standingsView'||viewId==='statisticsView')?'standings':'schedule'"));
  assert.ok(js.includes("plannerSection='schedule'"));
 });
 
@@ -331,4 +337,47 @@ test('Starters have bold names; unmarked squad members show dash and substitutio
  const badge=vm.runInContext('ccPlayerProtocolBadgesHtml_',context);
  assert.equal(badge({designation:'K'}).includes('is-no-entry'),false);
  assert.equal(badge({designation:'CS'}).includes('is-no-entry'),false);
+});
+
+
+test('Player statistics use the recorded-results dataset and distinguish nominations from court entries',()=>{
+ const stats=fs.readFileSync('statistics.js','utf8');
+ const doc=fs.readFileSync('index.html','utf8');
+ const sw=fs.readFileSync('sw.js','utf8');
+ assert.ok(doc.includes('id="statisticsView"'));
+ assert.ok(stats.includes("'Javuló forma'"));
+ assert.ok(stats.includes("'Romló forma'"));
+ assert.ok(stats.includes("'Helyezésváltozás'"));
+ assert.ok(stats.includes("'Játékosstatisztikák'"));
+ assert.ok(stats.includes('A nevezés nem azonos a pályára lépéssel.'));
+ assert.ok(sw.includes("'./statistics.js'"));
+ assert.ok(sw.includes("'./statistics.css'"));
+ assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
+ assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
+ assert.ok(!stats.includes('p_szemely_kod='));
+});
+test('statistics use completed results only and do not count a blank 0-0 fixture',()=>{
+ const file=fs.readFileSync('statistics.js','utf8');
+ const scoped=vm.createContext({
+  ...context,
+  document:{getElementById:()=>null},
+  ccPlayerLeagueCurrent_:()=>w1,
+  ccMrszPlayerAllLeagueMatches_:()=>[
+    {competitionLabel:w1,homeName:'Óbudai Egyetem-Kandó SC',awayName:'Ráckeve',homeSets:null,awaySets:null,startsAt:'2026-10-14'},
+    {competitionLabel:w1,homeName:'Kandó Sport Klub',awayName:'Ráckeve',homeSets:3,awaySets:0,startsAt:'2026-10-14'}],
+  ccPlayerMatchTeamKey_:n=>(String(n).toLowerCase().includes('kando')||String(n).toLowerCase().includes('kandó')?'kando':String(n).toLowerCase()),
+  ccMrszPlayerUnverifiedSelfFixture_:()=>false,
+  ccMrszPlayerPhoto_:{tables:[]}
+ });
+ vm.runInContext(file,scoped);
+ const data=vm.runInContext('ccStatsSource_()',scoped);
+ assert.equal(data.played.length,1);
+ assert.equal(data.teams.find(t=>t.id==='kando').won,1);
+ assert.equal(data.teams.find(t=>t.id==='kando').played,1);
+});
+test('roster shirt number and player name use adjacent fixed-width columns',()=>{
+ const style=fs.readFileSync('statistics.css','utf8');
+ assert.ok(style.includes('.player-protocol-team table{table-layout:fixed;'));
+ assert.ok(style.includes('.player-protocol-team th:first-child'));
+ assert.ok(style.includes('width:39px !important'));
 });
