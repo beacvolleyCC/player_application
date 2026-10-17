@@ -101,12 +101,12 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-three-tabs-wl-v16'));
- assert.ok(html.includes('statistics.css?v=20261017-three-tabs-wl-v16'));
- assert.ok(html.includes('app.js?v=20261017-three-tabs-wl-v16'));
- assert.ok(html.includes('statistics.js?v=20261017-three-tabs-wl-v16'));
+ assert.ok(html.includes('styles.css?v=20261017-clean-stats-v17'));
+ assert.ok(html.includes('statistics.css?v=20261017-clean-stats-v17'));
+ assert.ok(html.includes('app.js?v=20261017-clean-stats-v17'));
+ assert.ok(html.includes('statistics.js?v=20261017-clean-stats-v17'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261017-three-tabs-wl-v16"));
+ assert.ok(sw.includes("club-control-player-20261017-clean-stats-v17"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -351,8 +351,8 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('Helyezésváltozás'));
  assert.ok(stats.includes('Játékosstatisztikák'));
  assert.ok(stats.includes('A nevezés nem azonos a pályára lépéssel.'));
- assert.ok(sw.includes("'./statistics.js?v=20261017-three-tabs-wl-v16'"));
- assert.ok(sw.includes("'./statistics.css?v=20261017-three-tabs-wl-v16'"));
+ assert.ok(sw.includes("'./statistics.js?v=20261017-clean-stats-v17'"));
+ assert.ok(sw.includes("'./statistics.css?v=20261017-clean-stats-v17'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
@@ -403,7 +403,8 @@ test('incomplete results never name a best or worst performing league team',()=>
  assert.ok(overview.includes('const eligible=data.verifiedComplete'));
  assert.ok(overview.includes('Legjobb forma'));
  assert.ok(overview.includes('Legrosszabb forma'));
- assert.ok(overview.includes('csak teljes, ellenőrzött eredménysor'));
+ assert.ok(overview.includes("data.teams.every(t=>t.results.length>=5)"));
+ assert.ok(source.includes('title="Mentett eredmények alapján; egyes bajnoki adatok részlegesek lehetnek."'));
  assert.ok(!overview.includes('Legnagyobb feljövő'));
  assert.ok(!overview.includes('Legnagyobb visszaeső'));
 });
@@ -447,4 +448,18 @@ test('teams display only the last five completed results as W green / L red with
  assert.ok(stats.includes('Utolsó 5 mérkőzés'));
  const none=form({results:[]});
  assert.equal((none.match(/class="cc-stats-form-result no-data"/g)||[]).length,5);
+});
+
+test('Player competition statistics contain no decorative grey captions or explanatory footer',()=>{
+ const stats=fs.readFileSync('statistics.js','utf8');
+ const css=fs.readFileSync('statistics.css','utf8');
+ assert.ok(!stats.includes('<small>Forma, mérleg, szettarány</small>'));
+ assert.ok(!stats.includes('Elérhető eredmények · legutóbbi öt meccs'));
+ assert.ok(!stats.includes('const coverageNote='));
+ assert.ok(!stats.includes('class="cc-stats-source-note"'));
+ assert.ok(!stats.includes('Legfeljebb 5 mentett mérkőzés'));
+ assert.ok(stats.includes('title="Mentett eredmények alapján; egyes bajnoki adatok részlegesek lehetnek."'));
+ assert.ok(stats.includes('cc-stats-metric-value'));
+ assert.ok(css.includes('.cc-stats-metric>.cc-stats-metric-value'));
+ assert.ok(!stats.includes('<small>'+ "'+escapeHtml_(value||'Nincs elég adat')+'" +'</small>'));
 });
