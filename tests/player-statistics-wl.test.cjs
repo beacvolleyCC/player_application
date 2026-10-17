@@ -6,7 +6,7 @@ function harness(){
  const scope={
   document:{getElementById:()=>null},
   escapeHtml_:s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'),
-  ccPlayerMatchTeamKey_:n=>String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,''),
+  ccPlayerMatchTeamKey_:n=>{const k=String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');return k==='budapestiegyetemiatletikaiclub'?'beac':k},
   ccMrszPlayerLocalKickoff_:s=>({date:String(s).slice(0,10)}),
   ccPlayerProtocolProfileUrl_:url=>typeof url==='string'&&url.startsWith('https://'),
   ccPlayerProtocolNameHtml_:p=>String(p.name||'')
