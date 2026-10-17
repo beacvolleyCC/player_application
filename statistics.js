@@ -73,8 +73,8 @@ function ccStatsSummaryCard_(label,team,value){
 function ccStatsOverview_(data){
   const active=data.teams.filter(t=>t.played>0);
   // Never name a league-wide best or worst from an incomplete results sample.
-  const eligible=data.verifiedComplete
-    ?active.filter(t=>t.results.length>=5)
+  const eligible=data.verifiedComplete&&data.teams.length>1&&data.teams.every(t=>t.results.length>=5)
+    ?data.teams
     :[];
   const top=eligible.slice().sort((a,b)=>
     b.results.slice(-5).filter(x=>x.win).length-a.results.slice(-5).filter(x=>x.win).length)[0];
