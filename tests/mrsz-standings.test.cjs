@@ -272,3 +272,63 @@ test('C, L1/L2 and quiet red-green exchange arrows replace verbose role labels',
  assert.ok(css.includes('width:44px !important;'));
  assert.ok(css.includes('right:8px !important;'));
 });
+
+
+test('Kandó aliases and full Taksony name collapse the Oct 14 fixture into the scored match',()=>{
+ const match={competitionLabel:menA,startsAt:'2026-10-14T18:30:00+02:00',homeName:'Kandó Sport Club',
+  awayName:'Brózik Tibor Taksonyi Diáksport Egyesület',homeSets:3,awaySets:1};
+ const fixture={competitionLabel:menA,startsAt:'2026-10-14T18:30:00',homeName:'Óbudai Egyetem-Kandó SC',
+  awayName:'BTDSE Taksony',homeSets:null,awaySets:null};
+ fixtures.push(fixture);matches.push(match);
+ try{
+  const list=context.qa.merge(menA,false).filter(m=>String(m.startsAt).startsWith('2026-10-14'));
+  assert.equal(list.length,1,'exactly one Kandó–Taksony fixture/score pair');
+  assert.equal(list[0].homeSets,3);
+  const key=vm.runInContext('ccPlayerMatchTeamKey_',context);
+  assert.equal(key('Kandó Sport Club'),key('Óbudai Egyetem-Kandó SC'));
+  assert.equal(key('BTDSE Taksony'),key('Brózik Tibor Taksonyi Diáksport Egyesület'));
+  assert.notEqual(key('Kandó II'),key('Kandó Sport Club'),'distinct squad must not be merged');
+ }finally{fixtures.pop();matches.pop();}
+});
+
+test('women I Kandó vs Ráckeve is one match despite its archived team label',()=>{
+ const match={competitionLabel:w1,startsAt:'2026-10-13T20:30:00+02:00',homeName:'Kandó Sport Club',awayName:'Ráckeve',homeSets:3,awaySets:0};
+ const fixture={competitionLabel:w1,startsAt:'2026-10-13T20:30:00',homeName:'Óbudai Egyetem-Kandó SC',awayName:'Ráckeve',homeSets:null,awaySets:null};
+ fixtures.push(fixture);matches.push(match);
+ try{
+  const items=context.qa.merge(w1,false).filter(m=>String(m.startsAt).startsWith('2026-10-13T20:30'));
+  assert.equal(items.length,1);
+  assert.equal(items[0].homeSets,3);
+ }finally{fixtures.pop();matches.pop();}
+});
+
+test('Match card opens on click without redundant protocol label',()=>{
+ const match={competitionLabel:w1,matchCode:'2340',startsAt:'2026-10-13T20:30:00+02:00',
+  homeName:'Kandó Sport Club',awayName:'Ráckeve',homeSets:3,awaySets:0,
+  protocol:{teams:[{name:'Kandó',players:[]},{name:'Ráckeve',players:[]}],officials:[]}};
+ const render=vm.runInContext('ccPlayerScoreboardHtml_',context);
+ const html=render(match);
+ assert.ok(html.includes('data-player-protocol="2340"'),'whole scorecard still opens the protocol');
+ assert.ok(!html.includes('Jegyzőkönyv'));
+});
+
+test('Starters have bold names; unmarked squad members show dash and substitutions remain arrows',()=>{
+ const roster=vm.runInContext('ccPlayerProtocolRosterHtml_',context);
+ const html=roster({name:'Kandó Sport Club',players:[
+  {number:3,name:'Kezdő Példa',designation:'K'},
+  {number:4,name:'Csere Példa',designation:'CS'},
+  {number:5,name:'Pados Példa',designation:''},
+  {number:6,name:'Csapatkapitány Példa',designation:'',captain:true},
+  {number:7,name:'Liberó Példa',designation:'',libero:'L1'}
+ ]});
+ assert.match(html,/<strong class="player-protocol-starter">Kezdő Példa<\/strong>/);
+ assert.ok(!html.includes('class="player-protocol-starter">Csere Példa'));
+ assert.ok(html.includes('is-subs'));
+ assert.ok(html.includes('is-no-entry'));
+ assert.match(html, /Pados Példa[\s\S]*?is-no-entry/);
+ assert.ok(html.includes('>C</span>'));
+ assert.ok(html.includes('>L1</span>'));
+ const badge=vm.runInContext('ccPlayerProtocolBadgesHtml_',context);
+ assert.equal(badge({designation:'K'}).includes('is-no-entry'),false);
+ assert.equal(badge({designation:'CS'}).includes('is-no-entry'),false);
+});
