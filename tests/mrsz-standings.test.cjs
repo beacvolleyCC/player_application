@@ -101,10 +101,10 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-player-protocol-v9'));
- assert.ok(html.includes('app.js?v=20261017-player-protocol-v9'));
+ assert.ok(html.includes('styles.css?v=20261017-player-league-nav-v10'));
+ assert.ok(html.includes('app.js?v=20261017-player-league-nav-v10'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261017-player-protocol-v9"));
+ assert.ok(sw.includes("club-control-player-20261017-player-league-nav-v10"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -208,4 +208,14 @@ test('saved results update a separately labeled partial standings model without 
  assert.ok(model.rows.every(x=>x.position===null));
  const view=js.slice(js.indexOf('function renderCompetitionStandings_(){'),js.indexOf('function syncPlannerSectionUi_()'));
  assert.ok(view.includes('nem hivatalos tabella'));
+});
+
+test('fourth bottom nav has independent standings content and schedule controls remain in Menetrend',()=>{
+ const html=fs.readFileSync('index.html','utf8');
+ assert.ok(html.includes('id="standingsContent"'));
+ assert.ok(html.includes('data-view="standingsView" class="nav-btn"'));
+ assert.ok(!html.includes('id="plannerStandingsBtn"'));
+ assert.ok(js.includes('standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_()'));
+ assert.ok(js.includes("const nextSection=viewId==='standingsView'?'standings':'schedule'"));
+ assert.ok(js.includes("plannerSection='schedule'"));
 });
