@@ -2182,7 +2182,7 @@ function renderCompetitionStandings_(){
     </div>
     ${ccMrszPlayerMenGroupButtonsHtml_()}
     ${ccMrszPlayerLeagueScheduleHtml_(label,!requiresPhoto)}
-    ${hasPhoto?'':selectedRow?renderStandingsInsights_(allRows,selectedRow):renderLeagueStandingsInsights_(allRows)}
+
   </div>`;
 }
 
@@ -2635,6 +2635,7 @@ function renderPlanner(){
     const standingsContent=document.getElementById('standingsContent');
     if(!standingsContent)return;
     standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_();
+    if(typeof ccRenderStatisticsPage_==='function')ccRenderStatisticsPage_();
     document.getElementById('ccPlayerLeagueSelect')?.addEventListener('change',event=>{
       const label=String(event.target.value||'');
       if(!ccPlayerLeagueCatalog_().some(c=>c.competitionLabel===label))return;
@@ -3658,7 +3659,7 @@ async function ccSaveMedicalAppointment_(options={}){
   finally{ccMedicalBusy_=false;d.classList.remove('is-saving')}
 }
 
-const CC_PAGE_VIEWS=['homeView','plannerView','standingsView','profileView'];
+const CC_PAGE_VIEWS=['homeView','plannerView','standingsView','statisticsView','profileView'];
 function ccPageSwipeBlocked_(target){
   return !!target?.closest?.('button,a,input,select,textarea,label,dialog,[role="button"],.card,.event-card,.planner-card,.filter-panel,.notification-swipe-row,.notification-swipe-scroll,.planner-scroll-viewport,.matrix-scroll,.standings-scroll,.standings-split,.calendar-shell,.attendance-slider,.settings-card,.profile-card,[data-no-page-swipe]');
 }
@@ -3688,7 +3689,7 @@ function ccBindBackgroundPageSwipe_(){
 function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
   const navView=viewId;
-  const nextSection=viewId==='standingsView'?'standings':'schedule';
+  const nextSection=(viewId==='standingsView'||viewId==='statisticsView')?'standings':'schedule';
   if(viewId==='standingsView'&&previousView!=='standingsView'){
     // The standalone Tabella must never inherit a hidden row filter from
     // the old Menetrend toolbar. Row-specific statistics remain selectable.
@@ -3706,7 +3707,7 @@ function switchView(viewId){
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===navView));
   ccSyncNavMotionIndicator_();
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
-  if(viewId==='standingsView'||viewId==='plannerView')renderPlanner();
+  if(viewId==='standingsView'||viewId==='statisticsView'||viewId==='plannerView')renderPlanner();
 
   if(viewId==='plannerView'){
     if(previousView!=='plannerView') plannerUserPositioned=false;
