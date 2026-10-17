@@ -64,7 +64,7 @@ function ccStatsOverview_(data){
   const rising=active.filter(t=>ccStatsTrend_(t)>0).sort((a,b)=>ccStatsTrend_(b)-ccStatsTrend_(a));
   const falling=active.filter(t=>ccStatsTrend_(t)<0).sort((a,b)=>ccStatsTrend_(a)-ccStatsTrend_(b));
   const ratio=active.filter(t=>t.setsAgainst>0).sort((a,b)=>(b.setsFor/b.setsAgainst)-(a.setsFor/a.setsAgainst));
-  let historyHtml='<p class="cc-stats-muted">Helyezésváltozás csak több, összehasonlítható tabellafrissítésből számítható.</p>';
+  let historyHtml='<div class="cc-stats-metrics">'+ccStatsSummaryCard_('Legnagyobb feljövő',null,'')+ccStatsSummaryCard_('Legnagyobb visszaeső',null,'')+'</div><p class="cc-stats-muted">Helyezésváltozás csak több, összehasonlítható tabellafrissítésből számítható.</p>';
   const current=competitionLeagueInsights?.data||{};
   if(current.competitionLabel===data.league&&Array.isArray(current.teams)){
     const deltas=current.teams.map(t=>({name:t.teamName,delta:insightPositionDelta_(t.history,t.current?.position,t.current?.played)}));
