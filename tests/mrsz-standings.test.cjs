@@ -350,7 +350,7 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('data.verifiedComplete'));
  assert.ok(stats.includes('Helyezésváltozás'));
  assert.ok(stats.includes('ccStatsPlayerRows_'));
- assert.ok(stats.includes('Jelölés nélkül'));
+ assert.ok(stats.includes('>–</th>')); // compact column heading, with full semantics preserved in the title
  assert.ok(stats.includes('nem bizonyít tényleges pályára lépést'));
  assert.ok(sw.includes("'./statistics.js?v=20261018-player-compact-v19'"));
  assert.ok(sw.includes("'./statistics.css?v=20261018-player-compact-v19'"));
