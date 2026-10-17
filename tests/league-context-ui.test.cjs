@@ -67,12 +67,12 @@ test('Saved selections from another BEAC team cannot show an unauthorised compet
 test('Tabella is a fourth bottom nav view with its original icon, not a Menetrend subtab',()=>{
  const nav=html.slice(html.indexOf('<nav class="bottom-nav">'),html.indexOf('</nav>',html.indexOf('<nav class="bottom-nav">')));
  const order=[...nav.matchAll(/data-view="([^"]+)" class="nav-btn/g)].map(x=>x[1]);
- assert.deepEqual(order,['homeView','plannerView','profileView','standingsView']);
+ assert.deepEqual(order,['homeView','plannerView','standingsView','profileView']);
  assert.ok(html.includes('id="standingsView" class="view'));
  assert.ok(html.includes('id="standingsContent"'));
  assert.ok(nav.includes('cc-icon-standings'));
  assert.ok(!html.includes('id="plannerStandingsBtn"'));
- assert.ok(app.includes("const CC_PAGE_VIEWS=['homeView','plannerView','profileView','standingsView']"));
+ assert.ok(app.includes("const CC_PAGE_VIEWS=['homeView','plannerView','standingsView','profileView']"));
  assert.ok(app.includes("if(viewId==='standingsView'||viewId==='plannerView')renderPlanner();"));
  assert.ok(app.includes("if(viewId==='standingsView'&&previousView!=='standingsView')"));
  assert.ok(app.includes("selectedStandingsRowTeamId='all';"));
