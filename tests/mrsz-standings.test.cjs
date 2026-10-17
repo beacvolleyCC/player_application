@@ -37,12 +37,11 @@ test('photo scores take precedence over BRSZ fixture with team-name aliases',()=
  assert.equal(context.qa.merge(w2,false).length,1);
  assert.equal(context.qa.merge(menA,false).length,1);
 });
-test('BEAC-only scope is default and all-league switch is visible',()=>{
+test('league without BEAC skips irrelevant BEAC-only controls by default',()=>{
  const initial=context.qa.html(w1,false);
- assert.ok(initial.includes('BEAC meccsek'));
- assert.ok(initial.includes('Összes bajnoki meccs'));
- assert.ok(initial.includes('data-league-player-scope="beac"'));
- assert.ok(!initial.includes('player-match-scoreboard'));
+ assert.ok(!initial.includes('BEAC meccsek'));
+ assert.ok(!initial.includes('Összes bajnoki meccs'));
+ assert.ok(initial.includes('1 / 1 meccs'));
 });
 test('all leagues keep old styled match rows when all-league is selected',()=>{
  context.qa.setScope('all');
@@ -206,7 +205,7 @@ test('saved results update a separately labeled partial standings model without 
  assert.equal(model.matched,1);
  assert.equal(model.rows.find(x=>x.teamName==='Semmelweis Egyetem Sport Klub').wins,1);
  assert.equal(model.rows.find(x=>x.teamName==='EMERICUS SE').losses,1);
- assert.deepEqual(model.rows.map(x=>x.position),[1,2]);
+ assert.equal(JSON.stringify(model.rows.map(x=>x.position)),JSON.stringify([1,2]));
  const view=js.slice(js.indexOf('function renderCompetitionStandings_(){'),js.indexOf('function syncPlannerSectionUi_()'));
  assert.ok(!view.includes('nem hivatalos tabella'));
  assert.ok(view.includes("const meta='';"));
@@ -229,7 +228,7 @@ test('verified match results produce numeric ranking for men A/B and women II/B 
   homeSets:3,awaySets:0,setScores:[{home:32,away:30},{home:25,away:20},{home:25,away:21}]
  }]);
  assert.ok(menAmodel);
- assert.deepEqual(menAmodel.rows.map(x=>x.position),[1,2,3]);
+ assert.equal(JSON.stringify(menAmodel.rows.map(x=>x.position)),JSON.stringify([1,2,3]));
  assert.equal(menAmodel.rows[0].played,1);
  assert.equal(menAmodel.rows[0].tablePoints,2);
  assert.equal(menAmodel.rows[0].teamName,'MAFC-Kármán');
