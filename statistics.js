@@ -77,7 +77,7 @@ function ccStatsRatio_(team){
   return team.played ? (team.setsAgainst?Number(team.setsFor/team.setsAgainst).toFixed(3):'–') : '–';
 }
 function ccStatsSummaryCard_(label,team,value){
-  return '<div class="cc-stats-metric"><span>'+label+'</span><b>'+escapeHtml_(team?.name||'–')+'</b><small>'+escapeHtml_(value||'Nincs elég adat')+'</small></div>';
+  return '<div class="cc-stats-metric"><span>'+label+'</span><b>'+escapeHtml_(team?.name||'–')+'</b>'+(value?'<strong class="cc-stats-metric-value">'+escapeHtml_(value)+'</strong>':'')+'</div>';
 }
 function ccStatsOverview_(data){
   const active=data.teams.filter(t=>t.played>0);
@@ -91,24 +91,22 @@ function ccStatsOverview_(data){
     a.results.slice(-5).filter(x=>x.win).length-b.results.slice(-5).filter(x=>x.win).length)[0];
   const formText=team=>team?team.results.slice(-5).filter(x=>x.win).length+'/5 győzelem':'';
   const own=active.find(t=>ccLeaguePlayerHasBeac_(t.name))||null;
-  let historyHtml='<p class="cc-stats-muted">Helyezésváltozás csak ellenőrzött, összehasonlítható tabellafrissítésekből számítható.</p>';
+  let historyHtml='<span class="cc-stats-empty">–</span>';
   const current=competitionLeagueInsights?.data||{};
   if(current.competitionLabel===data.league&&Array.isArray(current.teams)){
     const team=current.teams.find(t=>ccLeaguePlayerHasBeac_(t.teamName));
     if(team){
       const delta=insightPositionDelta_(team.history,team.current?.position,team.current?.played);
-      if(delta!==null)historyHtml='<p class="cc-stats-muted">'+escapeHtml_(team.teamName)+' · '+(delta>0?'↑ '+delta+' hely':delta<0?'↓ '+Math.abs(delta)+' hely':'Nincs változás')+'</p>';
+      if(delta!==null)historyHtml='<span class="cc-stats-history">'+escapeHtml_(team.teamName)+' · '+(delta>0?'↑ '+delta+' hely':delta<0?'↓ '+Math.abs(delta)+' hely':'Nincs változás')+'</span>';
     }
   }
-  const coverageNote=data.verifiedComplete?'Utolsó 5 mérkőzés':
-    'A legjobb és legrosszabb forma csak teljes, ellenőrzött eredménysor alapján jeleníthető meg.';
-  return '<div class="cc-stats-pane"><div class="cc-stats-metrics">'+
+   return '<div class="cc-stats-pane"><div class="cc-stats-metrics">'+
     ccStatsSummaryCard_('Legjobb forma',top,formText(top))+
     ccStatsSummaryCard_('Legrosszabb forma',bottom,formText(bottom))+
     ccStatsSummaryCard_('Mérleg',own,own?own.won+'–'+own.lost:'')+
     ccStatsSummaryCard_('Szettarány',own,own?ccStatsRatio_(own):'')+
-    '</div><p class="cc-stats-muted">'+coverageNote+'</p>'+
-    '<section class="cc-stats-panel"><h4>Utolsó mérkőzések</h4><p>Elérhető eredmények · legutóbbi öt meccs</p>'+
+    '</div>'+
+    '<section class="cc-stats-panel"><h4>Utolsó mérkőzések</h4>'+
     ccStatsTeamsTable_(data.teams)+'</section><section class="cc-stats-panel"><h4>Helyezésváltozás</h4>'+historyHtml+'</section></div>';
 }
 function ccStatsTeamsTable_(teams){
@@ -126,15 +124,15 @@ function ccStatsTeams_(data){
     '<div class="cc-stats-recent-match"><span>'+escapeHtml_(r.opponent)+'</span><span class="cc-stats-recent-result"><b class="'+(r.win?'win':'loss')+'">'+(r.win?'W':'L')+'</b><strong>'+escapeHtml_(r.score)+'</strong></span></div>').join('');
   return '<div class="cc-stats-pane"><section class="cc-stats-panel"><h4>Csapatok</h4>'+
     ccStatsTeamsTable_(data.teams)+'</section><section class="cc-stats-panel"><h4>'+escapeHtml_(t.name)+'</h4>'+
-    '<div class="cc-stats-metrics"><div class="cc-stats-metric"><span>Mérleg</span><b>'+t.won+'–'+t.lost+'</b><small>'+t.played+' mérkőzés</small></div>'+
-    '<div class="cc-stats-metric"><span>Szettarány</span><b>'+ccStatsRatio_(t)+'</b><small>'+t.setsFor+'–'+t.setsAgainst+' szett</small></div>'+
+    '<div class="cc-stats-metrics"><div class="cc-stats-metric"><span>Mérleg</span><b>'+t.won+'–'+t.lost+'</b><strong class="cc-stats-metric-value">'+t.played+' mérkőzés</strong></div>'+
+    '<div class="cc-stats-metric"><span>Szettarány</span><b>'+ccStatsRatio_(t)+'</b><strong class="cc-stats-metric-value">'+t.setsFor+'–'+t.setsAgainst+' szett</strong></div>'+
     '<div class="cc-stats-metric"><span>Hazai</span><b>'+t.homeWon+'–'+t.homeLost+'</b></div>'+
     '<div class="cc-stats-metric"><span>Idegen</span><b>'+t.awayWon+'–'+t.awayLost+'</b></div></div>'+
     '<h5>Legutóbbi 5</h5>'+ (matches||'<p class="cc-stats-muted">Nincs eredmény.</p>')+'</section></div>';
 }
 function ccStatsMatches_(data){
   if(!data.played.length)return '<p class="cc-stats-muted">Nincs rögzített, befejezett mérkőzés.</p>';
-  return '<div class="cc-stats-pane"><section class="cc-stats-panel"><h4>Meccsek</h4><p>'+data.played.length+' rögzített eredmény</p><div class="cc-stats-match-list">'+
+  return '<div class="cc-stats-pane"><section class="cc-stats-panel"><h4>Meccsek</h4><div class="cc-stats-match-list">'+
     data.played.slice().reverse().map(m=>{
       const hasSheet=!!m.matchCode&&Array.isArray(m.protocol?.teams)&&m.protocol.teams.length===2;
       const kickoff=ccMrszPlayerLocalKickoff_(m.startsAt);
@@ -164,7 +162,7 @@ function ccStatsPlayers_(data){
   const players=[...registry.values()].sort((a,b)=>b.nominated-a.nominated||b.starts-a.starts||a.name.localeCompare(b.name,'hu'));
   if(!players.length)return '<p class="cc-stats-muted">Nincs mentett játékosjegyzőkönyv ehhez a bajnoksághoz.</p>';
   return '<div class="cc-stats-pane"><section class="cc-stats-panel"><h4>Játékosstatisztikák</h4>'+
-    '<p>A mentett jegyzőkönyvek alapján. A nevezés nem azonos a pályára lépéssel.</p><div class="cc-stats-player-scroll"><table><thead><tr><th>Játékos</th><th>Nevezés</th><th>K</th><th>CS</th><th>Utolsó nevezés</th></tr></thead><tbody>'+
+    '<div class="cc-stats-player-scroll"><table><thead><tr><th>Játékos</th><th>Nevezés</th><th>K</th><th>CS</th><th>Utolsó nevezés</th></tr></thead><tbody>'+
     players.map(p=>'<tr><td><b>'+ccPlayerProtocolNameHtml_(p)+'</b><small>'+escapeHtml_(p.team)+'</small></td><td>'+p.nominated+'</td><td>'+p.starts+'</td><td>'+p.substitutes+'</td><td>'+escapeHtml_(p.latest?ccMrszPlayerLocalKickoff_(p.latest).date:'–')+'</td></tr>').join('')+
     '</tbody></table></div></section></div>';
 }
@@ -193,7 +191,7 @@ function ccMountStatisticsAccordion_(){
   details.id='ccStatsAccordion';
   details.className='cc-stats-accordion';
   details.open=ccStatsExpanded_;
-  details.innerHTML='<summary><span>Statisztikák</span><small>Forma, mérleg, szettarány</small><span class="cc-stats-chevron" aria-hidden="true"></span></summary>'+
+  details.innerHTML='<summary title="Mentett eredmények alapján; egyes bajnoki adatok részlegesek lehetnek."><span>Statisztikák</span><span class="cc-stats-chevron" aria-hidden="true"></span></summary>'+
     '<div id="statisticsContent" class="cc-statistics-page-content"></div>';
   if(matches)matches.before(details);
   else table.insertAdjacentElement('afterend',details);
@@ -217,8 +215,7 @@ function ccRenderStatisticsPage_(){
     '</div></div>';
   const views={overview:ccStatsOverview_,teams:ccStatsTeams_,matches:ccStatsMatches_,players:ccStatsPlayers_,compare:ccStatsComparison_};
   const pane=(views[ccStatsTab_]||views.overview)(data);
-  host.innerHTML=nav+(ccMrszPlayerPhoto_.loaded?pane:'<div class="cc-stats-panel">Statisztikák betöltése…</div>')+
-    '<p class="cc-stats-source-note">A kimutatás a rendelkezésre álló mentett eredményekből és jegyzőkönyvekből készült; nem teljes hivatalos bajnoki statisztika.</p>';
+  host.innerHTML=nav+(ccMrszPlayerPhoto_.loaded?pane:'<div class="cc-stats-panel">Statisztikák betöltése…</div>');
 }
 document.getElementById('standingsView')?.addEventListener('click',event=>{
   if(!event.target.closest('#statisticsContent'))return;
