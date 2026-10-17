@@ -1,9 +1,9 @@
-const CACHE='club-control-player-20261017-stats-v14';
+const CACHE='club-control-player-20261017-standings-stats-v15';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
-  './statistics.js?v=20261017-stats-v14',
-  './statistics.css?v=20261017-stats-v14',
+  './statistics.js?v=20261017-standings-stats-v15',
+  './statistics.css?v=20261017-standings-stats-v15',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
