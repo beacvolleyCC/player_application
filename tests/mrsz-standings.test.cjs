@@ -101,12 +101,12 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-three-tabs-wl-v16'));
- assert.ok(html.includes('statistics.css?v=20261017-three-tabs-wl-v16'));
- assert.ok(html.includes('app.js?v=20261017-three-tabs-wl-v16'));
- assert.ok(html.includes('statistics.js?v=20261017-three-tabs-wl-v16'));
+ assert.ok(html.includes('styles.css?v=20261017-clean-stats-v17'));
+ assert.ok(html.includes('statistics.css?v=20261017-clean-stats-v17'));
+ assert.ok(html.includes('app.js?v=20261017-clean-stats-v17'));
+ assert.ok(html.includes('statistics.js?v=20261017-clean-stats-v17'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261017-three-tabs-wl-v16"));
+ assert.ok(sw.includes("club-control-player-20261017-clean-stats-v17"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -351,8 +351,8 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('Helyezésváltozás'));
  assert.ok(stats.includes('Játékosstatisztikák'));
  assert.ok(stats.includes('A nevezés nem azonos a pályára lépéssel.'));
- assert.ok(sw.includes("'./statistics.js?v=20261017-three-tabs-wl-v16'"));
- assert.ok(sw.includes("'./statistics.css?v=20261017-three-tabs-wl-v16'"));
+ assert.ok(sw.includes("'./statistics.js?v=20261017-clean-stats-v17'"));
+ assert.ok(sw.includes("'./statistics.css?v=20261017-clean-stats-v17'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
