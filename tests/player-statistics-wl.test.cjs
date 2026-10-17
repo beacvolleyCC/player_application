@@ -55,7 +55,7 @@ test('Player shows recorded W/L for matches in each official roster, split into 
  assert.equal(dio.unmarked,2);
  assert.equal(dio.won+dio.lost,dio.nominated);
  const body=vm.runInContext('ccStatsPlayers_(data)',scope);
- for(const header of ['Játékosok','Győzelem','Vereség','Kezdő','Csere','jelölés nélkül']){
+ for(const header of ['Játékosok','>Nev.</th>','>Gy.</th>','>V.</th>','>K</th>','>CS</th>','>–</th>']){
   assert.ok(body.includes(header),'Missing '+header);
  }
  assert.ok(!body.includes('Nem játszott</th>'),'Unmarked must not be displayed as confirmed non-participation');
