@@ -201,12 +201,12 @@ function ccStatsPlayers_(data){
     +'</select></label>';
   return '<div class="cc-stats-pane"><section class="cc-stats-panel cc-stats-player-panel"><div class="cc-stats-player-toolbar"><h4>Játékosok</h4>'+choose+'</div>'
     +'<div class="cc-stats-player-scroll"><table class="cc-stats-player-table"><thead><tr>'
-    +'<th>Játékos</th><th title="Mérkőzések, amelyek jegyzőkönyvében a játékos szerepel">Nevezés</th>'
-    +'<th title="A játékos nevezett csapatának győzelmei ezeken a mérkőzéseken">Győzelem</th>'
-    +'<th title="A játékos nevezett csapatának vereségei ezeken a mérkőzéseken">Vereség</th>'
-    +'<th title="K jelölés a jegyzőkönyvben">Kezdő</th>'
-    +'<th title="CS jelölés a jegyzőkönyvben; nem bizonyít tényleges pályára lépést">Csere</th>'
-    +'<th title="K/CS nélküli jegyzőkönyvi sor; nem bizonyítja, hogy a játékos nem lépett pályára">Jelölés nélkül</th>'
+    +'<th>Játékos</th><th title="Mérkőzések, amelyek jegyzőkönyvében a játékos szerepel">Nev.</th>'
+    +'<th title="A játékos nevezett csapatának győzelmei ezeken a mérkőzéseken">Gy.</th>'
+    +'<th title="A játékos nevezett csapatának vereségei ezeken a mérkőzéseken">V.</th>'
+    +'<th title="K jelölés a jegyzőkönyvben">K</th>'
+    +'<th title="CS jelölés a jegyzőkönyvben; nem bizonyít tényleges pályára lépést">CS</th>'
+    +'<th title="K/CS nélküli jegyzőkönyvi sor; nem bizonyítja, hogy a játékos nem lépett pályára">–</th>'
     +'</tr></thead><tbody>'+listed.map(p=>
       '<tr><td><b>'+ccPlayerProtocolNameHtml_(p)+'</b><small>'+escapeHtml_(p.team)+'</small></td>'
       +'<td>'+p.nominated+'</td><td class="cc-stats-won">'+p.won+'</td>'
