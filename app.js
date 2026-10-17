@@ -2635,7 +2635,7 @@ function renderPlanner(){
     const standingsContent=document.getElementById('standingsContent');
     if(!standingsContent)return;
     standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_();
-    if(typeof ccRenderStatisticsPage_==='function')ccRenderStatisticsPage_();
+    if(typeof ccMountStatisticsAccordion_==='function')ccMountStatisticsAccordion_();
     document.getElementById('ccPlayerLeagueSelect')?.addEventListener('change',event=>{
       const label=String(event.target.value||'');
       if(!ccPlayerLeagueCatalog_().some(c=>c.competitionLabel===label))return;
@@ -3659,7 +3659,7 @@ async function ccSaveMedicalAppointment_(options={}){
   finally{ccMedicalBusy_=false;d.classList.remove('is-saving')}
 }
 
-const CC_PAGE_VIEWS=['homeView','plannerView','standingsView','statisticsView','profileView'];
+const CC_PAGE_VIEWS=['homeView','plannerView','standingsView','profileView'];
 function ccPageSwipeBlocked_(target){
   return !!target?.closest?.('button,a,input,select,textarea,label,dialog,[role="button"],.card,.event-card,.planner-card,.filter-panel,.notification-swipe-row,.notification-swipe-scroll,.planner-scroll-viewport,.matrix-scroll,.standings-scroll,.standings-split,.calendar-shell,.attendance-slider,.settings-card,.profile-card,[data-no-page-swipe]');
 }
@@ -3689,7 +3689,7 @@ function ccBindBackgroundPageSwipe_(){
 function switchView(viewId){
   const previousView=document.querySelector('.view.active')?.id || '';
   const navView=viewId;
-  const nextSection=(viewId==='standingsView'||viewId==='statisticsView')?'standings':'schedule';
+  const nextSection=viewId==='standingsView'?'standings':'schedule';
   if(viewId==='standingsView'&&previousView!=='standingsView'){
     // The standalone Tabella must never inherit a hidden row filter from
     // the old Menetrend toolbar. Row-specific statistics remain selectable.
@@ -3707,7 +3707,7 @@ function switchView(viewId){
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===navView));
   ccSyncNavMotionIndicator_();
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
-  if(viewId==='standingsView'||viewId==='statisticsView'||viewId==='plannerView')renderPlanner();
+  if(viewId==='standingsView'||viewId==='plannerView')renderPlanner();
 
   if(viewId==='plannerView'){
     if(previousView!=='plannerView') plannerUserPositioned=false;
@@ -3754,7 +3754,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p14g').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=231026p15').catch(()=>{}));
 }
 
 
@@ -4161,7 +4161,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=231026p14g');
+    return await navigator.serviceWorker.register('./sw.js?v=231026p15');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){

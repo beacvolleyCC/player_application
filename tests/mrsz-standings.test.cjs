@@ -101,12 +101,12 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-stats-v14'));
- assert.ok(html.includes('statistics.css?v=20261017-stats-v14'));
- assert.ok(html.includes('app.js?v=20261017-stats-v14'));
- assert.ok(html.includes('statistics.js?v=20261017-stats-v14'));
+ assert.ok(html.includes('styles.css?v=20261017-standings-stats-v15'));
+ assert.ok(html.includes('statistics.css?v=20261017-standings-stats-v15'));
+ assert.ok(html.includes('app.js?v=20261017-standings-stats-v15'));
+ assert.ok(html.includes('statistics.js?v=20261017-standings-stats-v15'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261017-stats-v14"));
+ assert.ok(sw.includes("club-control-player-20261017-standings-stats-v15"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -213,17 +213,17 @@ test('saved results update a separately labeled partial standings model without 
  assert.ok(view.includes("const meta='';"));
 });
 
-test('standings stays independent, statistics follows it and profile remains last',()=>{
+test('four main menu entries: statistics accordion inside Tabella, profile last',()=>{
  const html=fs.readFileSync('index.html','utf8');
  assert.ok(html.includes('id="standingsContent"'));
- assert.ok(html.includes('id="statisticsContent"'));
- assert.ok(html.indexOf('data-view="standingsView"')<html.indexOf('data-view="statisticsView"'));
- assert.ok(html.indexOf('data-view="statisticsView"')<html.indexOf('data-view="profileView"'));
- assert.ok(js.includes("'standingsView','statisticsView','profileView'"));
+ assert.ok(!html.includes('id="statisticsView"'));
+ assert.ok(!html.includes('data-view="statisticsView"'));
+ assert.ok(js.includes("'standingsView','profileView'"));
  assert.ok(html.includes('data-view="standingsView" class="nav-btn"'));
  assert.ok(!html.includes('id="plannerStandingsBtn"'));
  assert.ok(js.includes('standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_()'));
- assert.ok(js.includes("const nextSection=(viewId==='standingsView'||viewId==='statisticsView')?'standings':'schedule'"));
+ assert.ok(js.includes("if(typeof ccMountStatisticsAccordion_==='function')ccMountStatisticsAccordion_();"));
+ assert.ok(js.includes("const nextSection=viewId==='standingsView'?'standings':'schedule'"));
  assert.ok(js.includes("plannerSection='schedule'"));
 });
 
@@ -344,14 +344,15 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  const stats=fs.readFileSync('statistics.js','utf8');
  const doc=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(doc.includes('id="statisticsView"'));
- assert.ok(stats.includes("'Javuló forma'"));
- assert.ok(stats.includes("'Romló forma'"));
+ assert.ok(!doc.includes('id="statisticsView"'));
+ assert.ok(stats.includes("'Legjobb forma'"));
+ assert.ok(stats.includes("'Legrosszabb forma'"));
+ assert.ok(stats.includes('data.verifiedComplete'));
  assert.ok(stats.includes('Helyezésváltozás'));
  assert.ok(stats.includes('Játékosstatisztikák'));
  assert.ok(stats.includes('A nevezés nem azonos a pályára lépéssel.'));
- assert.ok(sw.includes("'./statistics.js?v=20261017-stats-v14'"));
- assert.ok(sw.includes("'./statistics.css?v=20261017-stats-v14'"));
+ assert.ok(sw.includes("'./statistics.js?v=20261017-standings-stats-v15'"));
+ assert.ok(sw.includes("'./statistics.css?v=20261017-standings-stats-v15'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
@@ -380,4 +381,29 @@ test('roster shirt number and player name use adjacent fixed-width columns',()=>
  assert.ok(style.includes('.player-protocol-team table{table-layout:fixed;'));
  assert.ok(style.includes('.player-protocol-team th:first-child'));
  assert.ok(style.includes('width:39px !important'));
+});
+
+test('accordion is inserted between league table and normal match list',()=>{
+ const source=fs.readFileSync('statistics.js','utf8');
+ const start=source.indexOf('function ccMountStatisticsAccordion_(){');
+ const end=source.indexOf('function ccRenderStatisticsPage_(){',start);
+ assert.ok(start>=0&&end>start);
+ const mount=source.slice(start,end);
+ assert.ok(mount.includes("page.querySelector('.cc-mrsz-player-league-matches')"));
+ assert.ok(mount.includes("page.querySelector('.standings-split')"));
+ assert.ok(mount.includes('matches.before(details)'));
+ assert.ok(mount.includes("details.className='cc-stats-accordion'"));
+ assert.ok(mount.includes('details.open=ccStatsExpanded_'));
+ assert.ok(mount.includes("details.addEventListener('toggle'"));
+ assert.ok(!source.includes('ccStatsLeagueSelect'),'no duplicate league selector inside statistics');
+});
+test('incomplete results never name a best or worst performing league team',()=>{
+ const source=fs.readFileSync('statistics.js','utf8');
+ const overview=source.slice(source.indexOf('function ccStatsOverview_(data){'),source.indexOf('function ccStatsTeamsTable_(teams){'));
+ assert.ok(overview.includes('const eligible=data.verifiedComplete'));
+ assert.ok(overview.includes('Legjobb forma'));
+ assert.ok(overview.includes('Legrosszabb forma'));
+ assert.ok(overview.includes('csak teljes, ellenőrzött eredménysor'));
+ assert.ok(!overview.includes('Legnagyobb feljövő'));
+ assert.ok(!overview.includes('Legnagyobb visszaeső'));
 });

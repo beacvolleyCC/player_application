@@ -1,12 +1,40 @@
-/* Player v14 – fifth main view, isolated competition statistics and compact protocol roster */
-.bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr)) !important}
-.bottom-nav::before{width:20%;clip-path:inset(0 18% round 11px)}
-.bottom-nav .nav-btn[data-view="statisticsView"] .cc-bottom-statistics{display:grid;place-items:center}
-.bottom-nav .nav-btn[data-view="statisticsView"] .cc-icon-statistics{display:block;width:29px;height:29px}
-.bottom-nav .nav-btn small{font-size:clamp(7px,1.85vw,10px) !important;letter-spacing:-.015em}
-#statisticsView{min-width:0;max-width:100%;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
-#statisticsView .section-head{margin-bottom:14px}
-.cc-statistics-page-content{display:grid;gap:13px;min-width:0}
+/* Player v15 – statistics are a collapsible section inside Tabella. */
+.bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr)) !important}
+.bottom-nav::before{width:25%;clip-path:inset(0 18% round 11px)}
+.bottom-nav .nav-btn small{font-size:clamp(8px,2.15vw,10px) !important;letter-spacing:0}
+#standingsView .cc-stats-accordion{
+  margin:14px 0 16px;
+  border:1px solid var(--line);border-radius:13px;
+  background:var(--card);min-width:0;overflow:hidden;
+}
+#standingsView .cc-stats-accordion>summary{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  min-height:52px;padding:12px 14px;list-style:none;color:var(--black);
+  -webkit-tap-highlight-color:transparent;
+}
+#standingsView .cc-stats-accordion>summary::-webkit-details-marker{display:none}
+#standingsView .cc-stats-accordion>summary>span:first-child{font-size:13px;font-weight:850}
+#standingsView .cc-stats-accordion>summary>small{
+  font-size:10px;color:var(--muted);margin-left:auto;text-align:right;
+}
+#standingsView .cc-stats-accordion .cc-stats-chevron{
+  flex:none;width:9px;height:9px;border:solid currentColor;border-width:0 1.5px 1.5px 0;
+  transform:rotate(45deg);transition:transform .18s ease;margin:0 4px 4px 2px;
+}
+#standingsView .cc-stats-accordion[open] .cc-stats-chevron{transform:rotate(225deg);margin:5px 4px 0 2px}
+#standingsView .cc-stats-accordion>summary:focus-visible{outline:2px solid currentColor;outline-offset:-3px}
+#standingsView .cc-statistics-page-content{
+  display:grid;gap:13px;min-width:0;
+  border-top:1px solid var(--line);padding:13px 12px 15px;
+}
+@media(max-width:440px){
+ #standingsView .cc-stats-accordion>summary{padding:11px 10px;gap:7px}
+ #standingsView .cc-stats-accordion>summary>small{font-size:9px}
+ #standingsView .cc-statistics-page-content{padding:10px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+ #standingsView .cc-stats-accordion .cc-stats-chevron{transition:none}
+}
 .cc-stats-league{display:grid;gap:6px;font-size:11px;font-weight:800;color:var(--muted)}
 .cc-stats-league select,.cc-stats-compare-pickers select{
   width:100%;min-width:0;min-height:43px;padding:8px 11px;

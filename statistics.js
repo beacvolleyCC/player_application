@@ -3,6 +3,7 @@
    or playing time; the protocol K/CS fields are roster status codes. */
 'use strict';
 let ccStatsTab_='overview';
+let ccStatsExpanded_=false;
 let ccStatsTeam_='';
 let ccStatsCompare_=['',''];
 
@@ -38,7 +39,18 @@ function ccStatsSource_(){
     add(home,hs,as,true);add(away,as,hs,false);
   });
   const teams=Array.from(records.values()).sort((a,b)=>b.won-a.won||b.setsFor-b.setsAgainst-(a.setsFor-a.setsAgainst)||a.name.localeCompare(b.name,'hu'));
-  return {league,played,teams,partial:true};
+  // A partial screenshot is not evidence of a complete competition ranking.
+  // A league-wide form comparison is valid only when the saved official
+  // table is explicitly complete and every played count matches our results.
+  const verifiedComplete=!!photo&&photo.partial===false
+    &&Array.isArray(photo.rows)&&photo.rows.length>1
+    &&photo.rows.length===teams.length
+    &&photo.rows.every(row=>{
+      const team=records.get(ccPlayerMatchTeamKey_(row.teamName));
+      return !!team&&Number.isInteger(Number(row.played))
+        &&Number(row.played)===team.played;
+    });
+  return {league,played,teams,partial:!verifiedComplete,verifiedComplete};
 }
 function ccStatsRecent_(team){return team.results.slice(-5)}
 function ccStatsTrend_(team){
@@ -60,24 +72,34 @@ function ccStatsSummaryCard_(label,team,value){
 }
 function ccStatsOverview_(data){
   const active=data.teams.filter(t=>t.played>0);
-  const byForm=active.slice().sort((a,b)=>b.results.slice(-5).filter(x=>x.win).length-a.results.slice(-5).filter(x=>x.win).length||b.won-a.won);
-  const rising=active.filter(t=>ccStatsTrend_(t)>0).sort((a,b)=>ccStatsTrend_(b)-ccStatsTrend_(a));
-  const falling=active.filter(t=>ccStatsTrend_(t)<0).sort((a,b)=>ccStatsTrend_(a)-ccStatsTrend_(b));
-  const ratio=active.filter(t=>t.setsAgainst>0).sort((a,b)=>(b.setsFor/b.setsAgainst)-(a.setsFor/a.setsAgainst));
-  let historyHtml='<div class="cc-stats-metrics">'+ccStatsSummaryCard_('Legnagyobb feljövő',null,'')+ccStatsSummaryCard_('Legnagyobb visszaeső',null,'')+'</div><p class="cc-stats-muted">Helyezésváltozás csak több, összehasonlítható tabellafrissítésből számítható.</p>';
+  // Never name a league-wide best or worst from an incomplete results sample.
+  const eligible=data.verifiedComplete&&data.teams.length>1&&data.teams.every(t=>t.results.length>=5)
+    ?data.teams
+    :[];
+  const top=eligible.slice().sort((a,b)=>
+    b.results.slice(-5).filter(x=>x.win).length-a.results.slice(-5).filter(x=>x.win).length)[0];
+  const bottom=eligible.slice().sort((a,b)=>
+    a.results.slice(-5).filter(x=>x.win).length-b.results.slice(-5).filter(x=>x.win).length)[0];
+  const formText=team=>team?team.results.slice(-5).filter(x=>x.win).length+'/5 győzelem':'';
+  const own=active.find(t=>ccLeaguePlayerHasBeac_(t.name))||null;
+  let historyHtml='<p class="cc-stats-muted">Helyezésváltozás csak ellenőrzött, összehasonlítható tabellafrissítésekből számítható.</p>';
   const current=competitionLeagueInsights?.data||{};
   if(current.competitionLabel===data.league&&Array.isArray(current.teams)){
-    const deltas=current.teams.map(t=>({name:t.teamName,delta:insightPositionDelta_(t.history,t.current?.position,t.current?.played)}));
-    const up=deltas.filter(x=>x.delta>0).sort((a,b)=>b.delta-a.delta)[0];
-    const down=deltas.filter(x=>x.delta<0).sort((a,b)=>a.delta-b.delta)[0];
-    if(up||down)historyHtml='<div class="cc-stats-metrics">'+ccStatsSummaryCard_('Legnagyobb feljövő',up,up?'↑ '+up.delta+' hely':'')+ccStatsSummaryCard_('Legnagyobb visszaeső',down,down?'↓ '+Math.abs(down.delta)+' hely':'')+'</div>';
+    const team=current.teams.find(t=>ccLeaguePlayerHasBeac_(t.teamName));
+    if(team){
+      const delta=insightPositionDelta_(team.history,team.current?.position,team.current?.played);
+      if(delta!==null)historyHtml='<p class="cc-stats-muted">'+escapeHtml_(team.teamName)+' · '+(delta>0?'↑ '+delta+' hely':delta<0?'↓ '+Math.abs(delta)+' hely':'Nincs változás')+'</p>';
+    }
   }
+  const coverageNote=data.verifiedComplete?'Utolsó 5 mérkőzés':
+    'A legjobb és legrosszabb forma csak teljes, ellenőrzött eredménysor alapján jeleníthető meg.';
   return '<div class="cc-stats-pane"><div class="cc-stats-metrics">'+
-    ccStatsSummaryCard_('Forma',byForm[0],byForm[0]?byForm[0].results.slice(-5).filter(x=>x.win).length+'/'+Math.min(5,byForm[0].played)+' győzelem':'')+
-    ccStatsSummaryCard_('Javuló forma',rising[0],rising[0]?'+'+ccStatsTrend_(rising[0])+' győzelem / 3 meccs':'')+
-    ccStatsSummaryCard_('Romló forma',falling[0],falling[0]?ccStatsTrend_(falling[0])+' győzelem / 3 meccs':'')+
-    ccStatsSummaryCard_('Szettarány',ratio[0],ratio[0]?ccStatsRatio_(ratio[0]):'')+
-    '</div><section class="cc-stats-panel"><h4>Forma és helyezés</h4><p>Az elérhető eredmények alapján · legutóbbi 5 mérkőzés</p>'+
+    ccStatsSummaryCard_('Legjobb forma',top,formText(top))+
+    ccStatsSummaryCard_('Legrosszabb forma',bottom,formText(bottom))+
+    ccStatsSummaryCard_('Mérleg',own,own?own.won+'–'+own.lost:'')+
+    ccStatsSummaryCard_('Szettarány',own,own?ccStatsRatio_(own):'')+
+    '</div><p class="cc-stats-muted">'+coverageNote+'</p>'+
+    '<section class="cc-stats-panel"><h4>Utolsó mérkőzések</h4><p>Elérhető eredmények · legutóbbi öt meccs</p>'+
     ccStatsTeamsTable_(data.teams)+'</section><section class="cc-stats-panel"><h4>Helyezésváltozás</h4>'+historyHtml+'</section></div>';
 }
 function ccStatsTeamsTable_(teams){
@@ -149,22 +171,46 @@ function ccStatsComparison_(data){
     row('Legutóbbi 5',a.results.slice(-5).filter(x=>x.win).length+'/'+Math.min(5,a.played),b.results.slice(-5).filter(x=>x.win).length+'/'+Math.min(5,b.played))+
     '</tbody></table></div></section></div>';
 }
+function ccMountStatisticsAccordion_(){
+  const view=document.getElementById('standingsView');
+  const page=document.getElementById('standingsContent');
+  if(!view||!page)return;
+  // The statistics panel follows the same competition table and precedes
+  // the normal match cards for both default and alternate leagues.
+  const matches=page.querySelector('.cc-mrsz-player-league-matches');
+  const table=page.querySelector('.standings-split');
+  if(!matches&&!table)return;
+  const details=document.createElement('details');
+  details.id='ccStatsAccordion';
+  details.className='cc-stats-accordion';
+  details.open=ccStatsExpanded_;
+  details.innerHTML='<summary><span>Statisztikák</span><small>Forma, mérleg, szettarány</small><span class="cc-stats-chevron" aria-hidden="true"></span></summary>'+
+    '<div id="statisticsContent" class="cc-statistics-page-content"></div>';
+  if(matches)matches.before(details);
+  else table.insertAdjacentElement('afterend',details);
+  details.addEventListener('toggle',()=>{
+    if(!details.isConnected)return;
+    ccStatsExpanded_=details.open;
+    if(details.open)ccRenderStatisticsPage_();
+  });
+  if(details.open)ccRenderStatisticsPage_();
+}
 function ccRenderStatisticsPage_(){
-  const view=document.getElementById('statisticsView'),host=document.getElementById('statisticsContent');
-  if(!view||!host||!view.classList.contains('active'))return;
+  const details=document.getElementById('ccStatsAccordion');
+  const view=document.getElementById('standingsView'),host=document.getElementById('statisticsContent');
+  if(!view?.classList.contains('active')||!details?.open||!host)return;
   const data=ccStatsSource_();
-  const catalog=ccPlayerLeagueCatalog_();
-  const selector=catalog.length>1?'<label class="cc-stats-league"><span>Bajnokság / csoport</span><select id="ccStatsLeagueSelect">'+catalog.map(c=>'<option value="'+escapeHtml_(c.competitionLabel)+'" '+(c.competitionLabel===data.league?'selected':'')+'>'+escapeHtml_(c.competitionLabel)+'</option>').join('')+'</select></label>':'';
   const tabs=[['overview','Áttekintés'],['teams','Csapatok'],['matches','Meccsek'],['players','Játékosok'],['compare','Összehasonlítás']];
   const nav='<div class="cc-stats-tab-scroll"><div class="cc-stats-tabs" role="tablist" aria-label="Statisztikai nézet">'+
     tabs.map(([id,label])=>'<button type="button" role="tab" data-cc-stats-tab="'+id+'" aria-selected="'+(ccStatsTab_===id)+'" class="'+(ccStatsTab_===id?'active':'')+'">'+label+'</button>').join('')+
     '</div></div>';
   const views={overview:ccStatsOverview_,teams:ccStatsTeams_,matches:ccStatsMatches_,players:ccStatsPlayers_,compare:ccStatsComparison_};
   const pane=(views[ccStatsTab_]||views.overview)(data);
-  host.innerHTML=selector+nav+(ccMrszPlayerPhoto_.loaded?pane:'<div class="cc-stats-panel">Statisztikák betöltése…</div>')+
+  host.innerHTML=nav+(ccMrszPlayerPhoto_.loaded?pane:'<div class="cc-stats-panel">Statisztikák betöltése…</div>')+
     '<p class="cc-stats-source-note">A kimutatás a rendelkezésre álló mentett eredményekből és jegyzőkönyvekből készült; nem teljes hivatalos bajnoki statisztika.</p>';
 }
-document.getElementById('statisticsContent')?.addEventListener('click',event=>{
+document.getElementById('standingsView')?.addEventListener('click',event=>{
+  if(!event.target.closest('#statisticsContent'))return;
   const tab=event.target.closest('[data-cc-stats-tab]');
   if(tab){ccStatsTab_=tab.dataset.ccStatsTab;ccRenderStatisticsPage_();return}
   const team=event.target.closest('[data-cc-stats-team]');
@@ -172,14 +218,8 @@ document.getElementById('statisticsContent')?.addEventListener('click',event=>{
   const protocol=event.target.closest('[data-cc-stats-protocol]');
   if(protocol){ccPlayerOpenProtocol_(protocol.dataset.ccStatsProtocol,ccPlayerLeagueCurrent_());return}
 });
-document.getElementById('statisticsContent')?.addEventListener('change',event=>{
-  if(event.target.id==='ccStatsLeagueSelect'){
-    const league=String(event.target.value||'');
-    if(!ccPlayerLeagueCatalog_().some(c=>c.competitionLabel===league))return;
-    ccPlayerLeagueSelection_=league;ccStatsTeam_='';ccStatsCompare_=['',''];
-    try{localStorage.setItem('cc-player-league-context-v1',league)}catch(_){}
-    renderPlanner();return;
-  }
+document.getElementById('standingsView')?.addEventListener('change',event=>{
+  if(!event.target.closest('#statisticsContent'))return;
   if(event.target.matches('[data-cc-stats-compare]')){
     const side=event.target.dataset.ccStatsCompare==='a'?0:1;
     ccStatsCompare_[side]=event.target.value;

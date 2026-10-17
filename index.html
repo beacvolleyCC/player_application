@@ -13,8 +13,8 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=20261017-stats-v14">
-  <link rel="stylesheet" href="./statistics.css?v=20261017-stats-v14">
+  <link rel="stylesheet" href="./styles.css?v=20261017-standings-stats-v15">
+  <link rel="stylesheet" href="./statistics.css?v=20261017-standings-stats-v15">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -214,10 +214,6 @@
       </div>
       <div id="standingsContent" class="cc-standings-page-content" aria-live="polite"></div>
     </section>
-<section id="statisticsView" class="view cc-statistics-main-view" aria-labelledby="statisticsPageTitle">
-      <div class="section-head"><div><h3 id="statisticsPageTitle">Statisztikák</h3><p>Csapatok, forma és mérkőzések.</p></div></div>
-      <div id="statisticsContent" class="cc-statistics-page-content" aria-live="polite"></div>
-    </section>
 <section id="profileView" class="view">
       <div class="section-head">
         <div>
@@ -344,12 +340,6 @@
         </svg>
       </span>
       <small>Tabella</small>
-    </button>
-    <button data-view="statisticsView" class="nav-btn" type="button" aria-label="Statisztikák">
-      <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-statistics" aria-hidden="true">
-        <svg class="cc-icon-statistics" viewBox="0 0 36 36" focusable="false"><path d="M8 27V20 M15 27V14 M22 27V18 M29 27V8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-      </span>
-      <small>Statisztikák</small>
     </button>
     <button data-view="profileView" class="nav-btn">
       <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-profile" aria-hidden="true">
@@ -559,7 +549,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
   <script src="./competition-context-catalog.js?v=20261015-lc1"></script>
-  <script src="./app.js?v=20261017-stats-v14"></script>
-  <script src="./statistics.js?v=20261017-stats-v14"></script>
+  <script src="./app.js?v=20261017-standings-stats-v15"></script>
+  <script src="./statistics.js?v=20261017-standings-stats-v15"></script>
 </body>
 </html>
