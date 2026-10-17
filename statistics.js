@@ -165,7 +165,7 @@ function ccStatsPlayerRows_(data){
       if(new Set(sideIds).size!==sideIds.length)continue;
       for(const p of team.players){
         const name=String(p.name||'').trim(),code=String(p.code||'').trim();
-        if(!name||!/^\\d{4,6}$/.test(code))continue;
+        if(!name||!/^\d{4,6}$/.test(code))continue;
         const id=key+'|'+code;
         const norm=n=>String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('hu').replace(/\s+/g,' ').trim();
         const previous=registry.get(id);
