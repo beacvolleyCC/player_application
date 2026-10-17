@@ -102,9 +102,9 @@ test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
  assert.ok(html.includes('styles.css?v=20261017-clean-stats-v17'));
- assert.ok(html.includes('statistics.css?v=20261017-clean-stats-v17'));
+ assert.ok(html.includes('statistics.css?v=20261018-player-wl-v18'));
  assert.ok(html.includes('app.js?v=20261017-clean-stats-v17'));
- assert.ok(html.includes('statistics.js?v=20261017-clean-stats-v17'));
+ assert.ok(html.includes('statistics.js?v=20261018-player-wl-v18'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
  assert.ok(sw.includes("club-control-player-20261017-clean-stats-v17"));
 });
@@ -349,10 +349,11 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes("'Legrosszabb forma'"));
  assert.ok(stats.includes('data.verifiedComplete'));
  assert.ok(stats.includes('Helyezésváltozás'));
- assert.ok(stats.includes('Játékosstatisztikák'));
- assert.ok(stats.includes('A nevezés nem azonos a pályára lépéssel.'));
- assert.ok(sw.includes("'./statistics.js?v=20261017-clean-stats-v17'"));
- assert.ok(sw.includes("'./statistics.css?v=20261017-clean-stats-v17'"));
+ assert.ok(stats.includes('ccStatsPlayerRows_'));
+ assert.ok(stats.includes('Jelölés nélkül'));
+ assert.ok(stats.includes('nem bizonyít tényleges pályára lépést'));
+ assert.ok(sw.includes("'./statistics.js?v=20261018-player-wl-v18'"));
+ assert.ok(sw.includes("'./statistics.css?v=20261018-player-wl-v18'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
@@ -410,7 +411,7 @@ test('incomplete results never name a best or worst performing league team',()=>
 });
 
 
-test('statistics accordion exposes exactly three tabs; match and player views stay implemented but hidden',()=>{
+test('statistics accordion restores players as fourth tab; match list stays outside',()=>{
  const source=fs.readFileSync('statistics.js','utf8');
  const line=source.split('\n').find(x=>x.includes('const tabs='));
  assert.ok(line);
@@ -418,7 +419,9 @@ test('statistics accordion exposes exactly three tabs; match and player views st
  assert.ok(line.includes("['teams','Csapatok']"));
  assert.ok(line.includes("['compare','Összehasonlítás']"));
  assert.ok(!line.includes("['matches','Meccsek']"));
- assert.ok(!line.includes("['players','Játékosok']"));
+ assert.ok(line.includes("['players','Játékosok']"));
+ assert.ok(line.indexOf("['teams','Csapatok']") < line.indexOf("['players','Játékosok']"));
+ assert.ok(line.indexOf("['players','Játékosok']") < line.indexOf("['compare','Összehasonlítás']"));
  assert.ok(source.includes('function ccStatsMatches_(data)'));
  assert.ok(source.includes('function ccStatsPlayers_(data)'));
  assert.ok(source.includes("if(!tabs.some(([id])=>id===ccStatsTab_))ccStatsTab_='overview'"));
