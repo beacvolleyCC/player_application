@@ -10464,3 +10464,103 @@ body.dark{
  .bottom-nav .nav-btn{min-width:0}
  .bottom-nav .nav-btn[data-view="standingsView"] .cc-icon-standings{width:27px;height:27px}
 }
+
+/* Player v11 — clean results and precise protocol sheet geometry. */
+#playerProtocolDialog{
+  width:min(1060px,calc(100vw - 20px)) !important;
+  max-width:calc(100vw - 20px) !important;
+  max-height:min(94dvh,980px) !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+  border-radius:16px !important;
+}
+#playerProtocolDialog .player-protocol-dialog-card{
+  position:relative !important;
+  box-sizing:border-box !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  max-height:min(94dvh,980px) !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  padding:60px 18px 20px !important;
+}
+#playerProtocolDialog #closePlayerProtocolDialog{
+  position:absolute !important;
+  top:8px !important;
+  right:8px !important;
+  left:auto !important;
+  display:grid !important;
+  place-items:center !important;
+  width:44px !important;
+  height:44px !important;
+  min-width:44px !important;
+  min-height:44px !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  color:var(--muted) !important;
+  background:transparent !important;
+  font:500 30px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+  z-index:30 !important;
+  flex-shrink:0 !important;
+  transform:none !important;
+  -webkit-tap-highlight-color:transparent;
+}
+#playerProtocolDialog #closePlayerProtocolDialog:is(:hover,:focus-visible){
+  background:var(--soft) !important;
+  color:var(--text) !important;
+}
+#playerProtocolDialog .player-protocol-report{
+  min-width:0;
+  max-width:100%;
+  padding:0;
+}
+#playerProtocolDialog .player-protocol-teams{
+  min-width:0;
+  max-width:100%;
+}
+#playerProtocolDialog .player-protocol-team th:last-child,
+#playerProtocolDialog .player-protocol-team td:last-child{
+  width:100px;
+  text-align:right;
+  white-space:nowrap;
+}
+.player-protocol-badges{display:inline-flex;gap:5px;align-items:center;justify-content:flex-end;min-height:22px}
+.player-roster-marker{
+  display:inline-grid;
+  align-items:center;
+  justify-items:center;
+  vertical-align:middle;
+  font-size:11px;
+  font-weight:750;
+  line-height:1;
+  letter-spacing:.015em;
+  flex:0 0 auto;
+  color:var(--text);
+}
+.player-roster-marker.is-captain,
+.player-roster-marker.is-libero{
+  min-width:20px;
+  height:20px;
+  padding:0 3px;
+  border:1px solid currentColor;
+  border-radius:5px;
+  font-variant-numeric:tabular-nums;
+}
+.player-roster-marker.is-libero{font-size:10px}
+.player-roster-marker.is-subs{width:28px;height:21px}
+.player-roster-marker.is-subs svg{display:block;width:26px;height:18px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.player-roster-marker.is-subs .sub-in{stroke:#308e61}
+.player-roster-marker.is-subs .sub-out{stroke:#c15c59}
+@media(max-width:650px){
+ #playerProtocolDialog{width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;max-height:94dvh!important}
+ #playerProtocolDialog .player-protocol-dialog-card{padding:58px 10px 14px!important;max-height:94dvh!important}
+ #playerProtocolDialog #closePlayerProtocolDialog{top:6px!important;right:6px!important}
+ #playerProtocolDialog .player-protocol-team th:last-child,
+ #playerProtocolDialog .player-protocol-team td:last-child{width:75px;padding-left:2px;padding-right:6px}
+ .player-protocol-badges{gap:3px}
+ .player-roster-marker.is-captain,.player-roster-marker.is-libero{min-width:18px;height:18px}
+}

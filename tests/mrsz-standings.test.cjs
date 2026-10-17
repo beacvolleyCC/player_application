@@ -37,12 +37,11 @@ test('photo scores take precedence over BRSZ fixture with team-name aliases',()=
  assert.equal(context.qa.merge(w2,false).length,1);
  assert.equal(context.qa.merge(menA,false).length,1);
 });
-test('BEAC-only scope is default and all-league switch is visible',()=>{
+test('league without BEAC skips irrelevant BEAC-only controls by default',()=>{
  const initial=context.qa.html(w1,false);
- assert.ok(initial.includes('BEAC meccsek'));
- assert.ok(initial.includes('Összes bajnoki meccs'));
- assert.ok(initial.includes('data-league-player-scope="beac"'));
- assert.ok(!initial.includes('player-match-scoreboard'));
+ assert.ok(!initial.includes('BEAC meccsek'));
+ assert.ok(!initial.includes('Összes bajnoki meccs'));
+ assert.ok(initial.includes('1 / 1 meccs'));
 });
 test('all leagues keep old styled match rows when all-league is selected',()=>{
  context.qa.setScope('all');
@@ -65,7 +64,8 @@ test('unplayed fixture does not invent a 0:0 score',()=>{
 test('persisted women I data is a partial standings source, with scored match details',()=>{
  context.qa.setScope('all');
  const html=context.qa.table();
- assert.ok(html.includes('részleges, eredményekből számított'));
+ assert.ok(!html.includes('nem élő'));
+ assert.ok(!html.includes('MRSZ ·'));
  assert.ok(html.includes('Semmelweis Egyetem'));
  assert.ok(html.includes('standings-match-list'));
  assert.ok(html.includes('25:20'));
@@ -101,10 +101,10 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-player-league-nav-v10'));
- assert.ok(html.includes('app.js?v=20261017-player-league-nav-v10'));
+ assert.ok(html.includes('styles.css?v=20261017-standings-protocol-v11'));
+ assert.ok(html.includes('app.js?v=20261017-standings-protocol-v11'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261017-player-league-nav-v10"));
+ assert.ok(sw.includes("club-control-player-20261017-standings-protocol-v11"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -205,9 +205,10 @@ test('saved results update a separately labeled partial standings model without 
  assert.equal(model.matched,1);
  assert.equal(model.rows.find(x=>x.teamName==='Semmelweis Egyetem Sport Klub').wins,1);
  assert.equal(model.rows.find(x=>x.teamName==='EMERICUS SE').losses,1);
- assert.ok(model.rows.every(x=>x.position===null));
+ assert.equal(JSON.stringify(model.rows.map(x=>x.position)),JSON.stringify([1,2]));
  const view=js.slice(js.indexOf('function renderCompetitionStandings_(){'),js.indexOf('function syncPlannerSectionUi_()'));
- assert.ok(view.includes('nem hivatalos tabella'));
+ assert.ok(!view.includes('nem hivatalos tabella'));
+ assert.ok(view.includes("const meta='';"));
 });
 
 test('fourth bottom nav has independent standings content and schedule controls remain in Menetrend',()=>{
@@ -218,4 +219,56 @@ test('fourth bottom nav has independent standings content and schedule controls 
  assert.ok(js.includes('standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_()'));
  assert.ok(js.includes("const nextSection=viewId==='standingsView'?'standings':'schedule'"));
  assert.ok(js.includes("plannerSection='schedule'"));
+});
+
+test('verified match results produce numeric ranking for men A/B and women II/B without inventing fixtures',()=>{
+ const fn=vm.runInContext('ccPlayerResultsOnlyStandings_',context);
+ const menAmodel=fn(menA,[{teamName:'MAFC-Kármán'},{teamName:'Ráckeve'},{teamName:'Kandó Sport Club'}],[{
+  competitionLabel:menA,homeName:'MAFC-Kármán',awayName:'Ráckeve',startsAt:'2026-10-13',
+  homeSets:3,awaySets:0,setScores:[{home:32,away:30},{home:25,away:20},{home:25,away:21}]
+ }]);
+ assert.ok(menAmodel);
+ assert.equal(JSON.stringify(menAmodel.rows.map(x=>x.position)),JSON.stringify([1,2,3]));
+ assert.equal(menAmodel.rows[0].played,1);
+ assert.equal(menAmodel.rows[0].tablePoints,2);
+ assert.equal(menAmodel.rows[0].teamName,'MAFC-Kármán');
+ assert.equal(menAmodel.rows[1].teamName,'Ráckeve');
+ const menBmodel=fn(menB,[{teamName:'BEAC'},{teamName:'MAFC-Vásárhelyi'},{teamName:'MAFC-Schönherz'}],[{
+  competitionLabel:menB,homeName:'MAFC-Vásárhelyi',awayName:'MAFC-Schönherz',startsAt:'2026-10-15',
+  homeSets:3,awaySets:0,setScores:[{home:25,away:15},{home:25,away:21},{home:25,away:16}]
+ }]);
+ assert.equal(menBmodel.rows[0].position,1);
+ assert.equal(menBmodel.rows[0].teamName,'MAFC-Vásárhelyi');
+ const women2=fn(w2,[{teamName:'MTK Budapest kék'},{teamName:'RKSK felnőtt női'},{teamName:'BEAC II.'}],[{
+  competitionLabel:w2,homeName:'MTK kék',awayName:'RKSK felnőtt női',startsAt:'2026-10-13',
+  homeSets:3,awaySets:0
+ }]);
+ assert.ok(women2);
+ assert.equal(women2.rows[0].teamName,'MTK Budapest kék');
+ assert.equal(women2.rows[0].position,1);
+ assert.equal(women2.rows[1].position,2);
+ const unknown=fn('Női Budapest II. osztály – A csoport',[],[]);
+ assert.equal(unknown,null);
+});
+test('when the selected league has no BEAC the match list shows all games without the BEAC toggle',()=>{
+ context.qa.setScope('beac');
+ const html=context.qa.html(menA,false);
+ assert.ok(html.includes('MAFC-Kármán'));
+ assert.ok(!html.includes('data-league-player-scope="beac"'));
+ assert.ok(!html.includes('Összes bajnoki meccs'));
+ assert.ok(html.includes('1 / 1 meccs'));
+});
+test('C, L1/L2 and quiet red-green exchange arrows replace verbose role labels',()=>{
+ const make=vm.runInContext('ccPlayerProtocolBadgesHtml_',context);
+ const badges=make({designation:'CS',captain:true,libero:'L2'});
+ assert.ok(badges.includes('is-subs'));
+ assert.ok(badges.includes('sub-in'));
+ assert.ok(badges.includes('sub-out'));
+ assert.ok(badges.includes('>C</span>'));
+ assert.ok(badges.includes('>L2</span>'));
+ assert.ok(!badges.includes('>Csere</span>'));
+ const css=fs.readFileSync('styles.css','utf8');
+ assert.ok(css.includes('#playerProtocolDialog #closePlayerProtocolDialog'));
+ assert.ok(css.includes('width:44px !important;'));
+ assert.ok(css.includes('right:8px !important;'));
 });
