@@ -10564,3 +10564,7 @@ body.dark{
  .player-protocol-badges{gap:3px}
  .player-roster-marker.is-captain,.player-roster-marker.is-libero{min-width:18px;height:18px}
 }
+
+/* Player v13: starters are prominent; absent court-entry mark stays quiet. */
+.player-protocol-team td .player-protocol-starter{font-weight:750;color:var(--text)}
+.player-roster-marker.is-no-entry{min-width:20px;height:20px;color:var(--muted);font-size:15px;font-weight:400}
