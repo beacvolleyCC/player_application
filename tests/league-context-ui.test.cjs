@@ -5,7 +5,7 @@ const app=fs.readFileSync(path.join(__dirname,'..','app.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
 const sw=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8');
 const catalog=require('../competition-context-catalog.js');
-const women='Női Budapest I. osztály',womenB='Női Budapest II. osztály – B csoport';
+const women='Női Budapest I. osztály',womenA='Női Budapest II. osztály – A csoport',womenB='Női Budapest II. osztály – B csoport';
 const menA='Férfi Budapest I. osztály – A csoport',menB='Férfi Budapest I. osztály – B csoport';
 const matches=[women,womenB,menA,menB].map((competitionLabel,n)=>({
  competitionLabel,homeName:'Hazai '+n,awayName:'Vendég '+n,homeSourceTeamId:String(100+n*2),awaySourceTeamId:String(101+n*2)
@@ -21,35 +21,62 @@ test('Shared browser code is loaded before app and gets a fresh service-worker c
  assert.match(sw,/competition-context-catalog\.js/);
 });
 
-function buildPlayer(mens=true){
+function buildPlayer(kind='men',storage=memory()){
  const begin=app.indexOf('let ccPlayerLeagueSelection_=');
  const end=app.indexOf('async function ccLoadMrszPlayerPhoto_(',begin);
  assert.ok(begin>=0&&end>begin);
- const storage=memory();
  const funcs=new Function('window','localStorage','escapeHtml_','ccMrszPlayerPhoto_','ccMrszPlayerIsMensTeam_','ccMrszPlayerIsWomen2_',
    "let ccMrszPlayerMenGroup_='B';"+app.slice(begin,end)+
    ';return {ccPlayerLeagueCatalog_,ccPlayerLeagueCurrent_,ccPlayerLeagueDefault_,ccPlayerLeagueSelectorHtml_,ccPlayerClearLeagueSelection_};')(
-  {CCCompetitionContextCatalog:catalog},storage,x=>String(x??''),snapshot,()=>mens,()=>!mens);
+  {CCCompetitionContextCatalog:catalog},storage,x=>String(x??''),snapshot,()=>kind==='men',()=>kind==='women2');
  return{funcs,storage};
 }
-test('Player presents four groups and uses actual team as default',()=>{
- const {funcs}=buildPlayer();
+test('Men see only Budapest I/A and I/B groups and start on their group B',()=>{
+ const {funcs}=buildPlayer('men');
+ assert.deepEqual(funcs.ccPlayerLeagueCatalog_().map(x=>x.competitionLabel),[menA,menB]);
  const picker=funcs.ccPlayerLeagueSelectorHtml_();
- assert.equal((picker.match(/<option value=/g)||[]).length,4);
+ assert.equal((picker.match(/<option value=/g)||[]).length,2);
+ assert.ok(!picker.includes(women));
  assert.equal(funcs.ccPlayerLeagueCurrent_(),menB);
 });
-test('Player selected competition is independent of signed-in team',()=>{
- const {funcs,storage}=buildPlayer();
- storage.setItem('cc-player-league-context-v1',menA);
- const restored=buildPlayerFromStorage(storage);
- assert.equal(restored.ccPlayerLeagueCurrent_(),menA);
+test('Women I have only their own league and no unnecessary picker',()=>{
+ const {funcs}=buildPlayer('women1');
+ assert.deepEqual(funcs.ccPlayerLeagueCatalog_().map(x=>x.competitionLabel),[women]);
+ assert.equal(funcs.ccPlayerLeagueSelectorHtml_(),'');
+ assert.equal(funcs.ccPlayerLeagueCurrent_(),women);
 });
-function buildPlayerFromStorage(storage){
- const begin=app.indexOf('let ccPlayerLeagueSelection_='),end=app.indexOf('async function ccLoadMrszPlayerPhoto_(',begin);
- return new Function('window','localStorage','escapeHtml_','ccMrszPlayerPhoto_','ccMrszPlayerIsMensTeam_','ccMrszPlayerIsWomen2_',
-  "let ccMrszPlayerMenGroup_='B';"+app.slice(begin,end)+';return {ccPlayerLeagueCurrent_};')(
-  {CCCompetitionContextCatalog:catalog},storage,x=>String(x??''),snapshot,()=>true,()=>false);
-}
+test('Women II show A/B, with missing A marked as empty source (not invented standings)',()=>{
+ const {funcs}=buildPlayer('women2');
+ const groups=funcs.ccPlayerLeagueCatalog_();
+ assert.deepEqual(groups.map(x=>x.competitionLabel),[womenA,womenB]);
+ assert.equal(groups[0].standingsStatus,'missing');
+ assert.equal(groups[0].fixtureCount,0);
+ assert.equal(funcs.ccPlayerLeagueCurrent_(),womenB);
+ assert.equal((funcs.ccPlayerLeagueSelectorHtml_().match(/<option value=/g)||[]).length,2);
+});
+test('Saved selections from another BEAC team cannot show an unauthorised competition',()=>{
+ const saved=memory();
+ saved.setItem('cc-player-league-context-v1',menA);
+ assert.equal(buildPlayer('men',saved).funcs.ccPlayerLeagueCurrent_(),menA);
+ assert.equal(buildPlayer('women1',saved).funcs.ccPlayerLeagueCurrent_(),women);
+ assert.equal(buildPlayer('women2',saved).funcs.ccPlayerLeagueCurrent_(),womenB);
+ saved.setItem('cc-player-league-context-v1',womenA);
+ assert.equal(buildPlayer('men',saved).funcs.ccPlayerLeagueCurrent_(),menB);
+ assert.equal(buildPlayer('women2',saved).funcs.ccPlayerLeagueCurrent_(),womenA);
+});
+test('Tabella is a fourth bottom nav view with its original icon, not a Menetrend subtab',()=>{
+ const nav=html.slice(html.indexOf('<nav class="bottom-nav">'),html.indexOf('</nav>',html.indexOf('<nav class="bottom-nav">')));
+ const order=[...nav.matchAll(/data-view="([^"]+)" class="nav-btn/g)].map(x=>x[1]);
+ assert.deepEqual(order,['homeView','plannerView','profileView','standingsView']);
+ assert.ok(html.includes('id="standingsView" class="view'));
+ assert.ok(html.includes('id="standingsContent"'));
+ assert.ok(nav.includes('cc-icon-standings'));
+ assert.ok(!html.includes('id="plannerStandingsBtn"'));
+ assert.ok(app.includes("const CC_PAGE_VIEWS=['homeView','plannerView','profileView','standingsView']"));
+ assert.ok(app.includes("if(viewId==='standingsView'||viewId==='plannerView')renderPlanner();"));
+ assert.ok(app.includes('standingsContent.innerHTML=ccPlayerLeagueSelectorHtml_()+renderCompetitionStandings_()'));
+ assert.ok(!app.includes("document.getElementById('plannerStandingsBtn')"));
+});
 test('Player never makes alphabetical sorting an official position',()=>{
  assert.match(app,/return list\.map\(row=>\(\{\.\.\.row,position:null,provisionalAlphabetical:true\}\)\)/);
  assert.match(app,/if\(externalLeague\)/);
