@@ -13,7 +13,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=20261017-player-protocol-v9">
+  <link rel="stylesheet" href="./styles.css?v=20261017-player-league-nav-v10">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -153,11 +153,6 @@
               <path d="M8.8 4V28 M13.6 4V28 M18.4 4V28 M23.2 4V28 M4 8.8H28 M4 13.6H28 M4 18.4H28 M4 23.2H28"></path>
             </svg>
           </button>
-          <button class="view-mode-btn icon-only" id="plannerStandingsBtn" data-planner-section="standings" title="Tabella" aria-label="Tabella" aria-pressed="false">
-            <svg class="cc-icon cc-icon-standings" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-              <path d="M5 7H27 M5 11.5H27 M5 16H27 M5 20.5H27 M5 25H27"></path>
-            </svg>
-          </button>
           <button class="view-mode-btn icon-only filter-state-btn" id="plannerFilterBtn" title="Szűrők" aria-label="Szűrők" aria-expanded="false">
             <span class="filter-funnel" aria-hidden="true">
               <span class="filter-icon-outline">▽</span>
@@ -208,6 +203,15 @@
         </div>
         <div class="planner-scroll-tail" aria-hidden="true"></div>
       </div>
+    </section>
+    <section id="standingsView" class="view cc-standings-main-view" aria-labelledby="standingsPageTitle">
+      <div class="section-head">
+        <div>
+          <h3 id="standingsPageTitle">Tabella</h3>
+          <p>Bajnoki tabella és mérkőzések.</p>
+        </div>
+      </div>
+      <div id="standingsContent" class="cc-standings-page-content" aria-live="polite"></div>
     </section>
 <section id="profileView" class="view">
       <div class="section-head">
@@ -336,6 +340,14 @@
         </svg>
       </span>
       <small>Profil</small>
+    </button>
+    <button data-view="standingsView" class="nav-btn" type="button" aria-label="Tabella">
+      <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-standings" aria-hidden="true">
+        <svg class="cc-icon cc-icon-standings" viewBox="0 0 32 32" focusable="false">
+          <path d="M5 7H27 M5 11.5H27 M5 16H27 M5 20.5H27 M5 25H27"></path>
+        </svg>
+      </span>
+      <small>Tabella</small>
     </button>
   </nav>
 
@@ -536,6 +548,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
   <script src="./competition-context-catalog.js?v=20261015-lc1"></script>
-  <script src="./app.js?v=20261017-player-protocol-v9"></script>
+  <script src="./app.js?v=20261017-player-league-nav-v10"></script>
 </body>
 </html>
