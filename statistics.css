@@ -69,10 +69,26 @@
 .cc-stats-team-name .standings-team-logo-switch .logo-dark{display:none}
 .dark .cc-stats-team-name .standings-team-logo-switch .logo-light{display:none}
 .dark .cc-stats-team-name .standings-team-logo-switch .logo-dark{display:block}
-.cc-stats-form{display:inline-flex;gap:4px;align-items:center;flex-shrink:0}
-.cc-stats-form i{height:8px;width:8px;border-radius:50%;background:var(--line)}
-.cc-stats-form i.win{background:#32935c}
-.cc-stats-form i.loss{background:#bd625d}
+.cc-stats-team-list-head{
+ display:grid;grid-template-columns:minmax(0,1fr) auto 40px;align-items:center;gap:9px;
+ padding:5px 2px 8px;border-bottom:1px solid var(--line);color:var(--muted);
+ font-size:9px;font-weight:800;
+}
+.cc-stats-team-list-head span:nth-child(2){width:116px;text-align:center}
+.cc-stats-team-list-head span:last-child{text-align:right}
+.cc-stats-form{display:inline-flex;gap:3px;align-items:center;flex-shrink:0;justify-content:flex-end}
+.cc-stats-form-result{
+ display:inline-grid;place-items:center;width:20px;height:20px;border-radius:5px;
+ font-size:11px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;
+}
+.cc-stats-form-result.win{color:#217547;background:rgba(46,143,86,.13)}
+.cc-stats-form-result.loss{color:#ad3638;background:rgba(183,63,60,.12)}
+.cc-stats-form-result.no-data{color:var(--muted);background:var(--soft);font-weight:400}
+.dark .cc-stats-form-result.win{color:#8ce2ad;background:rgba(71,160,104,.19)}
+.dark .cc-stats-form-result.loss{color:#f5a0a0;background:rgba(190,79,79,.2)}
+.cc-stats-recent-result{display:inline-flex;align-items:center;gap:12px}
+.cc-stats-recent-result>b{font-size:11px;font-weight:900}
+.cc-stats-recent-result>strong{font-size:11px;font-variant-numeric:tabular-nums}
 .cc-stats-empty,.cc-stats-record{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
 .cc-stats-record{font-weight:800;min-width:34px;text-align:right}
 .cc-stats-recent-match{display:flex;gap:8px;justify-content:space-between;border-top:1px solid var(--line);padding:9px 0;font-size:11px}
@@ -97,7 +113,12 @@
 @media(max-width:420px){
  .cc-stats-metric{padding:12px 9px}
  .cc-stats-tabs button{padding:7px 10px}
- .cc-stats-form i{width:6px;height:6px}
+ .cc-stats-form{gap:2px}
+ .cc-stats-form-result{width:18px;height:19px;font-size:10px}
+ .cc-stats-team-list-head{grid-template-columns:minmax(0,1fr) auto 34px;gap:7px}
+ .cc-stats-team-list-head span:nth-child(2){width:98px}
+ .cc-stats-team-row{gap:6px}
+ .cc-stats-record{min-width:28px}
  .cc-stats-team-name .standings-team-logo{width:21px;height:21px;min-width:21px}
  .bottom-nav .nav-btn small{font-size:7px !important}
 }
