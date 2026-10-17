@@ -101,10 +101,10 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-bottom-order-v12'));
- assert.ok(html.includes('app.js?v=20261017-bottom-order-v12'));
+ assert.ok(html.includes('styles.css?v=20261017-kando-roster-v13'));
+ assert.ok(html.includes('app.js?v=20261017-kando-roster-v13'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261017-bottom-order-v12"));
+ assert.ok(sw.includes("club-control-player-20261017-kando-roster-v13"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
