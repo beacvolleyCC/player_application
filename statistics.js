@@ -60,9 +60,18 @@ function ccStatsTrend_(team){
   return last.filter(x=>x.win).length-before.filter(x=>x.win).length;
 }
 function ccStatsFormHtml_(team){
+  // Chronological from left to right, exactly the last five played games.
+  // Unavailable results have a neutral dash rather than a fictional loss.
   const recent=ccStatsRecent_(team);
-  if(!recent.length)return '<span class="cc-stats-empty">–</span>';
-  return '<span class="cc-stats-form" aria-label="Utolsó öt mérkőzés">'+recent.map(r=>'<i class="'+(r.win?'win':'loss')+'" title="'+(r.win?'Győzelem':'Vereség')+'"></i>').join('')+'</span>';
+  const missing=Math.max(0,5-recent.length);
+  const results=recent.map(r=>{
+    const kind=r.win?'win':'loss';
+    const label=r.win?'Győzelem':'Vereség';
+    const detail=[label,r.opponent,r.score].filter(Boolean).join(' · ');
+    return '<span class="cc-stats-form-result '+kind+'" title="'+escapeHtml_(detail)+'" aria-label="'+escapeHtml_(detail)+'">'+(r.win?'W':'L')+'</span>';
+  }).join('');
+  const empty=Array.from({length:missing},()=>'<span class="cc-stats-form-result no-data" aria-label="Nincs rögzített eredmény">–</span>').join('');
+  return '<span class="cc-stats-form" aria-label="Utolsó öt mérkőzés, időrendben">'+empty+results+'</span>';
 }
 function ccStatsRatio_(team){
   return team.played ? (team.setsAgainst?Number(team.setsFor/team.setsAgainst).toFixed(3):'–') : '–';
@@ -104,7 +113,7 @@ function ccStatsOverview_(data){
 }
 function ccStatsTeamsTable_(teams){
   if(!teams.length)return '<p class="cc-stats-muted">Még nincs rögzített csapatadat.</p>';
-  return '<div class="cc-stats-team-list">'+teams.map(team=>
+  return '<div class="cc-stats-team-list"><div class="cc-stats-team-list-head"><span>Csapat</span><span>Utolsó 5 mérkőzés</span><span>Mérleg</span></div>'+teams.map(team=>
     '<button class="cc-stats-team-row" type="button" data-cc-stats-team="'+escapeHtml_(team.id)+'">'+
     '<span class="cc-stats-team-name">'+standingsTeamLogoHtml_(team.name,'league-logo')+'<b>'+escapeHtml_(team.name)+'</b></span>'+
     ccStatsFormHtml_(team)+'<span class="cc-stats-record">'+(team.played?team.won+'–'+team.lost:'–')+'</span></button>'
@@ -114,7 +123,7 @@ function ccStatsTeams_(data){
   const t=data.teams.find(x=>x.id===ccStatsTeam_)||data.teams.find(x=>x.played)||data.teams[0];
   if(!t)return '<p class="cc-stats-muted">Még nincs csapatadat.</p>';
   const matches=t.results.slice().reverse().slice(0,5).map(r=>
-    '<div class="cc-stats-recent-match"><span>'+escapeHtml_(r.opponent)+'</span><b class="'+(r.win?'win':'loss')+'">'+escapeHtml_(r.score)+'</b></div>').join('');
+    '<div class="cc-stats-recent-match"><span>'+escapeHtml_(r.opponent)+'</span><span class="cc-stats-recent-result"><b class="'+(r.win?'win':'loss')+'">'+(r.win?'W':'L')+'</b><strong>'+escapeHtml_(r.score)+'</strong></span></div>').join('');
   return '<div class="cc-stats-pane"><section class="cc-stats-panel"><h4>Csapatok</h4>'+
     ccStatsTeamsTable_(data.teams)+'</section><section class="cc-stats-panel"><h4>'+escapeHtml_(t.name)+'</h4>'+
     '<div class="cc-stats-metrics"><div class="cc-stats-metric"><span>Mérleg</span><b>'+t.won+'–'+t.lost+'</b><small>'+t.played+' mérkőzés</small></div>'+
@@ -200,7 +209,9 @@ function ccRenderStatisticsPage_(){
   const view=document.getElementById('standingsView'),host=document.getElementById('statisticsContent');
   if(!view?.classList.contains('active')||!details?.open||!host)return;
   const data=ccStatsSource_();
-  const tabs=[['overview','Áttekintés'],['teams','Csapatok'],['matches','Meccsek'],['players','Játékosok'],['compare','Összehasonlítás']];
+  // Keep the Match and Player views implemented but out of the interface for now.
+  const tabs=[['overview','Áttekintés'],['teams','Csapatok'],['compare','Összehasonlítás']];
+  if(!tabs.some(([id])=>id===ccStatsTab_))ccStatsTab_='overview';
   const nav='<div class="cc-stats-tab-scroll"><div class="cc-stats-tabs" role="tablist" aria-label="Statisztikai nézet">'+
     tabs.map(([id,label])=>'<button type="button" role="tab" data-cc-stats-tab="'+id+'" aria-selected="'+(ccStatsTab_===id)+'" class="'+(ccStatsTab_===id?'active':'')+'">'+label+'</button>').join('')+
     '</div></div>';
@@ -212,7 +223,10 @@ function ccRenderStatisticsPage_(){
 document.getElementById('standingsView')?.addEventListener('click',event=>{
   if(!event.target.closest('#statisticsContent'))return;
   const tab=event.target.closest('[data-cc-stats-tab]');
-  if(tab){ccStatsTab_=tab.dataset.ccStatsTab;ccRenderStatisticsPage_();return}
+  if(tab){
+    if(!['overview','teams','compare'].includes(tab.dataset.ccStatsTab))return;
+    ccStatsTab_=tab.dataset.ccStatsTab;ccRenderStatisticsPage_();return;
+  }
   const team=event.target.closest('[data-cc-stats-team]');
   if(team){ccStatsTeam_=team.dataset.ccStatsTeam;ccStatsTab_='teams';ccRenderStatisticsPage_();return}
   const protocol=event.target.closest('[data-cc-stats-protocol]');
