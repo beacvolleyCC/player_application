@@ -3656,7 +3656,7 @@ async function ccSaveMedicalAppointment_(options={}){
   finally{ccMedicalBusy_=false;d.classList.remove('is-saving')}
 }
 
-const CC_PAGE_VIEWS=['homeView','plannerView','profileView','standingsView'];
+const CC_PAGE_VIEWS=['homeView','plannerView','standingsView','profileView'];
 function ccPageSwipeBlocked_(target){
   return !!target?.closest?.('button,a,input,select,textarea,label,dialog,[role="button"],.card,.event-card,.planner-card,.filter-panel,.notification-swipe-row,.notification-swipe-scroll,.planner-scroll-viewport,.matrix-scroll,.standings-scroll,.standings-split,.calendar-shell,.attendance-slider,.settings-card,.profile-card,[data-no-page-swipe]');
 }

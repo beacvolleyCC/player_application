@@ -1,4 +1,4 @@
-const CACHE='club-control-player-20261017-standings-protocol-v11';
+const CACHE='club-control-player-20261017-bottom-order-v12';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
