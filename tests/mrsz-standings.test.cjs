@@ -466,3 +466,19 @@ test('Player competition statistics contain no decorative grey captions or expla
  assert.ok(css.includes('.cc-stats-metric>.cc-stats-metric-value'));
  assert.ok(!stats.includes('<small>'+ "'+escapeHtml_(value||'Nincs elég adat')+'" +'</small>'));
 });
+
+test('Player honors corrected source record over archived MRSZ score without duplicating a rescheduled match',()=>{
+ const original=fixtures[0];
+ const manual={...original,startsAt:'2026-10-17T19:30:00+02:00',
+   homeSets:3,awaySets:2,_ccManualOverride:true,
+   _ccOriginalStartsAt:original.startsAt,_ccOriginalHomeName:original.homeName,
+   _ccOriginalAwayName:original.awayName};
+ context.ccMrszPlayerPhoto_.sourceMatches=[manual];
+ try{
+  const result=context.qa.merge(w1,false);
+  assert.equal(result.length,1);
+  assert.equal(result[0].homeSets,3);
+  assert.equal(result[0].awaySets,2);
+  assert.equal(result[0].startsAt,manual.startsAt);
+ }finally{context.ccMrszPlayerPhoto_.sourceMatches=[]}
+});
