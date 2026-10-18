@@ -2332,10 +2332,11 @@ async function ccLoadMrszPlayerPhoto_(){
   if(ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.loading||!ccSupabase||!SUPABASE_ENABLED)return;
   ccMrszPlayerPhoto_.loading=true;
   try{
-    const {data,error}=await ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v1');
+    const [{data,error},{data:sourceMatches,error:sourceError}]=await Promise.all([ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v2'),ccSupabase.rpc('cc_player_competition_source_matches_effective_v1')]);
     if(error)throw error;
+    if(sourceError)throw sourceError;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
-    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[]};
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[]};
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
@@ -2381,13 +2382,22 @@ function ccMrszPlayerFixtureKey_(m){
 }
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
+ const brsz=(ccMrszPlayerPhoto_.sourceMatches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
  const unique=new Map();
- for(const m of (ccMrszPlayerPhoto_.fixtures||[]).filter(x=>String(x.competitionLabel)===competitionLabel))unique.set(ccMrszPlayerFixtureKey_(m),m);
- for(const m of feed)unique.set(ccMrszPlayerFixtureKey_(m),m);
- for(const m of snapshot)unique.set(ccMrszPlayerFixtureKey_(m),m);
+ const add=(m,priority)=>{
+  const original=m._ccOriginalStartsAt?{...m,startsAt:m._ccOriginalStartsAt,homeName:m._ccOriginalHomeName||m.homeName,awayName:m._ccOriginalAwayName||m.awayName}:m;
+  const key=ccMrszPlayerFixtureKey_(original),previous=unique.get(key);
+  if(!previous||(!previous.m._ccManualOverride&&m._ccManualOverride)
+   ||(!!previous.m._ccManualOverride===!!m._ccManualOverride&&priority>=previous.priority))
+    unique.set(key,{m,priority});
+ };
+ for(const m of (ccMrszPlayerPhoto_.fixtures||[]).filter(x=>String(x.competitionLabel)===competitionLabel))add(m,1);
+ for(const m of feed)add(m,2);
+ for(const m of brsz)add(m,2);
+ for(const m of snapshot)add(m,3);
  const localSort=m=>{const t=ccMrszPlayerLocalKickoff_(m.startsAt);return t.date+'T'+t.time;};
- return [...unique.values()].sort((a,b)=>localSort(a).localeCompare(localSort(b)));
+ return [...unique.values()].map(entry=>entry.m).sort((a,b)=>localSort(a).localeCompare(localSort(b)));
 }
 
 // Preserve unconfirmed BEAC self-fixtures in the source but do not advertise them as matches.

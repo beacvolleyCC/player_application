@@ -102,11 +102,11 @@ test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
  assert.ok(html.includes('styles.css?v=20261017-clean-stats-v17'));
- assert.ok(html.includes('statistics.css?v=20261018-player-compact-v19'));
+ assert.ok(html.includes('statistics.css?v=20261018-match-overrides-v20'));
  assert.ok(html.includes('app.js?v=20261017-clean-stats-v17'));
- assert.ok(html.includes('statistics.js?v=20261018-player-compact-v19'));
+ assert.ok(html.includes('statistics.js?v=20261018-match-overrides-v20'));
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261018-player-compact-v19"));
+ assert.ok(sw.includes("club-control-player-20261018-match-overrides-v20"));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -352,8 +352,8 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('ccStatsPlayerRows_'));
  assert.ok(stats.includes('>–</th>')); // compact column heading, with full semantics preserved in the title
  assert.ok(stats.includes('nem bizonyít tényleges pályára lépést'));
- assert.ok(sw.includes("'./statistics.js?v=20261018-player-compact-v19'"));
- assert.ok(sw.includes("'./statistics.css?v=20261018-player-compact-v19'"));
+ assert.ok(sw.includes("'./statistics.js?v=20261018-match-overrides-v20'"));
+ assert.ok(sw.includes("'./statistics.css?v=20261018-match-overrides-v20'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
@@ -465,4 +465,20 @@ test('Player competition statistics contain no decorative grey captions or expla
  assert.ok(stats.includes('cc-stats-metric-value'));
  assert.ok(css.includes('.cc-stats-metric>.cc-stats-metric-value'));
  assert.ok(!stats.includes('<small>'+ "'+escapeHtml_(value||'Nincs elég adat')+'" +'</small>'));
+});
+
+test('Player honors corrected source record over archived MRSZ score without duplicating a rescheduled match',()=>{
+ const original=fixtures[0];
+ const manual={...original,startsAt:'2026-10-17T19:30:00+02:00',
+   homeSets:3,awaySets:2,_ccManualOverride:true,
+   _ccOriginalStartsAt:original.startsAt,_ccOriginalHomeName:original.homeName,
+   _ccOriginalAwayName:original.awayName};
+ context.ccMrszPlayerPhoto_.sourceMatches=[manual];
+ try{
+  const result=context.qa.merge(w1,false);
+  assert.equal(result.length,1);
+  assert.equal(result[0].homeSets,3);
+  assert.equal(result[0].awaySets,2);
+  assert.equal(result[0].startsAt,manual.startsAt);
+ }finally{context.ccMrszPlayerPhoto_.sourceMatches=[]}
 });
