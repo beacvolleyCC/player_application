@@ -2336,7 +2336,19 @@ async function ccLoadMrszPlayerPhoto_(){
     if(error)throw error;
     if(sourceError)throw sourceError;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
-    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[]};
+    let userSchedule=[];
+    try{
+      const {data:provided,error:providedError}=await ccSupabase.rpc('cc_player_competition_user_schedule_v1');
+      if(providedError)throw providedError;
+      userSchedule=Array.isArray(provided)?provided:[];
+    }catch(err){console.warn('Updated competition fixture source unavailable',err)}
+    const suppliedResults=userSchedule.filter(x=>x._ccSourceKind==='result');
+    const oldResults=(Array.isArray(p.matches)?p.matches:[]).filter(old=>
+      !suppliedResults.some(m=>ccPlayerMatchTeamKey_(m.homeName)===ccPlayerMatchTeamKey_(old.homeName)
+       &&ccPlayerMatchTeamKey_(m.awayName)===ccPlayerMatchTeamKey_(old.awayName)
+       &&ccMrszPlayerLocalKickoff_(m.startsAt).date===ccMrszPlayerLocalKickoff_(old.startsAt).date));
+
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:[...oldResults,...suppliedResults],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userSchedule};
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
@@ -2383,7 +2395,32 @@ function ccMrszPlayerFixtureKey_(m){
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const brsz=(ccMrszPlayerPhoto_.sourceMatches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
+ const user=(ccMrszPlayerPhoto_.userSchedule||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
+ const localSort=m=>{const t=ccMrszPlayerLocalKickoff_(m.startsAt);return t.date+'T'+t.time};
+ if(user.length){
+  const imported=user.filter(m=>m._ccSourceKind==='fixture');
+  const oldManual=[...(ccMrszPlayerPhoto_.fixtures||[]),...brsz].filter(m=>m._ccManualOverride);
+  const pair=m=>ccPlayerMatchTeamKey_(m._ccOriginalHomeName||m.homeName)+'|'+ccPlayerMatchTeamKey_(m._ccOriginalAwayName||m.awayName);
+  const used=new Set();
+  const fixtures=imported.map(m=>{
+   if(m._ccManualOverride)return m;
+   const time=Date.parse(m._ccOriginalStartsAt||m.startsAt);
+   const found=oldManual.filter(old=>!used.has(old)&&pair(old)===pair(m)
+    &&Number.isFinite(Date.parse(old._ccOriginalStartsAt||old.startsAt))
+    &&Number.isFinite(time)&&Math.abs(Date.parse(old._ccOriginalStartsAt||old.startsAt)-time)<=60*86400000)
+    .sort((a,b)=>Math.abs(Date.parse(a._ccOriginalStartsAt||a.startsAt)-time)
+      -Math.abs(Date.parse(b._ccOriginalStartsAt||b.startsAt)-time))[0];
+   if(!found)return m;
+   used.add(found);
+   return {...m,...found,meetingAt:found._ccHasMeetingOverride?found.meetingAt:m.meetingAt,
+    meetingPlace:found._ccHasMeetingOverride?found.meetingPlace:m.meetingPlace,
+    playerNote:found._ccHasMeetingOverride?found.playerNote:m.playerNote};
+  });
+  const results=snapshot.filter(m=>m.homeSets!=null&&m.awaySets!=null);
+  const unmatched=oldManual.filter(m=>!used.has(m)&&!fixtures.some(x=>x._ccSourceKey===m._ccSourceKey));
+  return [...fixtures,...results,...unmatched].sort((a,b)=>localSort(a).localeCompare(localSort(b)));
+ }
  const unique=new Map();
  const add=(m,priority)=>{
   const original=m._ccOriginalStartsAt?{...m,startsAt:m._ccOriginalStartsAt,homeName:m._ccOriginalHomeName||m.homeName,awayName:m._ccOriginalAwayName||m.awayName}:m;
@@ -2396,7 +2433,6 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  for(const m of feed)add(m,2);
  for(const m of brsz)add(m,2);
  for(const m of snapshot)add(m,3);
- const localSort=m=>{const t=ccMrszPlayerLocalKickoff_(m.startsAt);return t.date+'T'+t.time;};
  return [...unique.values()].map(entry=>entry.m).sort((a,b)=>localSort(a).localeCompare(localSort(b)));
 }
 
