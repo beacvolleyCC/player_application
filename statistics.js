@@ -48,8 +48,15 @@ function ccStatsSource_(){
     &&photo.rows.length===teams.length
     &&photo.rows.every(row=>{
       const team=records.get(ccPlayerMatchTeamKey_(row.teamName));
-      return !!team&&Number.isInteger(Number(row.played))
-        &&Number(row.played)===team.played;
+      // A manually corrected score must not leave old official rankings marked
+      // as verified. Compare all available counters, not only matches played.
+      const fields=[['played','played'],['wins','won'],['losses','lost'],
+        ['setsFor','setsFor'],['setsAgainst','setsAgainst']];
+      return !!team&&fields.every(([stored,actual])=>{
+        const n=row[stored];
+        return n!==null&&n!==undefined&&String(n).trim()!==''
+          &&Number.isInteger(Number(n))&&Number(n)===team[actual];
+      });
     });
   return {league,played,teams,partial:!verifiedComplete,verifiedComplete};
 }
