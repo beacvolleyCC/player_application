@@ -2386,7 +2386,8 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
  const unique=new Map();
  const add=(m,priority)=>{
-  const key=ccMrszPlayerFixtureKey_(m),previous=unique.get(key);
+  const original=m._ccOriginalStartsAt?{...m,startsAt:m._ccOriginalStartsAt,homeName:m._ccOriginalHomeName||m.homeName,awayName:m._ccOriginalAwayName||m.awayName}:m;
+  const key=ccMrszPlayerFixtureKey_(original),previous=unique.get(key);
   if(!previous||(!previous.m._ccManualOverride&&m._ccManualOverride)
    ||(!!previous.m._ccManualOverride===!!m._ccManualOverride&&priority>=previous.priority))
     unique.set(key,{m,priority});
