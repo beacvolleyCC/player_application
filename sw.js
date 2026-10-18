@@ -1,9 +1,9 @@
-const CACHE='club-control-player-20261018-match-overrides-v20';
+const CACHE='club-control-player-20261019-full-fixtures-v21';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
-  './statistics.js?v=20261018-match-overrides-v20',
-  './statistics.css?v=20261018-match-overrides-v20',
+  './statistics.js?v=20261019-full-fixtures-v21',
+  './statistics.css?v=20261019-full-fixtures-v21',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
