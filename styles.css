@@ -10528,7 +10528,7 @@ body.dark{
   text-align:right;
   white-space:nowrap;
 }
-.player-protocol-badges{display:inline-flex;gap:5px;align-items:center;justify-content:flex-end;min-height:22px}
+.player-protocol-badges{display:flex;width:100%;gap:5px;align-items:center;justify-content:flex-end;min-height:22px}
 .player-roster-marker{
   display:inline-grid;
   align-items:center;
@@ -10568,3 +10568,9 @@ body.dark{
 /* Player v13: starters are prominent; absent court-entry mark stays quiet. */
 .player-protocol-team td .player-protocol-starter{font-weight:750;color:var(--text)}
 .player-roster-marker.is-no-entry{min-width:20px;height:20px;color:var(--muted);font-size:15px;font-weight:400}
+
+/* 2026-10-19: stable right-aligned protocol badge order: captain, libero, substitute. */
+.player-protocol-badges .player-roster-marker.is-subs{margin-left:3px;order:99}
+.player-protocol-badges .player-roster-marker.is-captain{order:1}
+.player-protocol-badges .player-roster-marker.is-libero{order:2}
+.player-protocol-badges .player-roster-marker.is-no-entry{order:98}
