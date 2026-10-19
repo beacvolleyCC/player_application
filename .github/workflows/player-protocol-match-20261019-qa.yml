@@ -1,0 +1,39 @@
+name: Player match order and protocol QA
+on:
+  push:
+    paths:
+      - 'app.js'
+      - 'styles.css'
+      - 'statistics.js'
+      - 'statistics.css'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/protocol-match-order-20261019.test.cjs'
+      - '.github/workflows/player-protocol-match-20261019-qa.yml'
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'styles.css'
+      - 'statistics.js'
+      - 'statistics.css'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/protocol-match-order-20261019.test.cjs'
+      - '.github/workflows/player-protocol-match-20261019-qa.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check app.js
+          node --check statistics.js
+      - name: Match order, protocol, and statistics UI regression
+        run: node --test tests/protocol-match-order-20261019.test.cjs
