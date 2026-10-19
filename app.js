@@ -2464,7 +2464,7 @@ const CC_PLAYER_IMPORT_MIN_COUNTS_=Object.freeze({
  'Női Budapest II. osztály – B csoport':40
 });
 function ccPlayerVerifiedUserSchedule_(all){
- if(!Array.isArray(all)||all.length<292)return false;
+ if(!Array.isArray(all)||all.length!==300)return false;
  const keys=new Set(),counts=new Map(),allowed=Object.keys(CC_PLAYER_IMPORT_MIN_COUNTS_);
  let results=0;
  for(const m of all){
@@ -2480,7 +2480,7 @@ function ccPlayerVerifiedUserSchedule_(all){
    results++;
   }
  }
- return results>=8&&allowed.every(l=>(counts.get(l)||0)>=CC_PLAYER_IMPORT_MIN_COUNTS_[l]);
+ return results===8&&allowed.every(l=>(counts.get(l)||0)==={'Férfi Budapest I. osztály – A csoport':42,'Férfi Budapest I. osztály – B csoport':42,'Női Budapest I. osztály':131,'Női Budapest II. osztály – A csoport':42,'Női Budapest II. osztály – B csoport':43}[l]);
 }
 function ccPlayerCompletedResult_(m){
  if(m?.homeSets==null||m?.awaySets==null)return false;
@@ -2516,9 +2516,7 @@ function ccPlayerMergedFullUserSchedule_(league,canon=[]){
  const merged=[];
  for(const m of imported){
   const k=ccPlayerUserFixturePairKey_(m);
-  if(scored.has(k)){ if(ccPlayerCompletedResult_(m)&&conflicts.has(k))
-    merged.push({...m,__ccResultConflict:true});
-   continue; }
+  if(scored.has(k))continue; // keep one record, preserve reviewed conflicts on scored row
   merged.push(m);
  }
  for(const [key,{m}] of scored){
