@@ -65,6 +65,9 @@ test('statistics tabs and missing-data explanations are visible, not silently om
  assert.ok(statsJs.includes('Rögzített eredmények:'));
  assert.ok(statsJs.includes('Részleges forrás'));
  assert.ok(statsJs.includes('jegyzőkönyvvel:'));
+ assert.ok(statsJs.includes('else page.appendChild(details);'));
+ assert.ok(!statsJs.includes('if(!matches&&!table)return;'));
+
  assert.ok(statsJs.includes("['players','Játékosok']"));
  assert.ok(statsJs.includes("['compare','Összehasonlítás']"));
  assert.ok(!app.includes('cc_player_competition_match_full_save'));
