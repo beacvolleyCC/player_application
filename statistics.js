@@ -109,12 +109,12 @@ function ccStatsOverview_(data){
     }
   }
    return '<div class="cc-stats-pane"><div class="cc-stats-metrics">'+
-    ccStatsSummaryCard_('Legjobb forma',top,formText(top))+
-    ccStatsSummaryCard_('Legrosszabb forma',bottom,formText(bottom))+
+    ccStatsSummaryCard_('Legjobb forma'+(eligible.length?'':' (nem igazolt)'),top,formText(top))+
+    ccStatsSummaryCard_('Legrosszabb forma'+(eligible.length?'':' (nem igazolt)'),bottom,formText(bottom))+
     ccStatsSummaryCard_('Mérleg',own,own?own.won+'–'+own.lost:'')+
     ccStatsSummaryCard_('Szettarány',own,own?ccStatsRatio_(own):'')+
     '</div>'+
-    '<section class="cc-stats-panel"><h4>Utolsó mérkőzések</h4>'+
+    '<section class="cc-stats-panel"><h4>Csapatok formája</h4>'+
     ccStatsTeamsTable_(data.teams)+'</section><section class="cc-stats-panel"><h4>Helyezésváltozás</h4>'+historyHtml+'</section></div>';
 }
 function ccStatsTeamsTable_(teams){
@@ -241,7 +241,8 @@ function ccMountStatisticsAccordion_(){
   // the normal match cards for both default and alternate leagues.
   const matches=page.querySelector('.cc-mrsz-player-league-matches');
   const table=page.querySelector('.standings-split');
-  if(!matches&&!table)return;
+  // Even a league with no saved table or fixtures must keep the statistics entry visible.
+  // Show explicit missing-data coverage rather than silently hiding the whole module.
   const details=document.createElement('details');
   details.id='ccStatsAccordion';
   details.className='cc-stats-accordion';
@@ -249,7 +250,8 @@ function ccMountStatisticsAccordion_(){
   details.innerHTML='<summary title="Mentett eredmények alapján; egyes bajnoki adatok részlegesek lehetnek."><span>Statisztikák</span><span class="cc-stats-chevron" aria-hidden="true"></span></summary>'+
     '<div id="statisticsContent" class="cc-statistics-page-content"></div>';
   if(matches)matches.before(details);
-  else table.insertAdjacentElement('afterend',details);
+  else if(table)table.insertAdjacentElement('afterend',details);
+  else page.appendChild(details);
   details.addEventListener('toggle',()=>{
     if(!details.isConnected)return;
     ccStatsExpanded_=details.open;
@@ -270,7 +272,14 @@ function ccRenderStatisticsPage_(){
     '</div></div>';
   const views={overview:ccStatsOverview_,teams:ccStatsTeams_,matches:ccStatsMatches_,players:ccStatsPlayers_,compare:ccStatsComparison_};
   const pane=(views[ccStatsTab_]||views.overview)(data);
-  host.innerHTML=nav+(ccMrszPlayerPhoto_.loaded?pane:'<div class="cc-stats-panel">Statisztikák betöltése…</div>');
+  const matchCount=data.played.length;
+  const sheetCount=data.played.filter(m=>Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2).length;
+  const coverage='<p class="cc-stats-source-note cc-stats-coverage">'+
+    'Rögzített eredmények: <b>'+matchCount+'</b> · jegyzőkönyvvel: <b>'+sheetCount+'</b>'+
+    (data.partial?' · <strong>Részleges forrás</strong>: a nem igazolt, bajnokságszintű mutatók „–” jellel szerepelnek.':
+      ' · A mentett eredmények egyeznek a teljes rögzített tabellával.')+
+    '</p>';
+  host.innerHTML=nav+coverage+(ccMrszPlayerPhoto_.loaded?pane:'<div class="cc-stats-panel">Statisztikák betöltése…</div>');
 }
 document.getElementById('standingsView')?.addEventListener('click',event=>{
   if(!event.target.closest('#statisticsContent'))return;
