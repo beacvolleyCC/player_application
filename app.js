@@ -2286,7 +2286,7 @@ async function ccLoadCompetitionStandings_(){
 
 
 /* MRSZ screenshot snapshots are separate from the team's canonical BRSZ table. */
-let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[]};
+let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]};
 
 /* Read-only league browser shares the saved MRSZ source used by Manager. */
 let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-player-league-context-v1')||'')}catch(_){return''}})();
@@ -2332,12 +2332,12 @@ async function ccLoadMrszPlayerPhoto_(){
   if(ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.loading||!ccSupabase||!SUPABASE_ENABLED)return;
   ccMrszPlayerPhoto_.loading=true;
   try{
-    const [{data,error},{data:sourceMatches,error:sourceError}]=await Promise.all([ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v2'),ccSupabase.rpc('cc_player_competition_source_matches_effective_v1')]);
+    const [{data,error},{data:sourceMatches,error:sourceError},{data:userMatches,error:userError}]=await Promise.all([ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v2'),ccSupabase.rpc('cc_player_competition_source_matches_effective_v1'),ccSupabase.rpc('cc_player_competition_user_schedule_v1').catch(err=>({data:null,error:err}))]);
     if(error)throw error;
     if(sourceError)throw sourceError;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
-    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[]};
-  }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[]}}
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[]};
+  }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
 
@@ -2380,13 +2380,60 @@ function ccMrszPlayerFixtureKey_(m){
  return ccMrszPlayerLocalKickoff_(m.startsAt).date+'|'
   +ccPlayerMatchTeamKey_(m.homeName)+'|'+ccPlayerMatchTeamKey_(m.awayName);
 }
+// Match-order is visual only: attendances and recorded results never change.
+// Source-identical, user-confirmed reschedules take precedence over superseded
+// BRSZ fixture dates; no fuzzy name or cross-league matching.
+const CC_PLAYER_VERIFIED_MATCH_DATE_MOVES_=Object.freeze([
+ {competitionLabel:'Férfi Budapest I. osztály – B csoport',
+  home:'beac',away:'pdse',from:'2026-10-12',to:'2026-10-19',
+  sourceMatchKey:'ui20261018:menB:beac:pdse:1'},
+ {competitionLabel:'Női Budapest II. osztály – B csoport',
+  home:'beacii',away:'uteu20pink',from:'2026-10-13',to:'2026-10-20',
+  sourceMatchKey:'ui20261018:womenIIB:beacii:uteu20pink:1'}
+]);
+function ccPlayerVerifiedReschedule_(m,league){
+ return CC_PLAYER_VERIFIED_MATCH_DATE_MOVES_.find(r=>
+   r.competitionLabel===league &&
+   ccPlayerMatchTeamKey_(m?.homeName)===r.home &&
+   ccPlayerMatchTeamKey_(m?.awayName)===r.away &&
+   String(m?.sourceMatchKey||m?._ccSourceKey||'')===r.sourceMatchKey &&
+   ccMrszPlayerLocalKickoff_(m?.startsAt).date===r.to &&
+   m?._ccUserSupplied===true &&
+   String(m?.season||'')==='2026/27' &&
+   m?.homeSets==null && m?.awaySets==null
+ )||null;
+}
+function ccPlayerBudapestToday_(){
+ const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Budapest',
+  year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const val=k=>parts.find(p=>p.type===k)?.value||'';
+ return val('year')+'-'+val('month')+'-'+val('day');
+}
+function ccPlayerMatchListSort_(a,b,day=ccPlayerBudapestToday_()){
+ const local=m=>{const p=ccMrszPlayerLocalKickoff_(m?.startsAt);return p.date+'T'+p.time};
+ const da=local(a),db=local(b),pastA=da.slice(0,10)<day,pastB=db.slice(0,10)<day;
+ // Today and future first, earliest first; historical games follow newest first.
+ if(pastA!==pastB)return pastA?1:-1;
+ const d=da.localeCompare(db);
+ return pastA?-d:d;
+}
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const brsz=(ccMrszPlayerPhoto_.sourceMatches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
+ const corrections=(ccMrszPlayerPhoto_.userMatches||[])
+   .filter(m=>ccPlayerVerifiedReschedule_(m,competitionLabel));
+ const obsolete=m=>!((m?.homeSets!=null)||(m?.awaySets!=null)) && corrections.some(v=>{
+  const correction=ccPlayerVerifiedReschedule_(v,competitionLabel);
+  return correction && ccMrszPlayerLocalKickoff_(m?.startsAt).date===correction.from
+   && ccPlayerMatchTeamKey_(m?.homeName)===correction.home
+   && ccPlayerMatchTeamKey_(m?.awayName)===correction.away;
+ });
  const unique=new Map();
  const add=(m,priority)=>{
-  const original=m._ccOriginalStartsAt?{...m,startsAt:m._ccOriginalStartsAt,homeName:m._ccOriginalHomeName||m.homeName,awayName:m._ccOriginalAwayName||m.awayName}:m;
+  if(obsolete(m))return;
+  const original=m._ccOriginalStartsAt?{...m,startsAt:m._ccOriginalStartsAt,
+   homeName:m._ccOriginalHomeName||m.homeName,awayName:m._ccOriginalAwayName||m.awayName}:m;
   const key=ccMrszPlayerFixtureKey_(original),previous=unique.get(key);
   if(!previous||(!previous.m._ccManualOverride&&m._ccManualOverride)
    ||(!!previous.m._ccManualOverride===!!m._ccManualOverride&&priority>=previous.priority))
@@ -2396,8 +2443,8 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  for(const m of feed)add(m,2);
  for(const m of brsz)add(m,2);
  for(const m of snapshot)add(m,3);
- const localSort=m=>{const t=ccMrszPlayerLocalKickoff_(m.startsAt);return t.date+'T'+t.time;};
- return [...unique.values()].map(entry=>entry.m).sort((a,b)=>localSort(a).localeCompare(localSort(b)));
+ for(const m of corrections)add(m,4);
+ return [...unique.values()].map(entry=>entry.m).sort((a,b)=>ccPlayerMatchListSort_(a,b));
 }
 
 // Preserve unconfirmed BEAC self-fixtures in the source but do not advertise them as matches.
