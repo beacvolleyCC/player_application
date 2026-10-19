@@ -1,0 +1,37 @@
+name: Player full imported fixtures QA
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'statistics.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/full-imported-fixture-schedule-20261019.test.cjs'
+      - '.github/workflows/player-full-imported-schedule-qa.yml'
+  push:
+    paths:
+      - 'app.js'
+      - 'statistics.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/full-imported-fixture-schedule-20261019.test.cjs'
+      - '.github/workflows/player-full-imported-schedule-qa.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JS syntax
+        run: |
+          node --check app.js
+          node --check statistics.js
+      - name: Full-source import safety and historical result preservation
+        run: |
+          node --test tests/full-imported-fixture-schedule-20261019.test.cjs
+          node --test tests/protocol-match-order-20261019.test.cjs
