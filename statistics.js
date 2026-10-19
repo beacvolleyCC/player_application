@@ -241,7 +241,8 @@ function ccMountStatisticsAccordion_(){
   // the normal match cards for both default and alternate leagues.
   const matches=page.querySelector('.cc-mrsz-player-league-matches');
   const table=page.querySelector('.standings-split');
-  if(!matches&&!table)return;
+  // Even a league with no saved table or fixtures must keep the statistics entry visible.
+  // Show explicit missing-data coverage rather than silently hiding the whole module.
   const details=document.createElement('details');
   details.id='ccStatsAccordion';
   details.className='cc-stats-accordion';
@@ -249,7 +250,8 @@ function ccMountStatisticsAccordion_(){
   details.innerHTML='<summary title="Mentett eredmények alapján; egyes bajnoki adatok részlegesek lehetnek."><span>Statisztikák</span><span class="cc-stats-chevron" aria-hidden="true"></span></summary>'+
     '<div id="statisticsContent" class="cc-statistics-page-content"></div>';
   if(matches)matches.before(details);
-  else table.insertAdjacentElement('afterend',details);
+  else if(table)table.insertAdjacentElement('afterend',details);
+  else page.appendChild(details);
   details.addEventListener('toggle',()=>{
     if(!details.isConnected)return;
     ccStatsExpanded_=details.open;
