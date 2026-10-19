@@ -2472,7 +2472,7 @@ function ccPlayerVerifiedUserSchedule_(all){
   const kind=String(m?._ccSourceKind||'');
   if(!allowed.includes(league)||m?._ccUserSupplied!==true||m?._ccSourceSystem!=='user'||
    m?.season!=='2026/27'||!key.startsWith('ui20261018:')||keys.has(key)||
-   !['fixture','result'].includes(kind)||!/^2026-\d\d-\d\d|^2027-\d\d-\d\d/.test(String(m?.startsAt||''))||
+   !['fixture','result'].includes(kind)||!/^202[67]-\d\d-\d\d(?:T|$)/.test(String(m?.startsAt||''))||
    !ccPlayerMatchTeamKey_(m.homeName)||!ccPlayerMatchTeamKey_(m.awayName))return false;
   keys.add(key);counts.set(league,(counts.get(league)||0)+1);
   if(kind==='result'){
@@ -2705,8 +2705,8 @@ function ccPlayerBindProtocols_(){
 }
 function ccPlayerScoreboardHtml_(m){
  const kick=ccMrszPlayerLocalKickoff_(m.startsAt),home=String(m.homeName||''),away=String(m.awayName||'');
- const score=m.homeSets!=null&&m.awaySets!=null&&Number.isInteger(Number(m.homeSets))&&Number.isInteger(Number(m.awaySets))&&Number(m.homeSets)+Number(m.awaySets)>0
-  ?Number(m.homeSets)+' – '+Number(m.awaySets):'VS.';
+ const score=m.__ccResultConflict?'Ellenőrzendő':(m.status==='postponed'?'Halasztva':null)|| (m.homeSets!=null&&m.awaySets!=null&&Number.isInteger(Number(m.homeSets))&&Number.isInteger(Number(m.awaySets))&&Number(m.homeSets)+Number(m.awaySets)>0
+  ?Number(m.homeSets)+' – '+Number(m.awaySets):'VS.');
  const sets=Array.isArray(m.setScores)?m.setScores.filter(x=>x&&x.home!=null&&x.away!=null)
   .map(x=>Number(x.home)+':'+Number(x.away)).join(' · '):'';
  const protocol=!!m.matchCode&&Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2;
