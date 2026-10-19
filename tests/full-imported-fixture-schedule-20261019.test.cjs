@@ -81,12 +81,12 @@ test('Inconsistent completed result is flagged for human review, not auto-counte
  assert.ok(selected.some(x=>x.__ccResultConflict===true));
  assert.ok(stats.includes('!m.__ccResultConflict'));
 });
-test('Partial payload falls back to legacy source instead of hiding all matches',()=>{
+test('Partial payload preserves previously verified October 19 move even when the full feed fails',()=>{
  const rows=full().slice(0,80),legacy={competitionLabel:group,
   homeName:'BEAC',awayName:'PDSE',startsAt:'2026-10-12T19:30:00',
   homeSets:null,awaySets:null};
  ctx.ccMrszPlayerPhoto_={userMatches:rows,matches:[],fixtures:[legacy],sourceMatches:[],tables:[]};
  const selected=ctx.ccMrszPlayerAllLeagueMatches_(group,false);
  assert.equal(selected.length,1);
- assert.equal(ctx.ccMrszPlayerLocalKickoff_(selected[0].startsAt).date,'2026-10-12');
+ assert.equal(ctx.ccMrszPlayerLocalKickoff_(selected[0].startsAt).date,'2026-10-19');
 });
