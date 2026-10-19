@@ -2293,9 +2293,13 @@ let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-pl
 function ccPlayerLeagueCatalog_(){
  // This is the Player's authorised VISIBILITY filter, not the underlying
  // league source catalog (which remains shared with Manager).
+ const full=ccPlayerVerifiedUserSchedule_(ccMrszPlayerPhoto_.userMatches);
+ const records=full?ccMrszPlayerPhoto_.userMatches:[];
  const all=window.CCCompetitionContextCatalog?.build({
-  season:'2026/27',fixtures:ccMrszPlayerPhoto_.fixtures,
-  matches:ccMrszPlayerPhoto_.matches,tables:ccMrszPlayerPhoto_.tables
+  season:'2026/27',
+  fixtures:full?records.filter(x=>x._ccSourceKind==='fixture'):ccMrszPlayerPhoto_.fixtures,
+  matches:full?records.filter(x=>x._ccSourceKind==='result'):ccMrszPlayerPhoto_.matches,
+  tables:ccMrszPlayerPhoto_.tables
  })||[];
  const women1=['Női Budapest I. osztály'];
  const women2=['Női Budapest II. osztály – A csoport','Női Budapest II. osztály – B csoport'];
