@@ -191,3 +191,18 @@
 /* Keep match cards inset instead of filling the outer league panel edge to edge. */
 #standingsView .cc-mrsz-player-league-matches .standings-match-list{box-sizing:border-box;width:calc(100% - 20px)!important;margin:0 10px 10px;min-width:0!important}
 @media(max-width:440px){#standingsView .cc-mrsz-player-league-matches .standings-match-list{width:calc(100% - 12px)!important;margin:0 6px 6px}}
+
+/* All four statistics sections must remain visible even on narrow iPhones. */
+#standingsView .cc-stats-tab-scroll{overflow:visible}
+#standingsView .cc-stats-tabs{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;min-width:0;
+}
+#standingsView .cc-stats-tabs button{
+ min-width:0;padding:8px 3px;font-size:10px;line-height:1.3;
+ white-space:normal;overflow-wrap:anywhere;
+}
+#standingsView .cc-stats-coverage{
+ padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+ line-height:1.5;
+}
+#standingsView .cc-stats-coverage strong{color:var(--black)}
