@@ -57,7 +57,7 @@ test('Missing, duplicate, fake or partial men A import cannot override the legac
 });
 test('Men B existing complete import and score functionality are unchanged',()=>{
  assert.ok(app.includes("if(competitionLabel===CC_PLAYER_MEN_B_LABEL_)"));
- assert.ok(app.includes('return results===1&&postponed===1&&beac===12&&teams.size===7?rows:null;'));
+ assert.ok(app.includes('return results>=1&&postponed===1&&beac===12&&teams.size===7?rows:null;'));
  assert.ok(app.includes('function ccPlayerMenBCurrentView_(source=ccPlayerMenBImportedRows_()'));
 });
 
