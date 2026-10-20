@@ -2336,7 +2336,7 @@ async function ccLoadMrszPlayerPhoto_(){
   if(ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.loading||!ccSupabase||!SUPABASE_ENABLED)return;
   ccMrszPlayerPhoto_.loading=true;
   try{
-    const [{data,error},{data:sourceMatches,error:sourceError},{data:userMatches,error:userError}]=await Promise.all([ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v2'),ccSupabase.rpc('cc_player_competition_source_matches_effective_v1'),ccSupabase.rpc('cc_player_competition_user_schedule_v1').catch(err=>({data:null,error:err}))]);
+    const [{data,error},{data:sourceMatches,error:sourceError},{data:userMatches,error:userError}]=await Promise.all([ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v2'),ccSupabase.rpc('cc_player_competition_source_matches_effective_v1'),Promise.resolve(ccSupabase.rpc('cc_player_competition_user_schedule_v1')).catch(err=>({data:null,error:err}))]);
     if(error)throw error;
     if(sourceError)throw sourceError;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
@@ -3938,7 +3938,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23a').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23b').catch(()=>{}));
 }
 
 
@@ -4345,7 +4345,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23a');
+    return await navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23b');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
