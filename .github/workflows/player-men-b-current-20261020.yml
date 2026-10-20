@@ -1,0 +1,33 @@
+name: Player men's B current fixtures and standings QA
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/player-men-b-restore-20261020.test.cjs'
+      - '.github/workflows/player-men-b-current-20261020.yml'
+  push:
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/player-men-b-restore-20261020.test.cjs'
+      - '.github/workflows/player-men-b-current-20261020.yml'
+  workflow_dispatch:
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Player JavaScript
+        run: node --check app.js
+      - name: Restore seven-team men B and check score/source safety
+        run: |
+          node --test tests/player-men-b-restore-20261020.test.cjs
+          node --test tests/protocol-match-order-20261019.test.cjs

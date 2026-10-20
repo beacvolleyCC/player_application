@@ -101,12 +101,12 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- assert.ok(html.includes('styles.css?v=20261017-clean-stats-v17'));
- assert.ok(html.includes('statistics.css?v=20261018-match-overrides-v20'));
- assert.ok(html.includes('app.js?v=20261017-clean-stats-v17'));
- assert.ok(html.includes('statistics.js?v=20261018-match-overrides-v20'));
+ const assetVersion=html.match(/app\.js\?v=([^"]+)/)?.[1];
+ assert.ok(assetVersion?.startsWith('20261020-men-b-seven-team-'));
+ for(const asset of ['styles.css','statistics.css','app.js','statistics.js'])
+  assert.ok(html.includes(asset+'?v='+assetVersion),asset+' cache must match');
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes("club-control-player-20261018-match-overrides-v20"));
+ assert.ok(sw.includes('club-control-player-'+assetVersion));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -352,8 +352,10 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('ccStatsPlayerRows_'));
  assert.ok(stats.includes('>–</th>')); // compact column heading, with full semantics preserved in the title
  assert.ok(stats.includes('nem bizonyít tényleges pályára lépést'));
- assert.ok(sw.includes("'./statistics.js?v=20261018-match-overrides-v20'"));
- assert.ok(sw.includes("'./statistics.css?v=20261018-match-overrides-v20'"));
+ const version=doc.match(/app\.js\?v=([^"]+)/)?.[1];
+ assert.ok(version);
+ assert.ok(sw.includes("'./statistics.js?v="+version+"'"));
+ assert.ok(sw.includes("'./statistics.css?v="+version+"'"));
  assert.ok(stats.includes('ccPlayerMatchTeamKey_'));
  assert.ok(stats.includes('ccPlayerProtocolProfileUrl_(p.profileUrl)'));
  assert.ok(!stats.includes('p_szemely_kod='));
