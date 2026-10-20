@@ -101,7 +101,7 @@ test('mobile league match cards display readable set points on their own grid ro
 test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>{
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
- const assetVersion=html.match(/app\\.js\\?v=([^"]+)/)?.[1];
+ const assetVersion=html.match(/app\.js\?v=([^"]+)/)?.[1];
  assert.ok(assetVersion?.startsWith('20261020-men-b-seven-team-'));
  for(const asset of ['styles.css','statistics.css','app.js','statistics.js'])
   assert.ok(html.includes(asset+'?v='+assetVersion),asset+' cache must match');
@@ -352,7 +352,7 @@ test('Player statistics use the recorded-results dataset and distinguish nominat
  assert.ok(stats.includes('ccStatsPlayerRows_'));
  assert.ok(stats.includes('>–</th>')); // compact column heading, with full semantics preserved in the title
  assert.ok(stats.includes('nem bizonyít tényleges pályára lépést'));
- const version=doc.match(/app\\.js\\?v=([^"]+)/)?.[1];
+ const version=doc.match(/app\.js\?v=([^"]+)/)?.[1];
  assert.ok(version);
  assert.ok(sw.includes("'./statistics.js?v="+version+"'"));
  assert.ok(sw.includes("'./statistics.css?v="+version+"'"));
