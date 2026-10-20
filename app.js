@@ -2301,9 +2301,13 @@ let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-pl
 function ccPlayerLeagueCatalog_(){
  // This is the Player's authorised VISIBILITY filter, not the underlying
  // league source catalog (which remains shared with Manager).
+ const full=ccPlayerVerifiedUserSchedule_(ccMrszPlayerPhoto_.userMatches);
+ const records=full?ccMrszPlayerPhoto_.userMatches:[];
  const all=window.CCCompetitionContextCatalog?.build({
-  season:'2026/27',fixtures:ccMrszPlayerPhoto_.fixtures,
-  matches:ccMrszPlayerPhoto_.matches,tables:ccMrszPlayerPhoto_.tables
+  season:'2026/27',
+  fixtures:full?records.filter(x=>x._ccSourceKind==='fixture'):ccMrszPlayerPhoto_.fixtures,
+  matches:full?records.filter(x=>x._ccSourceKind==='result'):ccMrszPlayerPhoto_.matches,
+  tables:ccMrszPlayerPhoto_.tables
  })||[];
  const women1=['Női Budapest I. osztály'];
  const women2=['Női Budapest II. osztály – A csoport','Női Budapest II. osztály – B csoport'];
@@ -2579,6 +2583,11 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
   const current=ccPlayerMenBImportedRows_();
   if(current)return ccPlayerMenBMatches_(current);
  }
+ // Only a complete and identity-validated five-league source replaces legacy schedules.
+ if(ccPlayerVerifiedUserSchedule_(ccMrszPlayerPhoto_.userMatches)){
+  const canon=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
+  return ccPlayerMergedFullUserSchedule_(competitionLabel,canon);
+ }
  const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const brsz=(ccMrszPlayerPhoto_.sourceMatches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
@@ -2606,6 +2615,81 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  for(const m of snapshot)add(m,3);
  for(const m of corrections)add(m,4);
  return [...unique.values()].map(entry=>entry.m).sort((a,b)=>ccPlayerMatchListSort_(a,b));
+}
+
+// Import snapshot is authoritative for the 2026/27 fixture calendar only after
+// checking that all five competition groups arrived as one complete RPC payload.
+// The saved official RESULT rows remain available independently for audit.
+const CC_PLAYER_IMPORT_MIN_COUNTS_=Object.freeze({
+ 'Férfi Budapest I. osztály – A csoport':40,
+ 'Férfi Budapest I. osztály – B csoport':40,
+ 'Női Budapest I. osztály':125,
+ 'Női Budapest II. osztály – A csoport':40,
+ 'Női Budapest II. osztály – B csoport':40
+});
+function ccPlayerVerifiedUserSchedule_(all){
+ if(!Array.isArray(all)||all.length!==300)return false;
+ const keys=new Set(),counts=new Map(),allowed=Object.keys(CC_PLAYER_IMPORT_MIN_COUNTS_);
+ let results=0;
+ for(const m of all){
+  const league=String(m?.competitionLabel||''),key=String(m?.sourceMatchKey||m?._ccSourceKey||'');
+  const kind=String(m?._ccSourceKind||'');
+  const validKickoff=/^202[67]-\d\d-\d\d(?:T|$)/.test(String(m?.startsAt||''));
+  // LIVE has five undated postponed fixtures; never invent a kickoff time.
+  const undatedPostponed=kind==='fixture'&&String(m?.status)==='postponed'&&!String(m?.startsAt??'').trim();
+  if(!allowed.includes(league)||m?._ccUserSupplied!==true||m?._ccSourceSystem!=='user'||
+   m?.season!=='2026/27'||!key.startsWith('ui20261018:')||keys.has(key)||
+   !['fixture','result'].includes(kind)||(!validKickoff&&!undatedPostponed)||
+   !ccPlayerMatchTeamKey_(m.homeName)||!ccPlayerMatchTeamKey_(m.awayName))return false;
+  keys.add(key);counts.set(league,(counts.get(league)||0)+1);
+  if(kind==='result'){
+   if(!ccPlayerCompletedResult_(m))return false;
+   results++;
+  }
+ }
+ return results===8&&allowed.every(l=>(counts.get(l)||0)==={'Férfi Budapest I. osztály – A csoport':42,'Férfi Budapest I. osztály – B csoport':42,'Női Budapest I. osztály':131,'Női Budapest II. osztály – A csoport':42,'Női Budapest II. osztály – B csoport':43}[l]);
+}
+function ccPlayerCompletedResult_(m){
+ if(m?.homeSets==null||m?.awaySets==null)return false;
+ const h=Number(m.homeSets),a=Number(m.awaySets);
+ return Number.isInteger(h)&&Number.isInteger(a)&&Math.max(h,a)===3&&Math.min(h,a)>=0&&Math.min(h,a)<=2;
+}
+function ccPlayerUserFixturePairKey_(m){
+ const date=ccMrszPlayerLocalKickoff_(m?.startsAt).date;
+ return date+'|'+ccPlayerMatchTeamKey_(m?.homeName)+'|'+ccPlayerMatchTeamKey_(m?.awayName);
+}
+function ccPlayerMergedFullUserSchedule_(league,canon=[]){
+ const imported=(ccMrszPlayerPhoto_.userMatches||[]).filter(m=>m.competitionLabel===league);
+ const foundResults=[
+  ...(ccMrszPlayerPhoto_.sourceMatches||[]).filter(m=>m.competitionLabel===league),
+  ...canon.filter(m=>m.competitionLabel===league),
+  ...(ccMrszPlayerPhoto_.matches||[]).filter(m=>m.competitionLabel===league)
+ ].filter(ccPlayerCompletedResult_);
+ const scored=new Map(),conflicts=new Set();
+ const record=(m,priority)=>{
+  const k=ccPlayerUserFixturePairKey_(m),previous=scored.get(k);
+  if(previous){
+   if(Number(m.homeSets)!==Number(previous.m.homeSets)||Number(m.awaySets)!==Number(previous.m.awaySets))
+    conflicts.add(k);
+   if(priority>previous.priority)scored.set(k,{m,priority});
+  }else scored.set(k,{m,priority});
+ };
+ foundResults.forEach((m,i)=>record(m,i<(ccMrszPlayerPhoto_.sourceMatches||[]).length?1:2));
+ imported.filter(ccPlayerCompletedResult_).forEach(m=>record(m,3));
+ // An MRSZ snapshot with an individual protocol is the strongest representation
+ // of a matching finished fixture; preserve its roster and source link.
+ (ccMrszPlayerPhoto_.matches||[]).filter(m=>m.competitionLabel===league&&ccPlayerCompletedResult_(m))
+  .forEach(m=>record(m,4));
+ const merged=[];
+ for(const m of imported){
+  const k=ccPlayerUserFixturePairKey_(m);
+  if(scored.has(k))continue; // keep one record, preserve reviewed conflicts on scored row
+  merged.push(m);
+ }
+ for(const [key,{m}] of scored){
+  merged.push(conflicts.has(key)?{...m,__ccResultConflict:true}:m);
+ }
+ return merged.sort((a,b)=>ccPlayerMatchListSort_(a,b));
 }
 
 // Preserve unconfirmed BEAC self-fixtures in the source but do not advertise them as matches.
@@ -3973,7 +4057,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-men-a-import-v23c').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-all-fixtures-v24a').catch(()=>{}));
 }
 
 
@@ -4380,7 +4464,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-men-a-import-v23c');
+    return await navigator.serviceWorker.register('./sw.js?v=20261020-all-fixtures-v24a');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
