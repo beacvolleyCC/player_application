@@ -102,7 +102,7 @@ test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
  const assetVersion=html.match(/app\.js\?v=([^"]+)/)?.[1];
- assert.ok(assetVersion?.startsWith('20261020-men-a-import-'));
+ assert.ok(assetVersion?.startsWith('20261020-all-fixtures-'));
  for(const asset of ['styles.css','statistics.css','app.js','statistics.js'])
   assert.ok(html.includes(asset+'?v='+assetVersion),asset+' cache must match');
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));

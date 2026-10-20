@@ -25,10 +25,10 @@ function buildPlayer(kind='men',storage=memory()){
  const begin=app.indexOf('let ccPlayerLeagueSelection_=');
  const end=app.indexOf('async function ccLoadMrszPlayerPhoto_(',begin);
  assert.ok(begin>=0&&end>begin);
- const funcs=new Function('window','localStorage','escapeHtml_','ccMrszPlayerPhoto_','ccMrszPlayerIsMensTeam_','ccMrszPlayerIsWomen2_',
+ const funcs=new Function('window','localStorage','escapeHtml_','ccMrszPlayerPhoto_','ccMrszPlayerIsMensTeam_','ccMrszPlayerIsWomen2_','ccPlayerVerifiedUserSchedule_',
    "let ccMrszPlayerMenGroup_='B';"+app.slice(begin,end)+
    ';return {ccPlayerLeagueCatalog_,ccPlayerLeagueCurrent_,ccPlayerLeagueDefault_,ccPlayerLeagueSelectorHtml_,ccPlayerClearLeagueSelection_};')(
-  {CCCompetitionContextCatalog:catalog},storage,x=>String(x??''),snapshot,()=>kind==='men',()=>kind==='women2');
+  {CCCompetitionContextCatalog:catalog},storage,x=>String(x??''),snapshot,()=>kind==='men',()=>kind==='women2',()=>false);
  return{funcs,storage};
 }
 test('Men see only Budapest I/A and I/B groups and start on their group B',()=>{
