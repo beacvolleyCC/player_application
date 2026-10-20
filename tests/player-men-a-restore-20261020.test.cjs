@@ -60,3 +60,10 @@ test('Men B existing complete import and score functionality are unchanged',()=>
  assert.ok(app.includes('return results===1&&postponed===1&&beac===12&&teams.size===7?rows:null;'));
  assert.ok(app.includes('function ccPlayerMenBCurrentView_(source=ccPlayerMenBImportedRows_()'));
 });
+
+test('A and B shared preview avoids large blank info panels and restores readable horizontal stats',()=>{
+ const css=fs.readFileSync('styles.css','utf8');
+ assert.match(css,/#standingsView \.cc-player-men-b-current>\.standings-state\{[^}]*min-height:0 !important/);
+ assert.match(css,/#standingsView \.cc-player-men-b-current \.standings-table-stats\{[^}]*min-width:420px !important/);
+ assert.match(css,/#standingsView \.cc-player-men-b-current \.standings-scroll\{[^}]*overflow-x:auto !important/);
+});

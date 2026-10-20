@@ -1,9 +1,9 @@
-const CACHE='club-control-player-20261020-men-a-import-v23c';
+const CACHE='club-control-player-20261020-compact-standings-v23d';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
-  './statistics.js?v=20261020-men-a-import-v23c',
-  './statistics.css?v=20261020-men-a-import-v23c',
+  './statistics.js?v=20261020-compact-standings-v23d',
+  './statistics.css?v=20261020-compact-standings-v23d',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
