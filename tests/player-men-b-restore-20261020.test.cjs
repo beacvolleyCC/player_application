@@ -40,7 +40,7 @@ const ctx=vm.createContext({Date,Map,Set,Array,Object,String,Number,Intl,JSON,
 });
 vm.runInContext(section('function ccMrszPlayerLocalKickoff_(', 'function ccMrszPlayerFixtureKey_('),ctx);
 vm.runInContext(section('function ccPlayerMatchTeamKey_(', 'function ccPlayerResultsOnlyStandings_('),ctx);
-vm.runInContext(section('function ccPlayerMatchListSort_(', 'function ccMrszPlayerAllLeagueMatches_('),ctx);
+vm.runInContext(section('function ccPlayerBudapestToday_(', 'function ccMrszPlayerAllLeagueMatches_('),ctx);
 vm.runInContext(section('function ccPlayerScoreboardHtml_(', 'function ccMrszPlayerLeagueScheduleHtml_('),ctx);
 vm.runInContext('this.qa={check:ccPlayerMenBImportedRows_,matches:ccPlayerMenBMatches_,view:ccPlayerMenBCurrentView_,score:ccPlayerScoreboardHtml_};',ctx);
 const qa=ctx.qa;
