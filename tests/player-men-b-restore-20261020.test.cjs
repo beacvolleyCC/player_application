@@ -119,7 +119,7 @@ test('PWA cache version matches script and worker',()=>{
  assert.ok(app.includes('sw.js?v=20261020-official-protocol-v23e'));
 });
 
-test('Two real men's B results must not make the seven-team league disappear',()=>{
+test("Two real men's B results must not make the seven-team league disappear",()=>{
  const data=imported(),second=data.find(m=>m.homeName==='BEAC'&&m.awayName==='PDSE');
  assert.ok(second);
  second.status='played';second._ccSourceKind='result';second.homeSets=3;second.awaySets=0;
