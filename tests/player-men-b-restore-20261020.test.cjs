@@ -21,7 +21,7 @@ function imported(){
   rows.push({competitionLabel:MEN,sourceMatchKey:key,_ccSourceKey:key,_ccSourceSystem:'user',
    _ccUserSupplied:true,_ccSourceKind:isScore?'result':'fixture',season:'2026/27',
    homeName:names[i],awayName:names[j],
-   startsAt:isScore?'2026-10-15':isPost?'2026-12-30':isPdse?'2026-10-19T19:30:00':date+'T20:00:00',
+   startsAt:isScore?'2026-10-15':isPost?null:isPdse?'2026-10-19T19:30:00':date+'T20:00:00',
    status:isScore?'played':isPost?'postponed':'scheduled',
    homeSets:isScore?3:null,awaySets:isScore?0:null,venue:isPdse?'Bogdánfy':'Teszt'});
  }
@@ -96,10 +96,17 @@ test('A contradictory saved result does not enter the provisional win count',()=
  assert.ok(resultText.includes('Ellenőrzendő'));
  assert.ok(!resultText.includes('3 – 0'));
 });
-test('Postponed matches show a postponed label, not a fictitious 0–0',()=>{
- const item=imported().find(m=>m.status==='postponed');
+test('Undated postponed RPC record is accepted without inventing a match time',()=>{
+ const data=imported(),item=data.find(m=>m.status==='postponed');
+ assert.equal(item.startsAt,null);
+ ctx.ccMrszPlayerPhoto_={userMatches:data,sourceMatches:[],matches:[]};
+ assert.equal(qa.check().length,42);
  assert.ok(qa.score(item).includes('Halasztva'));
+ assert.ok(qa.score(item).includes('Időpont nélkül'));
  assert.ok(!qa.score(item).includes('0 – 0'));
+ const unsafe=imported();unsafe.find(m=>m.status==='postponed').status='scheduled';
+ ctx.ccMrszPlayerPhoto_={userMatches:unsafe,sourceMatches:[],matches:[]};
+ assert.equal(qa.check(),null,'An undated scheduled fixture must be rejected');
 });
 test('Other competitions keep existing standings and matching paths',()=>{
  assert.ok(app.includes("if(men&&label===CC_PLAYER_MEN_B_LABEL_)"));
@@ -107,7 +114,7 @@ test('Other competitions keep existing standings and matching paths',()=>{
  assert.ok(app.includes("const men=['Férfi Budapest I. osztály – A csoport','Férfi Budapest I. osztály – B csoport']"));
 });
 test('PWA cache version matches script and worker',()=>{
- assert.ok(html.includes('app.js?v=20261020-men-b-seven-team-v23'));
- assert.ok(sw.includes('club-control-player-20261020-men-b-seven-team-v23'));
- assert.ok(app.includes('sw.js?v=20261020-men-b-seven-team-v23'));
+ assert.ok(html.includes('app.js?v=20261020-men-b-seven-team-v23a'));
+ assert.ok(sw.includes('club-control-player-20261020-men-b-seven-team-v23a'));
+ assert.ok(app.includes('sw.js?v=20261020-men-b-seven-team-v23a'));
 });

@@ -1,9 +1,9 @@
-const CACHE='club-control-player-20261020-men-b-seven-team-v23';
+const CACHE='club-control-player-20261020-men-b-seven-team-v23a';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
-  './statistics.js?v=20261020-men-b-seven-team-v23',
-  './statistics.css?v=20261020-men-b-seven-team-v23',
+  './statistics.js?v=20261020-men-b-seven-team-v23a',
+  './statistics.css?v=20261020-men-b-seven-team-v23a',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
