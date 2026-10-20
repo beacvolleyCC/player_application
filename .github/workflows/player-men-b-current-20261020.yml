@@ -7,6 +7,7 @@ on:
       - 'sw.js'
       - 'tests/player-men-b-restore-20261020.test.cjs'
       - 'tests/player-competition-rpc-thenable-20261020.test.cjs'
+      - 'tests/player-men-a-restore-20261020.test.cjs'
       - '.github/workflows/player-men-b-current-20261020.yml'
   push:
     paths:
@@ -32,4 +33,5 @@ jobs:
         run: |
           node --test tests/player-men-b-restore-20261020.test.cjs
           node --test tests/player-competition-rpc-thenable-20261020.test.cjs
+          node --test tests/player-men-a-restore-20261020.test.cjs
           node --test tests/protocol-match-order-20261019.test.cjs
