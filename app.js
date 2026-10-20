@@ -2435,8 +2435,12 @@ function ccPlayerMenBImportedRows_(){
   const key=String(m?.sourceMatchKey||m?._ccSourceKey||'');
   const day=ccMrszPlayerLocalKickoff_(m?.startsAt).date;
   const home=ccPlayerMatchTeamKey_(m?.homeName),away=ccPlayerMatchTeamKey_(m?.awayName);
+  // An undated postponed fixture is valid; never manufacture a kickoff date.
+  // Non-postponed records must still have an actual 2026/27 date.
+  const validDay=/^202[67]-\d\d-\d\d$/.test(day);
+  const undatedPostponed=String(m?.status)==='postponed'&&!String(m?.startsAt??'').trim();
   if(m?._ccSourceSystem!=='user'||m?._ccUserSupplied!==true||m?.season!=='2026/27'
-    ||!key.startsWith('ui20261018:')||keys.has(key)||!/^202[67]-\d\d-\d\d$/.test(day)
+    ||!key.startsWith('ui20261018:')||keys.has(key)||(!validDay&&!undatedPostponed)
     ||!home||!away||home===away||!['fixture','result'].includes(m?._ccSourceKind))
    return null;
   keys.add(key);teams.add(home);teams.add(away);
@@ -3934,7 +3938,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23a').catch(()=>{}));
 }
 
 
@@ -4341,7 +4345,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23');
+    return await navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23a');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
