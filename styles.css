@@ -10574,3 +10574,65 @@ body.dark{
 .player-protocol-badges .player-roster-marker.is-captain{order:1}
 .player-protocol-badges .player-roster-marker.is-libero{order:2}
 .player-protocol-badges .player-roster-marker.is-no-entry{order:98}
+
+
+/* v23d: verified seven-team men's A/B snapshots need a compact, readable panel.
+   Keep the match schedule below the table and allow horizontal stat scrolling. */
+#standingsView .cc-player-men-b-current>.standings-state{
+  min-height:0 !important;
+  display:grid !important;
+  place-content:initial !important;
+  gap:4px !important;
+  padding:5px 9px 12px !important;
+  text-align:left !important;
+}
+#standingsView .cc-player-men-b-current>.standings-state b{
+  font-size:12px !important;
+}
+#standingsView .cc-player-men-b-current>.standings-state span{
+  display:block !important;
+  font-size:11px !important;
+  line-height:1.4 !important;
+}
+#standingsView .cc-player-men-b-current .standings-headline{
+  padding:5px 6px 8px !important;
+}
+#standingsView .cc-player-men-b-current .standings-split{
+  --standings-left:clamp(138px,36vw,164px) !important;
+}
+#standingsView .cc-player-men-b-current .standings-table-fixed .team{
+  padding-left:5px !important;
+}
+#standingsView .cc-player-men-b-current .standings-team-name{
+  font-size:10px !important;
+}
+#standingsView .cc-player-men-b-current .standings-table-stats{
+  min-width:420px !important;
+  width:420px !important;
+  table-layout:fixed !important;
+}
+#standingsView .cc-player-men-b-current .standings-table-stats thead th{
+  font-size:9px !important;
+  letter-spacing:0 !important;
+}
+#standingsView .cc-player-men-b-current .standings-table-stats tbody td{
+  font-size:11px !important;
+}
+#standingsView .cc-player-men-b-current .standings-table th,
+#standingsView .cc-player-men-b-current .standings-table td{
+  height:38px !important;
+  min-height:38px !important;
+}
+#standingsView .cc-player-men-b-current .standings-table thead th{
+  height:34px !important;
+  min-height:34px !important;
+}
+#standingsView .cc-player-men-b-current .standings-scroll{
+  overflow-x:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+@media(max-width:370px){
+  #standingsView .cc-player-men-b-current .standings-split{
+    --standings-left:132px !important;
+  }
+}
