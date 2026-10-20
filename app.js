@@ -2483,7 +2483,7 @@ function ccPlayerMenBImportedRows_(){
    postponed++;
   }
  }
- return results===1&&postponed===1&&beac===12&&teams.size===7?rows:null;
+ return results>=1&&postponed===1&&beac===12&&teams.size===7?rows:null;
 }
 function ccPlayerMenBMatchKey_(m){
  return ccMrszPlayerLocalKickoff_(m?.startsAt).date+'|'
@@ -2583,7 +2583,7 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const brsz=(ccMrszPlayerPhoto_.sourceMatches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
  const corrections=(ccMrszPlayerPhoto_.userMatches||[])
-   .filter(m=>ccPlayerVerifiedReschedule_(m,competitionLabel));
+   .filter(m=>ccPlayerVerifiedReschedule_(m,competitionLabel)||!!ccPlayerOfficialMatchReportUrl_(m));
  const obsolete=m=>!((m?.homeSets!=null)||(m?.awaySets!=null)) && corrections.some(v=>{
   const correction=ccPlayerVerifiedReschedule_(v,competitionLabel);
   return correction && ccMrszPlayerLocalKickoff_(m?.startsAt).date===correction.from
@@ -2784,6 +2784,24 @@ function ccPlayerBindProtocols_(){
   card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('a,button')){event.preventDefault();open()}});
  });
 }
+// Two official match records supplied as MRSZ Back Office reports, 20 Oct 2026.
+// A source key alone is not evidence: the current imported score and opponents
+// must also match the original verified report before we offer a report link.
+const CC_PLAYER_OFFICIAL_PROTOCOLS_={
+ 'ui20261018:menB:beac:pdse:1':{league:'Férfi Budapest I. osztály – B csoport',date:'2026-10-19',home:'beac',away:'pdse',hs:3,as:0,code:'2699'},
+ 'ui20261018:womenI:panoramase:kresc:1':{league:'Női Budapest I. osztály',date:'2026-10-19',home:'panoramase',away:'kresc',hs:0,as:3,code:'2677'}
+};
+function ccPlayerOfficialMatchReportUrl_(m){
+ const key=String(m?.sourceMatchKey||m?._ccSourceKey||''),
+       evidence=CC_PLAYER_OFFICIAL_PROTOCOLS_[key];
+ if(!evidence||m?._ccSourceSystem!=='user'||m?._ccSourceKind!=='result'
+   ||String(m?.season)!=='2026/27'||String(m.competitionLabel)!==evidence.league
+   ||ccMrszPlayerLocalKickoff_(m.startsAt).date!==evidence.date
+   ||ccPlayerMatchTeamKey_(m.homeName)!==evidence.home
+   ||ccPlayerMatchTeamKey_(m.awayName)!==evidence.away
+   ||Number(m.homeSets)!==evidence.hs||Number(m.awaySets)!==evidence.as)return '';
+ return 'https://www.hunvolley.info/pr_00/_jegyzokonyv_terem/v01/jegyzokonyv_nyomtat.asp?p_merkozes_kod='+evidence.code+'&p_evad_kod=2026';
+}
 function ccPlayerScoreboardHtml_(m){
  const kick=ccMrszPlayerLocalKickoff_(m.startsAt),home=String(m.homeName||''),away=String(m.awayName||'');
  const score=m.__ccResultConflict?'Ellenőrzendő':String(m.status)==='postponed'?'Halasztva':(
@@ -2792,6 +2810,7 @@ function ccPlayerScoreboardHtml_(m){
  const sets=Array.isArray(m.setScores)?m.setScores.filter(x=>x&&x.home!=null&&x.away!=null)
   .map(x=>Number(x.home)+':'+Number(x.away)).join(' · '):'';
  const protocol=!!m.matchCode&&Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2;
+ const externalReport=ccPlayerOfficialMatchReportUrl_(m);
  return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+'"'
   +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
@@ -2801,6 +2820,7 @@ function ccPlayerScoreboardHtml_(m){
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
   +(sets?'<div class="player-match-sets">'+escapeHtml_(sets)+'</div>':'')+'</div>'
   +'<div class="player-match-footer"><span>'+escapeHtml_(m.venue||'Helyszín nincs megadva')+'</span>'
+  +(externalReport?'<a class="cc-player-official-report" href="'+escapeHtml_(externalReport)+'" target="_blank" rel="noopener noreferrer">Jegyzőkönyv ↗</a>':'')
   +'</div></article>';
 }
 function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
@@ -3973,7 +3993,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-compact-standings-v23d').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e').catch(()=>{}));
 }
 
 
@@ -4380,7 +4400,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-compact-standings-v23d');
+    return await navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){

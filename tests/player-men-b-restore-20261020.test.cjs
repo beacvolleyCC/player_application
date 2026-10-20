@@ -114,7 +114,22 @@ test('Other competitions keep existing standings and matching paths',()=>{
  assert.ok(app.includes("const men=['Férfi Budapest I. osztály – A csoport','Férfi Budapest I. osztály – B csoport']"));
 });
 test('PWA cache version matches script and worker',()=>{
- assert.ok(html.includes('app.js?v=20261020-compact-standings-v23d'));
- assert.ok(sw.includes('club-control-player-20261020-compact-standings-v23d'));
- assert.ok(app.includes('sw.js?v=20261020-compact-standings-v23d'));
+ assert.ok(html.includes('app.js?v=20261020-official-protocol-v23e'));
+ assert.ok(sw.includes('club-control-player-20261020-official-protocol-v23e'));
+ assert.ok(app.includes('sw.js?v=20261020-official-protocol-v23e'));
+});
+
+test('Two real men's B results must not make the seven-team league disappear',()=>{
+ const data=imported(),second=data.find(m=>m.homeName==='BEAC'&&m.awayName==='PDSE');
+ assert.ok(second);
+ second.status='played';second._ccSourceKind='result';second.homeSets=3;second.awaySets=0;
+ second.setScores=[{home:25,away:18},{home:25,away:23},{home:25,away:20}];
+ ctx.ccMrszPlayerPhoto_={userMatches:data,sourceMatches:[],matches:[]};
+ assert.equal(qa.check().length,42);
+ const h=qa.score(second);
+ assert.ok(h.includes('3 – 0'));
+ assert.ok(h.includes('25:18 · 25:23 · 25:20'));
+ assert.ok(h.includes('Jegyzőkönyv'));
+ const changed={...second,homeSets:0,awaySets:3};
+ assert.ok(!qa.score(changed).includes('Jegyzőkönyv'));
 });

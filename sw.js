@@ -1,9 +1,9 @@
-const CACHE='club-control-player-20261020-compact-standings-v23d';
+const CACHE='club-control-player-20261020-official-protocol-v23e';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
-  './statistics.js?v=20261020-compact-standings-v23d',
-  './statistics.css?v=20261020-compact-standings-v23d',
+  './statistics.js?v=20261020-official-protocol-v23e',
+  './statistics.css?v=20261020-official-protocol-v23e',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
