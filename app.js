@@ -2127,6 +2127,10 @@ function standingsDisplayRows_(rows){
 function renderCompetitionStandings_(){
   const men=ccMrszPlayerIsMensTeam_(),women2=ccMrszPlayerIsWomen2_(),women1=ccMrszPlayerIsWomenI_();
   const label=ccPlayerLeagueCurrent_(),externalLeague=label!==ccPlayerLeagueDefault_();
+  if(men&&label===CC_PLAYER_MEN_A_LABEL_){
+   const current=ccPlayerMenACurrentView_();
+   if(current)return current;
+  }
   if(men&&label===CC_PLAYER_MEN_B_LABEL_){
    const current=ccPlayerMenBCurrentView_();
    if(current)return current;
@@ -2422,6 +2426,31 @@ function ccPlayerMatchListSort_(a,b,day=ccPlayerBudapestToday_()){
  return pastA?-d:d;
 }
 
+const CC_PLAYER_MEN_A_LABEL_='Férfi Budapest I. osztály – A csoport';
+// Men's A has seven known squads and 42 rows in the LIVE user source,
+// but no saved federation standings. Show the actual schedule and provisional
+// results without manufacturing official ranks or competition points.
+function ccPlayerMenAImportedRows_(){
+ const rows=(ccMrszPlayerPhoto_.userMatches||[]).filter(m=>m?.competitionLabel===CC_PLAYER_MEN_A_LABEL_);
+ if(rows.length!==42)return null;
+ const keys=new Set(),teams=new Set();let results=0;
+ for(const m of rows){
+  const key=String(m?.sourceMatchKey||m?._ccSourceKey||'');
+  const home=ccPlayerMatchTeamKey_(m?.homeName),away=ccPlayerMatchTeamKey_(m?.awayName);
+  const day=ccMrszPlayerLocalKickoff_(m?.startsAt).date;
+  if(m?._ccSourceSystem!=='user'||m?._ccUserSupplied!==true||m?.season!=='2026/27'
+    ||!key.startsWith('ui20261018:menA:')||keys.has(key)
+    ||!/^202[67]-\d\d-\d\d$/.test(day)||!home||!away||home===away
+    ||m?.status==='postponed'||!['fixture','result'].includes(m?._ccSourceKind))return null;
+  keys.add(key);teams.add(home);teams.add(away);
+  if(home==='beac'||home==='beacii'||away==='beac'||away==='beacii')return null;
+  if(m._ccSourceKind==='result'){
+   if(!ccPlayerMenBCompleteScore_(m))return null;
+   results++;
+  }
+ }
+ return results===2&&teams.size===7?rows:null;
+}
 const CC_PLAYER_MEN_B_LABEL_='Férfi Budapest I. osztály – B csoport';
 // A previously saved BRSZ table has only six entrants and no played matches.
 // The 18 Oct user-provided source has the actual seven-team, 42-row group.
@@ -2466,12 +2495,12 @@ function ccPlayerMenBCompleteScore_(m){
   &&Number.isInteger(h)&&Number.isInteger(a)
   &&Math.max(h,a)===3&&Math.min(h,a)>=0&&Math.min(h,a)<=2;
 }
-function ccPlayerMenBMatches_(source){
+function ccPlayerMenBMatches_(source,league=CC_PLAYER_MEN_B_LABEL_){
  const originals=new Map(source.map(m=>[ccPlayerMenBMatchKey_(m),m]));
  const scored=[
   ...(ccMrszPlayerPhoto_.sourceMatches||[]),
   ...(ccMrszPlayerPhoto_.matches||[])
- ].filter(m=>m?.competitionLabel===CC_PLAYER_MEN_B_LABEL_&&ccPlayerMenBCompleteScore_(m));
+ ].filter(m=>m?.competitionLabel===league&&ccPlayerMenBCompleteScore_(m));
  const extra=[];
  for(const m of scored){
   const key=ccPlayerMenBMatchKey_(m),existing=originals.get(key);
@@ -2491,10 +2520,9 @@ function ccPlayerMenBMatches_(source){
  }
  return [...originals.values(),...extra].sort((a,b)=>ccPlayerMatchListSort_(a,b));
 }
-function ccPlayerMenBCurrentView_(){
- const source=ccPlayerMenBImportedRows_();
+function ccPlayerMenBCurrentView_(source=ccPlayerMenBImportedRows_(),league=CC_PLAYER_MEN_B_LABEL_){
  if(!source)return null;
- const list=ccPlayerMenBMatches_(source);
+ const list=ccPlayerMenBMatches_(source,league);
  const names=new Map();
  for(const m of source){
   for(const name of [m.homeName,m.awayName]){
@@ -2526,20 +2554,27 @@ function ccPlayerMenBCurrentView_(){
   +'</td><td>–</td><td>–</td><td>–</td></tr>').join('');
  return '<div class="competition-standings cc-player-men-b-current">'
    +'<div class="standings-headline"><div class="standings-context-title"><b>'
-   +escapeHtml_(CC_PLAYER_MEN_B_LABEL_)+'</b></div></div>'
+   +escapeHtml_(league)+'</b></div></div>'
    +'<div class="standings-state"><b>7 csapat · 2026/27</b><span>'
    +'A rögzített mérkőzések részleges eredményadatai láthatók, nem hivatalos tabella. '
    +'Helyezés és bajnoki pont csak ellenőrzött szövetségi tabellából jelenhet meg.</span></div>'
-   +'<div class="standings-split" role="region" aria-label="Férfi B csoport, részleges eredmények">'
+   +'<div class="standings-split" role="region" aria-label="'+escapeHtml_(league)+', részleges eredmények">'
    +'<div class="standings-fixed"><table class="standings-table standings-table-fixed"><thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead><tbody>'
    +fixed+'</tbody></table></div>'
    +'<div class="standings-scroll" tabindex="0"><table class="standings-table standings-table-stats"><thead><tr>'
    +'<th>M</th><th>GY</th><th>V</th><th class="points group-end">P</th><th>SZ</th><th>SZA</th><th>P</th><th>PA</th>'
    +'</tr></thead><tbody>'+cells+'</tbody></table></div></div>'
-   +ccMrszPlayerLeagueScheduleHtml_(CC_PLAYER_MEN_B_LABEL_,false)+'</div>';
+   +ccMrszPlayerLeagueScheduleHtml_(league,false)+'</div>';
+}
+function ccPlayerMenACurrentView_(){
+ return ccPlayerMenBCurrentView_(ccPlayerMenAImportedRows_(),CC_PLAYER_MEN_A_LABEL_);
 }
 
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
+ if(competitionLabel===CC_PLAYER_MEN_A_LABEL_){
+  const current=ccPlayerMenAImportedRows_();
+  if(current)return ccPlayerMenBMatches_(current,competitionLabel);
+ }
  if(competitionLabel===CC_PLAYER_MEN_B_LABEL_){
   const current=ccPlayerMenBImportedRows_();
   if(current)return ccPlayerMenBMatches_(current);
@@ -3938,7 +3973,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23b').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-men-a-import-v23c').catch(()=>{}));
 }
 
 
@@ -4345,7 +4380,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-men-b-seven-team-v23b');
+    return await navigator.serviceWorker.register('./sw.js?v=20261020-men-a-import-v23c');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){

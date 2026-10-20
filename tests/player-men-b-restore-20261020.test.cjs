@@ -114,7 +114,7 @@ test('Other competitions keep existing standings and matching paths',()=>{
  assert.ok(app.includes("const men=['Férfi Budapest I. osztály – A csoport','Férfi Budapest I. osztály – B csoport']"));
 });
 test('PWA cache version matches script and worker',()=>{
- assert.ok(html.includes('app.js?v=20261020-men-b-seven-team-v23b'));
- assert.ok(sw.includes('club-control-player-20261020-men-b-seven-team-v23b'));
- assert.ok(app.includes('sw.js?v=20261020-men-b-seven-team-v23b'));
+ assert.ok(html.includes('app.js?v=20261020-men-a-import-v23c'));
+ assert.ok(sw.includes('club-control-player-20261020-men-a-import-v23c'));
+ assert.ok(app.includes('sw.js?v=20261020-men-a-import-v23c'));
 });
