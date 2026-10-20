@@ -2127,6 +2127,10 @@ function standingsDisplayRows_(rows){
 function renderCompetitionStandings_(){
   const men=ccMrszPlayerIsMensTeam_(),women2=ccMrszPlayerIsWomen2_(),women1=ccMrszPlayerIsWomenI_();
   const label=ccPlayerLeagueCurrent_(),externalLeague=label!==ccPlayerLeagueDefault_();
+  if(men&&label===CC_PLAYER_MEN_B_LABEL_){
+   const current=ccPlayerMenBCurrentView_();
+   if(current)return current;
+  }
   if(externalLeague){
     if(!ccMrszPlayerPhoto_.loaded)return '<div class="standings-state">Mentett bajnokságok betöltése…</div>';
     if(ccMrszPlayerPhoto_.error)return '<div class="standings-state">'+escapeHtml_(ccMrszPlayerPhoto_.error)+'</div>';
@@ -2417,7 +2421,125 @@ function ccPlayerMatchListSort_(a,b,day=ccPlayerBudapestToday_()){
  const d=da.localeCompare(db);
  return pastA?-d:d;
 }
+
+const CC_PLAYER_MEN_B_LABEL_='Férfi Budapest I. osztály – B csoport';
+// A previously saved BRSZ table has only six entrants and no played matches.
+// The 18 Oct user-provided source has the actual seven-team, 42-row group.
+// Keep the standings explicitly provisional rather than granting a ranking.
+function ccPlayerMenBImportedRows_(){
+ const rows=(ccMrszPlayerPhoto_.userMatches||[]).filter(m=>m?.competitionLabel===CC_PLAYER_MEN_B_LABEL_);
+ if(rows.length!==42)return null;
+ const keys=new Set(),teams=new Set();
+ let results=0,postponed=0,beac=0;
+ for(const m of rows){
+  const key=String(m?.sourceMatchKey||m?._ccSourceKey||'');
+  const day=ccMrszPlayerLocalKickoff_(m?.startsAt).date;
+  const home=ccPlayerMatchTeamKey_(m?.homeName),away=ccPlayerMatchTeamKey_(m?.awayName);
+  if(m?._ccSourceSystem!=='user'||m?._ccUserSupplied!==true||m?.season!=='2026/27'
+    ||!key.startsWith('ui20261018:')||keys.has(key)||!/^202[67]-\d\d-\d\d$/.test(day)
+    ||!home||!away||home===away||!['fixture','result'].includes(m?._ccSourceKind))
+   return null;
+  keys.add(key);teams.add(home);teams.add(away);
+  if(home==='beac'||away==='beac')beac++;
+  if(m._ccSourceKind==='result'){
+   const h=Number(m.homeSets),a=Number(m.awaySets);
+   if(m.homeSets==null||m.awaySets==null||!Number.isInteger(h)||!Number.isInteger(a)
+     ||Math.max(h,a)!==3||Math.min(h,a)<0||Math.min(h,a)>2)return null;
+   results++;
+  }else if(String(m.status)==='postponed'){
+   postponed++;
+  }
+ }
+ return results===1&&postponed===1&&beac===12&&teams.size===7?rows:null;
+}
+function ccPlayerMenBMatchKey_(m){
+ return ccMrszPlayerLocalKickoff_(m?.startsAt).date+'|'
+  +ccPlayerMatchTeamKey_(m?.homeName)+'|'+ccPlayerMatchTeamKey_(m?.awayName);
+}
+function ccPlayerMenBCompleteScore_(m){
+ const h=Number(m?.homeSets),a=Number(m?.awaySets);
+ return m?.homeSets!=null&&m?.awaySets!=null
+  &&Number.isInteger(h)&&Number.isInteger(a)
+  &&Math.max(h,a)===3&&Math.min(h,a)>=0&&Math.min(h,a)<=2;
+}
+function ccPlayerMenBMatches_(source){
+ const originals=new Map(source.map(m=>[ccPlayerMenBMatchKey_(m),m]));
+ const scored=[
+  ...(ccMrszPlayerPhoto_.sourceMatches||[]),
+  ...(ccMrszPlayerPhoto_.matches||[])
+ ].filter(m=>m?.competitionLabel===CC_PLAYER_MEN_B_LABEL_&&ccPlayerMenBCompleteScore_(m));
+ const extra=[];
+ for(const m of scored){
+  const key=ccPlayerMenBMatchKey_(m),existing=originals.get(key);
+  if(!existing){if(!extra.some(v=>ccPlayerMenBMatchKey_(v)===key))extra.push(m);continue;}
+  if(ccPlayerMenBCompleteScore_(existing)
+    &&(Number(existing.homeSets)!==Number(m.homeSets)||Number(existing.awaySets)!==Number(m.awaySets))){
+    originals.set(key,{...existing,__ccResultConflict:true});
+    continue;
+  }
+  // A scored official MRSZ entry, when identical to the imported fixture, can
+  // supply a clickable protocol while retaining the imported date and venue.
+  if(m.matchCode&&Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2)
+   originals.set(key,{...existing,...m,startsAt:existing.startsAt,
+    venue:existing.venue||m.venue});
+  else if(!ccPlayerMenBCompleteScore_(existing))
+   originals.set(key,{...existing,homeSets:m.homeSets,awaySets:m.awaySets,setScores:m.setScores});
+ }
+ return [...originals.values(),...extra].sort((a,b)=>ccPlayerMatchListSort_(a,b));
+}
+function ccPlayerMenBCurrentView_(){
+ const source=ccPlayerMenBImportedRows_();
+ if(!source)return null;
+ const list=ccPlayerMenBMatches_(source);
+ const names=new Map();
+ for(const m of source){
+  for(const name of [m.homeName,m.awayName]){
+   const key=ccPlayerMatchTeamKey_(name);
+   if(key&&!names.has(key))names.set(key,{teamName:name,played:0,wins:0,losses:0,
+    setsFor:0,setsAgainst:0});
+  }
+ }
+ for(const m of list){
+  if(!ccPlayerMenBCompleteScore_(m)||m.__ccResultConflict)continue;
+  const a=names.get(ccPlayerMatchTeamKey_(m.homeName));
+  const b=names.get(ccPlayerMatchTeamKey_(m.awayName));
+  if(!a||!b||a===b)continue;
+  const home=Number(m.homeSets),away=Number(m.awaySets);
+  a.played++;b.played++;
+  a.wins+=Number(home>away);a.losses+=Number(home<away);
+  b.wins+=Number(away>home);b.losses+=Number(away<home);
+  a.setsFor+=home;a.setsAgainst+=away;
+  b.setsFor+=away;b.setsAgainst+=home;
+ }
+ const rows=[...names.values()].sort((a,b)=>
+  Number(ccPlayerMatchTeamKey_(b.teamName)==='beac')-Number(ccPlayerMatchTeamKey_(a.teamName)==='beac')
+  ||a.teamName.localeCompare(b.teamName,'hu'));
+ const fixed=rows.map(r=>'<tr><td class="pos">–</td><td class="team"><span class="standings-team-cell">'
+  +standingsTeamLogoHtml_(r.teamName)+'<span class="standings-team-name">'
+  +escapeHtml_(r.teamName)+'</span></span></td></tr>').join('');
+ const cells=rows.map(r=>'<tr><td>'+r.played+'</td><td>'+r.wins+'</td><td>'+r.losses
+  +'</td><td class="points group-end">–</td><td>'+r.setsFor+'–'+r.setsAgainst
+  +'</td><td>–</td><td>–</td><td>–</td></tr>').join('');
+ return '<div class="competition-standings cc-player-men-b-current">'
+   +'<div class="standings-headline"><div class="standings-context-title"><b>'
+   +escapeHtml_(CC_PLAYER_MEN_B_LABEL_)+'</b></div></div>'
+   +'<div class="standings-state"><b>7 csapat · 2026/27</b><span>'
+   +'A rögzített mérkőzések részleges eredményadatai láthatók, nem hivatalos tabella. '
+   +'Helyezés és bajnoki pont csak ellenőrzött szövetségi tabellából jelenhet meg.</span></div>'
+   +'<div class="standings-split" role="region" aria-label="Férfi B csoport, részleges eredmények">'
+   +'<div class="standings-fixed"><table class="standings-table standings-table-fixed"><thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead><tbody>'
+   +fixed+'</tbody></table></div>'
+   +'<div class="standings-scroll" tabindex="0"><table class="standings-table standings-table-stats"><thead><tr>'
+   +'<th>M</th><th>GY</th><th>V</th><th class="points group-end">P</th><th>SZ</th><th>SZA</th><th>P</th><th>PA</th>'
+   +'</tr></thead><tbody>'+cells+'</tbody></table></div></div>'
+   +ccMrszPlayerLeagueScheduleHtml_(CC_PLAYER_MEN_B_LABEL_,false)+'</div>';
+}
+
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
+ if(competitionLabel===CC_PLAYER_MEN_B_LABEL_){
+  const current=ccPlayerMenBImportedRows_();
+  if(current)return ccPlayerMenBMatches_(current);
+ }
  const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const brsz=(ccMrszPlayerPhoto_.sourceMatches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
  const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
@@ -2625,8 +2747,9 @@ function ccPlayerBindProtocols_(){
 }
 function ccPlayerScoreboardHtml_(m){
  const kick=ccMrszPlayerLocalKickoff_(m.startsAt),home=String(m.homeName||''),away=String(m.awayName||'');
- const score=m.homeSets!=null&&m.awaySets!=null&&Number.isInteger(Number(m.homeSets))&&Number.isInteger(Number(m.awaySets))&&Number(m.homeSets)+Number(m.awaySets)>0
-  ?Number(m.homeSets)+' – '+Number(m.awaySets):'VS.';
+ const score=m.__ccResultConflict?'Ellenőrzendő':String(m.status)==='postponed'?'Halasztva':(
+  m.homeSets!=null&&m.awaySets!=null&&Number.isInteger(Number(m.homeSets))&&Number.isInteger(Number(m.awaySets))&&Number(m.homeSets)+Number(m.awaySets)>0
+  ?Number(m.homeSets)+' – '+Number(m.awaySets):'VS.');
  const sets=Array.isArray(m.setScores)?m.setScores.filter(x=>x&&x.home!=null&&x.away!=null)
   .map(x=>Number(x.home)+':'+Number(x.away)).join(' · '):'';
  const protocol=!!m.matchCode&&Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2;
