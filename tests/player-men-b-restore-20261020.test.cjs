@@ -60,7 +60,7 @@ test('The table visibly contains Mozdulj SE and all 7 teams, with no fabricated 
  assert.equal((view.match(/<td class="pos">–<\/td>/g)||[]).length,7);
  assert.ok(view.includes('nem hivatalos tabella'));
  assert.ok(view.includes('7 csapat'));
- assert.ok(view.includes('Bajnoki'));
+ assert.ok(view.includes('fixture-result'));
 });
 test('Invalid or partial men B schedule cannot replace existing sources',()=>{
  const data=imported();
@@ -69,7 +69,7 @@ test('Invalid or partial men B schedule cannot replace existing sources',()=>{
  const dup=imported();dup[0].sourceMatchKey=dup[1].sourceMatchKey;
  ctx.ccMrszPlayerPhoto_={userMatches:dup};
  assert.equal(qa.check(),null);
- const wrong=imported();wrong[3].awayName='BEAC';
+ const wrong=imported();wrong[3].awayName=wrong[3].homeName;
  ctx.ccMrszPlayerPhoto_={userMatches:wrong};
  assert.equal(qa.check(),null);
 });
