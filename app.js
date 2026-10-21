@@ -2573,11 +2573,7 @@ function ccPlayerMenACurrentView_(){
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const shared=ccMrszPlayerPhoto_.canonicalMatches;
  if(Array.isArray(shared)&&shared.length){
-  const detail=new Map((ccMrszPlayerPhoto_.matches||[]).filter(m=>m?.matchCode)
-   .map(m=>[String(m.competitionLabel)+'|'+String(m.matchCode),m]));
   return shared.filter(m=>String(m.competitionLabel)===competitionLabel)
-   .map(m=>({...m,...(detail.get(competitionLabel+'|'+String(m.matchCode))?.protocol
-     ?{protocol:detail.get(competitionLabel+'|'+String(m.matchCode)).protocol}:{} )}))
    .sort((a,b)=>ccPlayerMatchListSort_(a,b));
  }
  if(competitionLabel===CC_PLAYER_MEN_A_LABEL_){
@@ -2778,7 +2774,7 @@ function ccPlayerProtocolDetailHtml_(m){
   +'</div>';
 }
 function ccPlayerOpenProtocol_(matchCode,league){
- const list=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m?.matchCode||'')===String(matchCode)&&String(m?.competitionLabel||'')===String(league)&&Array.isArray(m?.protocol?.teams));
+ const list=(Array.isArray(ccMrszPlayerPhoto_.canonicalMatches)&&ccMrszPlayerPhoto_.canonicalMatches.length?ccMrszPlayerPhoto_.canonicalMatches:(ccMrszPlayerPhoto_.matches||[])).filter(m=>String(m?.matchCode||'')===String(matchCode)&&String(m?.competitionLabel||'')===String(league)&&Array.isArray(m?.protocol?.teams));
  if(list.length!==1)return;
  const dialog=document.getElementById('playerProtocolDialog'),target=document.getElementById('playerProtocolContent');
  if(!dialog||!target)return;
@@ -2787,6 +2783,11 @@ function ccPlayerOpenProtocol_(matchCode,league){
 }
 document.getElementById('closePlayerProtocolDialog')?.addEventListener('click',()=>ccCloseDialog_(document.getElementById('playerProtocolDialog')));
 function ccPlayerBindProtocols_(){
+ document.querySelectorAll('[data-player-external-report]').forEach(card=>{
+  const open=()=>window.open(card.dataset.playerExternalReport,'_blank','noopener,noreferrer');
+  card.addEventListener('click',e=>{if(!e.target.closest('a,button'))open()});
+  card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('a,button')){e.preventDefault();open()}});
+ });
  document.querySelectorAll('[data-player-protocol]').forEach(card=>{
   const open=()=>ccPlayerOpenProtocol_(card.dataset.playerProtocol,card.dataset.playerProtocolLeague);
   card.addEventListener('click',event=>{if(!event.target.closest('a,button'))open()});
@@ -2820,8 +2821,9 @@ function ccPlayerScoreboardHtml_(m){
   .map(x=>Number(x.home)+':'+Number(x.away)).join(' · '):'';
  const protocol=!!m.matchCode&&Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2;
  const externalReport=String(m.protocolUrl||'')||ccPlayerOfficialMatchReportUrl_(m);
+ const reportClickable=!protocol&&score!=='VS.'&&/^https:\/\/(?:www\.)?hunvolley\.info\//i.test(externalReport);
  return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+'"'
-  +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':'')
+  +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':reportClickable?' data-player-external-report="'+escapeHtml_(externalReport)+'" role="link" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
   +'<div class="player-match-top"><span>'+escapeHtml_(kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(kick.time||'')+'</span></div>'
   +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b></div>'
@@ -2829,7 +2831,7 @@ function ccPlayerScoreboardHtml_(m){
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
   +(sets?'<div class="player-match-sets">'+escapeHtml_(sets)+'</div>':'')+'</div>'
   +'<div class="player-match-footer"><span>'+escapeHtml_(m.venue||'Helyszín nincs megadva')+'</span>'
-  +(externalReport?'<a class="cc-player-official-report" href="'+escapeHtml_(externalReport)+'" target="_blank" rel="noopener noreferrer">Jegyzőkönyv ↗</a>':'')
+  +(externalReport&&!protocol?'<a class="cc-player-official-report" href="'+escapeHtml_(externalReport)+'" target="_blank" rel="noopener noreferrer">Jegyzőkönyv ↗</a>':'')
   +'</div></article>';
 }
 function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
