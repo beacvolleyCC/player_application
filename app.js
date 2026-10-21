@@ -2294,7 +2294,7 @@ async function ccLoadCompetitionStandings_(){
 
 
 /* MRSZ screenshot snapshots are separate from the team's canonical BRSZ table. */
-let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]};
+let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[],canonicalMatches:[]};
 
 /* Read-only league browser shares the saved MRSZ source used by Manager. */
 let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-player-league-context-v1')||'')}catch(_){return''}})();
@@ -2344,7 +2344,7 @@ async function ccLoadMrszPlayerPhoto_(){
     if(error)throw error;
     if(sourceError)throw sourceError;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
-    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[]};
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:Array.isArray(p.canonicalMatches)?p.canonicalMatches:[]};
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
@@ -2571,6 +2571,15 @@ function ccPlayerMenACurrentView_(){
 }
 
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
+ const shared=ccMrszPlayerPhoto_.canonicalMatches;
+ if(Array.isArray(shared)&&shared.length){
+  const detail=new Map((ccMrszPlayerPhoto_.matches||[]).filter(m=>m?.matchCode)
+   .map(m=>[String(m.competitionLabel)+'|'+String(m.matchCode),m]));
+  return shared.filter(m=>String(m.competitionLabel)===competitionLabel)
+   .map(m=>({...m,...(detail.get(competitionLabel+'|'+String(m.matchCode))?.protocol
+     ?{protocol:detail.get(competitionLabel+'|'+String(m.matchCode)).protocol}:{} )}))
+   .sort((a,b)=>ccPlayerMatchListSort_(a,b));
+ }
  if(competitionLabel===CC_PLAYER_MEN_A_LABEL_){
   const current=ccPlayerMenAImportedRows_();
   if(current)return ccPlayerMenBMatches_(current,competitionLabel);
@@ -2810,7 +2819,7 @@ function ccPlayerScoreboardHtml_(m){
  const sets=Array.isArray(m.setScores)?m.setScores.filter(x=>x&&x.home!=null&&x.away!=null)
   .map(x=>Number(x.home)+':'+Number(x.away)).join(' · '):'';
  const protocol=!!m.matchCode&&Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2;
- const externalReport=ccPlayerOfficialMatchReportUrl_(m);
+ const externalReport=String(m.protocolUrl||'')||ccPlayerOfficialMatchReportUrl_(m);
  return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+'"'
   +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
