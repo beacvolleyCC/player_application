@@ -10648,3 +10648,8 @@ body.dark{
 .player-match-scoreboard[data-player-external-report]{cursor:pointer}
 .player-match-scoreboard[data-player-external-report]:focus-visible{outline:2px solid var(--yellow-dark,#ce9e00);outline-offset:3px}
 @media(max-width:420px){.cc-player-match-status{justify-content:stretch}.cc-player-match-status label{justify-content:space-between;width:100%}}
+
+/* Canonical results only: clearly distinguish incomplete figures from official ranks. */
+.cc-partial-standings-note{margin:10px 12px 12px;border:1px solid var(--line,#dedede);border-radius:11px;background:var(--card,#fff);padding:11px 13px;display:grid;gap:4px;}
+.cc-partial-standings-note>b{font-size:12px;font-weight:750;}
+.cc-partial-standings-note>span{font-size:11px;line-height:1.5;color:var(--muted,#6a6a6a);}
