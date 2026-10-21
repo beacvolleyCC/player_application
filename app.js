@@ -2418,6 +2418,8 @@ function ccPlayerBudapestToday_(){
  return val('year')+'-'+val('month')+'-'+val('day');
 }
 function ccPlayerMatchListSort_(a,b,day=ccPlayerBudapestToday_()){
+ const postponedA=String(a?.status||'')==='postponed',postponedB=String(b?.status||'')==='postponed';
+ if(postponedA!==postponedB)return postponedA?-1:1;
  const local=m=>{const p=ccMrszPlayerLocalKickoff_(m?.startsAt);return p.date+'T'+p.time};
  const da=local(a),db=local(b),pastA=da.slice(0,10)<day,pastB=db.slice(0,10)<day;
  // Today and future first, earliest first; historical games follow newest first.
@@ -2622,6 +2624,11 @@ function ccMrszPlayerUnverifiedSelfFixture_(m){
 }
 
 let ccLeaguePlayerMatchScope_='beac';
+let ccLeaguePlayerStatusFilter_='all';
+function ccPlayerLeagueMatchStatus_(m){
+ return String(m?.status||'')==='postponed'?'postponed':
+   m?.homeSets!=null&&m?.awaySets!=null?'played':'scheduled';
+}
 function ccLeaguePlayerHasBeac_(name){
  const value=String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  return /^beac(?:\s+ii\.?)?$/.test(value)||value.startsWith('budapesti egyetemi atletikai club');
@@ -2822,10 +2829,10 @@ function ccPlayerScoreboardHtml_(m){
  const protocol=!!m.matchCode&&Array.isArray(m?.protocol?.teams)&&m.protocol.teams.length===2;
  const externalReport=String(m.protocolUrl||'')||ccPlayerOfficialMatchReportUrl_(m);
  const reportClickable=!protocol&&score!=='VS.'&&/^https:\/\/(?:www\.)?hunvolley\.info\//i.test(externalReport);
- return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+'"'
+ return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+(String(m.status)==='postponed'?' is-postponed':'')+'"'
   +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':reportClickable?' data-player-external-report="'+escapeHtml_(externalReport)+'" role="link" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
-  +'<div class="player-match-top"><span>'+escapeHtml_(kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(kick.time||'')+'</span></div>'
+  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?'Halasztva':kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?'Időpont egyeztetés alatt':kick.time||'')+'</span></div>'
   +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b></div>'
   +'<div class="player-match-result">'+(score==='VS.'?'<span class="player-match-vs">VS.</span>':'<strong>'+escapeHtml_(score)+'</strong>')+'</div>'
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
@@ -2839,11 +2846,13 @@ function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
  const hasBeac=rows.some(m=>ccLeaguePlayerHasBeac_(m.homeName)||ccLeaguePlayerHasBeac_(m.awayName))
   ||(ccMrszPlayerPhoto_.tables||[]).some(t=>t.competitionLabel===label&&Array.isArray(t.rows)&&t.rows.some(r=>ccLeaguePlayerHasBeac_(r.teamName)));
  const scope=hasBeac?ccLeaguePlayerMatchScope_:'all';
- const filtered=scope==='all'?rows:rows.filter(m=>ccLeaguePlayerHasBeac_(m.homeName)||ccLeaguePlayerHasBeac_(m.awayName));
+ const byTeam=scope==='all'?rows:rows.filter(m=>ccLeaguePlayerHasBeac_(m.homeName)||ccLeaguePlayerHasBeac_(m.awayName));
+ const filtered=byTeam.filter(m=>ccLeaguePlayerStatusFilter_==='all'||ccPlayerLeagueMatchStatus_(m)===ccLeaguePlayerStatusFilter_);
  const controls=hasBeac?'<div class="cc-league-player-scope" role="group" aria-label="Bajnoki meccsek szűrése">'
   +'<button type="button" data-league-player-scope="beac" aria-pressed="'+(scope==='beac')+'" class="'+(scope==='beac'?'active':'')+'">BEAC meccsek</button>'
   +'<button type="button" data-league-player-scope="all" aria-pressed="'+(scope==='all')+'" class="'+(scope==='all'?'active':'')+'">Összes bajnoki meccs</button></div>':'';
  return '<section class="standings-matches-panel cc-mrsz-player-league-matches"><div class="standings-panel-head"><b>Bajnoki mérkőzések</b><span>'+filtered.length+' / '+rows.length+' meccs</span>'+controls+'</div>'
+  +'<div class="cc-player-match-status"><label><span>Státusz</span><select id="ccPlayerMatchStatusFilter" aria-label="Mérkőzések státusz szerinti szűrése"><option value="all" '+(ccLeaguePlayerStatusFilter_==='all'?'selected':'')+'>Összes</option><option value="postponed" '+(ccLeaguePlayerStatusFilter_==='postponed'?'selected':'')+'>Halasztva</option><option value="scheduled" '+(ccLeaguePlayerStatusFilter_==='scheduled'?'selected':'')+'>Kiírt</option><option value="played" '+(ccLeaguePlayerStatusFilter_==='played'?'selected':'')+'>Lejátszott</option></select></label></div>'
   +'<div class="standings-match-list player-match-list">'+(filtered.map(ccPlayerScoreboardHtml_).join('')||'<div class="standings-match-empty">Nincs megjeleníthető mérkőzés.</div>')+'</div></section>';
 }
 
@@ -2897,6 +2906,9 @@ function renderPlanner(){
     bindStandingsTeamFilterClicks_();
     ccBindMrszPlayerMenGroup_();
     ccPlayerBindProtocols_();
+    document.getElementById('ccPlayerMatchStatusFilter')?.addEventListener('change',event=>{
+      ccLeaguePlayerStatusFilter_=event.target.value;renderPlanner();
+    });
     document.querySelectorAll('[data-league-player-scope]').forEach(btn=>btn.addEventListener('click',()=>{
       ccLeaguePlayerMatchScope_=btn.dataset.leaguePlayerScope==='all'?'all':'beac';
       renderPlanner();
