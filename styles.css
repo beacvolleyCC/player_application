@@ -10636,3 +10636,15 @@ body.dark{
     --standings-left:132px !important;
   }
 }
+
+
+/* Match status filter shared with Manager; postponed fixtures always lead. */
+.cc-player-match-status{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 12px 0}
+.cc-player-match-status label{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700}
+.cc-player-match-status select{min-height:36px;max-width:180px;min-width:120px;border:1px solid var(--line,#d4d5d7);border-radius:9px;padding:5px 8px;background:var(--card,#fff);color:var(--text,#111);font:inherit}
+.player-match-scoreboard.is-postponed{border-color:rgba(158,119,45,.48);background:var(--card,#fff)}
+.player-match-scoreboard.is-postponed .player-match-top>span:first-child{color:#a16c16;font-weight:900}
+.player-match-scoreboard.is-postponed .player-match-result strong{font-size:clamp(16px,2.6vw,24px);white-space:normal;overflow-wrap:anywhere;letter-spacing:0}
+.player-match-scoreboard[data-player-external-report]{cursor:pointer}
+.player-match-scoreboard[data-player-external-report]:focus-visible{outline:2px solid var(--yellow-dark,#ce9e00);outline-offset:3px}
+@media(max-width:420px){.cc-player-match-status{justify-content:stretch}.cc-player-match-status label{justify-content:space-between;width:100%}}
