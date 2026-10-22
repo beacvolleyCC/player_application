@@ -207,7 +207,7 @@ test('saved results update a separately labeled partial standings model without 
  assert.equal(model.matched,1);
  assert.equal(model.rows.find(x=>x.teamName==='Semmelweis Egyetem Sport Klub').wins,1);
  assert.equal(model.rows.find(x=>x.teamName==='EMERICUS SE').losses,1);
- assert.deepEqual(model.rows.map(x=>x.position),[null,null],'partial results must not invent rank');
+ assert.equal(JSON.stringify(model.rows.map(x=>x.position)),'[null,null]','partial results must not invent rank');
  const view=js.slice(js.indexOf('function renderCompetitionStandings_(){'),js.indexOf('function syncPlannerSectionUi_()'));
  assert.ok(!view.includes('nem hivatalos tabella'));
  assert.ok(view.includes("const meta='';"));
@@ -234,7 +234,7 @@ test('verified results keep score metrics without inventing incomplete league ra
   homeSets:3,awaySets:0,setScores:[{home:32,away:30},{home:25,away:20},{home:25,away:21}]
  }]);
  assert.ok(menAmodel);
- assert.deepEqual(menAmodel.rows.map(x=>x.position),[null,null,null]);
+ assert.equal(JSON.stringify(menAmodel.rows.map(x=>x.position)),'[null,null,null]');
  assert.equal(menAmodel.rows[0].played,1);
  assert.equal(menAmodel.rows[0].tablePoints,null);
  assert.equal(menAmodel.rows[0].teamName,'MAFC-Kármán');
