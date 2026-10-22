@@ -1,0 +1,16 @@
+name: Player Apple calendar QA
+on:
+  pull_request:
+  push:
+    branches: [feat/20261022-ios-calendar-subscription]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check app.js
+      - run: node --check calendar-subscription.js
+      - run: node --test tests/calendar-subscription.test.mjs
