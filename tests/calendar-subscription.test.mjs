@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const code=fs.readFileSync(new URL('../calendar-subscription.js',import.meta.url),'utf8');
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
-function fixture({configured=true,failStatus=false}={}){
+function fixture({configured=true,failStatus=false,flag=true}={}){
   const nodes={};
   for(const id of ['calendarSubscriptionPanel','ccCalendarScope','ccCalendarGenerate',
     'ccCalendarCopy','ccCalendarRevoke','ccCalendarApple','ccCalendarSubscriptionStatus',
@@ -30,7 +30,7 @@ function fixture({configured=true,failStatus=false}={}){
   const context={
     document:{getElementById:id=>nodes[id]||null},
     navigator:{clipboard:{async writeText(x){copied.push(x);}}},
-    window:{confirm:()=>true},
+    window:{confirm:()=>true,CLUB_CONTROL_CONFIG:{CALENDAR_SUBSCRIPTION_ENABLED:flag}},
     URL,ccSupabase:configured?client:null,
     ccSupabaseConfigured_:()=>configured,
     ccConfig_:()=>({SUPABASE_URL:'https://example.supabase.co'}),
@@ -77,4 +77,14 @@ test('unavailable backend must disable issuing tokens; legacy export still prese
  assert.equal(nodes.ccCalendarGenerate.disabled,true);
  assert.match(nodes.ccCalendarSubscriptionStatus.textContent,/nem érhető el/);
  assert.match(html,/calendarExportAppleBtn/);
+});
+
+test('subscription is hidden by default until explicit backend release flag',async()=>{
+ const config=fs.readFileSync(new URL('../config.js',import.meta.url),'utf8');
+ assert.match(config,/CALENDAR_SUBSCRIPTION_ENABLED: false/);
+ assert.match(html,/id="calendarSubscriptionPanel" hidden/);
+ const {nodes,calls}=fixture({flag:false});
+ assert.equal(nodes.calendarSubscriptionPanel.hidden,true);
+ assert.equal(Object.keys(nodes.ccCalendarGenerate.listeners).length,0);
+ assert.equal(calls.length,0);
 });
