@@ -114,7 +114,7 @@ test('Other competitions keep existing standings and matching paths',()=>{
  assert.ok(app.includes("const men=['Férfi Budapest I. osztály – A csoport','Férfi Budapest I. osztály – B csoport']"));
 });
 test('PWA cache version matches script and worker',()=>{
- const cacheVersion=html.match(/app\\.js\\?v=([^"]+)/)?.[1];
+ const cacheVersion=html.split('app.js?v=')[1]?.split('"')[0];
  assert.ok(cacheVersion?.startsWith('20261022-private-ios-calendar-'));
  assert.ok(sw.includes('club-control-player-'+cacheVersion));
  assert.ok(app.includes('sw.js?v='+cacheVersion));
