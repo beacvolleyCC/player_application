@@ -238,7 +238,7 @@ test('verified results keep score metrics without inventing incomplete league ra
  assert.equal(menAmodel.rows[0].played,1);
  assert.equal(menAmodel.rows[0].tablePoints,null);
  assert.equal(menAmodel.rows[0].teamName,'MAFC-Kármán');
- assert.equal(menAmodel.rows[1].teamName,'Ráckeve');
+ assert.equal(menAmodel.rows.find(x=>x.teamName==='Ráckeve').losses,1);
  const menBmodel=fn(menB,[{teamName:'BEAC'},{teamName:'MAFC-Vásárhelyi'},{teamName:'MAFC-Schönherz'}],[{
   competitionLabel:menB,homeName:'MAFC-Vásárhelyi',awayName:'MAFC-Schönherz',startsAt:'2026-10-15',
   homeSets:3,awaySets:0,setScores:[{home:25,away:15},{home:25,away:21},{home:25,away:16}]
