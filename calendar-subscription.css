@@ -15,3 +15,5 @@
 #calendarSubscriptionPanel .cc-calendar-link[hidden] { display:none; }
 #calendarSubscriptionPanel button:disabled { opacity:.48;cursor:not-allowed; }
 #calendarSubscriptionPanel .calendar-export-status { overflow-wrap:anywhere; }
+
+#calendarSubscriptionPanel[hidden] { display:none !important; }
