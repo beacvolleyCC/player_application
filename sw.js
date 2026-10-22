@@ -1,9 +1,13 @@
-const CACHE='club-control-player-20261020-official-protocol-v23e';
+const CACHE='club-control-player-20261022-private-ios-calendar-v26';
 const CORE=[
   './manifest.webmanifest',
+  './app.js?v=20261022-private-ios-calendar-v26',
+  './styles.css?v=20261022-private-ios-calendar-v26',
+  './calendar-subscription.js?v=20261022-private-ios-calendar-v26',
+  './calendar-subscription.css?v=20261022-private-ios-calendar-v26',
   './competition-context-catalog.js',
-  './statistics.js?v=20261020-official-protocol-v23e',
-  './statistics.css?v=20261020-official-protocol-v23e',
+  './statistics.js?v=20261022-private-ios-calendar-v26',
+  './statistics.css?v=20261022-private-ios-calendar-v26',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
