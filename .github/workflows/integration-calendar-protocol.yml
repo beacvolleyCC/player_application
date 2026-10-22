@@ -11,6 +11,7 @@ on:
       - 'sw.js'
       - 'statistics.js'
       - 'tests/player-official-protocol-20261022.test.cjs'
+      - 'tests/player-canonical-partial-stats-20261022.test.cjs'
       - 'tests/calendar-subscription.test.mjs'
       - 'tests/protocol-match-order-20261019.test.cjs'
       - '.github/workflows/integration-calendar-protocol.yml'
@@ -33,6 +34,7 @@ jobs:
           node --test \
             tests/calendar-subscription.test.mjs \
             tests/player-official-protocol-20261022.test.cjs \
+            tests/player-canonical-partial-stats-20261022.test.cjs \
             tests/protocol-match-order-20261019.test.cjs \
             tests/player-statistics-wl.test.cjs \
             tests/mrsz-standings.test.cjs \
