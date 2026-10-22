@@ -69,8 +69,8 @@
     }
     draw();
   }
-  scopeEl.addEventListener('change',()=>{active=false;refresh();});
-  document.getElementById('openSettingsBtn')?.addEventListener('click',()=>{refresh();});
+  scopeEl.addEventListener('change',()=>{active=false;return refresh();});
+  document.getElementById('openSettingsBtn')?.addEventListener('click',()=>refresh());
   document.getElementById('settingsDialog')?.addEventListener('close',()=>{forget();});
   generate.addEventListener('click',async()=>{
     if(busy||!ready())return;
