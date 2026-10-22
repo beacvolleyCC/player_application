@@ -2706,7 +2706,8 @@ function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.
   matched++;
   for(const [row,won,forSets,againstSets,isHome] of [[home,h>a,h,a,true],[away,a>h,a,h,false]]){
    row.played++;row.wins+=Number(won);row.losses+=Number(!won);
-   // Do not infer official competition points from partial results.row.setsFor+=forSets;row.setsAgainst+=againstSets;
+   // Do not infer official competition points from partial results.
+   row.setsFor+=forSets;row.setsAgainst+=againstSets;
    if(!validSets){row.pointsFor=null;row.pointsAgainst=null}
    else if(row.pointsFor!==null&&row.pointsAgainst!==null){
     row.pointsFor+=setPoints.reduce((sum,p)=>sum+Number(isHome?p.home:p.away),0);
