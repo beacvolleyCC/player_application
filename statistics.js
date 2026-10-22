@@ -10,7 +10,8 @@ let ccStatsPlayersTeam_='all';
 
 function ccStatsSource_(){
   const league=ccPlayerLeagueCurrent_();
-  const all=ccMrszPlayerAllLeagueMatches_(league,false).filter(m=>!ccMrszPlayerUnverifiedSelfFixture_(m));
+  const all=ccMrszPlayerAllLeagueMatches_(league,false)
+    .filter(m=>!ccMrszPlayerUnverifiedSelfFixture_(m)&&!m.__ccResultConflict);
   const played=all.filter(m=>{
     const h=Number(m.homeSets),a=Number(m.awaySets);
     return Number.isInteger(h)&&Number.isInteger(a)&&((h===3&&a>=0&&a<=2)||(a===3&&h>=0&&h<=2));
