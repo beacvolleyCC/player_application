@@ -13,8 +13,9 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=20261021-canonical-partial-stats-v4">
-  <link rel="stylesheet" href="./statistics.css?v=20261020-official-protocol-v23e">
+  <link rel="stylesheet" href="./styles.css?v=20261022-private-ios-calendar-v26">
+  <link rel="stylesheet" href="./statistics.css?v=20261022-private-ios-calendar-v26">
+  <link rel="stylesheet" href="./calendar-subscription.css?v=20261022-private-ios-calendar-v26">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -475,6 +476,25 @@
           <small class="calendar-export-note">Egyszeri export: a későbbi Club Control-módosítások nem frissítik automatikusan a már importált eseményeket.</small>
           <div class="calendar-export-status" id="calendarExportStatus" role="status" aria-live="polite"></div>
         </div>
+      <div class="calendar-export-card" id="calendarSubscriptionPanel" hidden aria-label="Automatikusan frissülő naptár-előfizetés">
+        <div class="calendar-export-copy">
+          <b>Automatikusan frissülő naptár</b>
+          <small>Privát Apple Naptár-előfizetés. Az Apple időszakosan frissít, a változások nem feltétlenül jelennek meg azonnal.</small>
+        </div>
+        <label for="ccCalendarScope">Melyik események szerepeljenek?</label>
+        <select id="ccCalendarScope" class="cc-calendar-select">
+          <option value="mine">Saját naptáram – amelyekre jelentkeztem</option>
+          <option value="team">Csapatom összes edzése és meccse</option>
+        </select>
+        <div class="calendar-export-actions">
+          <button class="ghost-btn calendar-export-btn" type="button" id="ccCalendarGenerate">Privát hivatkozás létrehozása</button>
+          <a id="ccCalendarApple" class="cc-calendar-link" href="#" hidden>Feliratkozás az Apple Naptárban</a>
+          <button class="ghost-btn calendar-export-btn" type="button" id="ccCalendarCopy" disabled>Hivatkozás másolása</button>
+          <button class="ghost-btn calendar-export-btn" type="button" id="ccCalendarRevoke" disabled>Előfizetés visszavonása</button>
+        </div>
+        <small class="calendar-export-note">A hivatkozás titkos hozzáférést ad a kiválasztott eseményekhez. Ha megújítod, a korábbi link megszűnik. Visszavonás után a naptárat szükség esetén az iPhone-on is töröld.</small>
+        <div id="ccCalendarSubscriptionStatus" class="calendar-export-status" role="status" aria-live="polite"></div>
+      </div>
       </div>
 
       <div class="settings-section">
@@ -549,7 +569,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
   <script src="./competition-context-catalog.js?v=20261015-lc1"></script>
-  <script src="./app.js?v=20261021-canonical-partial-stats-v4"></script>
-  <script src="./statistics.js?v=20261020-official-protocol-v23e"></script>
+  <script src="./app.js?v=20261022-private-ios-calendar-v26"></script>
+  <script src="./calendar-subscription.js?v=20261022-private-ios-calendar-v26"></script>
+  <script src="./statistics.js?v=20261022-private-ios-calendar-v26"></script>
 </body>
 </html>
