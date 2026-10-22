@@ -2653,7 +2653,7 @@ function ccPlayerMatchTeamKey_(value){
 }
 function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.matches){
  const base=Array.isArray(roster)?roster:[];
- const saved=Array.isArray(matches)?matches.filter(m=>String(m?.competitionLabel)===String(league)):[];
+ const saved=Array.isArray(matches)?matches.filter(m=>!m?.__ccResultConflict&&String(m?.competitionLabel)===String(league)):[];
  if(!saved.length)return null;
  const fixtures=(ccMrszPlayerPhoto_.fixtures||[]).filter(m=>String(m?.competitionLabel)===String(league));
  const unique=new Map();
