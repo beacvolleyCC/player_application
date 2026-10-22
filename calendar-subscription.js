@@ -4,6 +4,12 @@
   'use strict';
   const panel=document.getElementById('calendarSubscriptionPanel');
   if(!panel)return;
+  // A public flag (not a security boundary): server remains the authorization authority.
+  if(window.CLUB_CONTROL_CONFIG?.CALENDAR_SUBSCRIPTION_ENABLED!==true){
+    panel.hidden=true;
+    return;
+  }
+  panel.hidden=false;
   const scopeEl=document.getElementById('ccCalendarScope');
   const generate=document.getElementById('ccCalendarGenerate');
   const copy=document.getElementById('ccCalendarCopy');
