@@ -10,7 +10,7 @@
   const revoke=document.getElementById('ccCalendarRevoke');
   const apple=document.getElementById('ccCalendarApple');
   const status=document.getElementById('ccCalendarSubscriptionStatus');
-  let liveUrl='',active=false,busy=false,version=0;
+  let liveUrl='',active=false,busy=false,version=0,serviceAvailable=true;
   function message(s,tone='info') {
     status.textContent=s;status.dataset.tone=tone;
   }
@@ -32,7 +32,7 @@
     const teamOption=scopeEl.querySelector('option[value="team"]');
     if(teamOption)teamOption.disabled=!teamId;
     if(!teamId && scopeEl.value==='team')scopeEl.value='mine';
-    const valid=ready() && (scopeEl.value!=='team'||!!teamId);
+    const valid=ready() && serviceAvailable && (scopeEl.value!=='team'||!!teamId);
     scopeEl.disabled=busy||!ready();
     generate.disabled=busy||!valid;
     copy.disabled=busy||!liveUrl;
@@ -40,8 +40,7 @@
     apple.hidden=!liveUrl;
     if(liveUrl){
       const parsed=new URL(liveUrl);
-      parsed.protocol='webcal:';
-      apple.href=parsed.toString();
+      apple.href='webcal://'+parsed.host+parsed.pathname+parsed.search;
     }else{
       apple.removeAttribute('href');
     }
@@ -52,6 +51,7 @@
   }
   async function refresh(){
     forget();
+    serviceAvailable=true;
     if(!ready()){active=false;message('A naptár-előfizetés csak bejelentkezett Club Control-fiókkal érhető el.');draw();return;}
     const id=version;
     try{
@@ -63,7 +63,7 @@
         ? 'Van aktív előfizetésed. A korábbi hivatkozás nem olvasható vissza; megújításakor a régi megszűnik.'
         : 'Hozz létre egy személyes hivatkozást, és iratkozz fel rá az Apple Naptárban.');
     }catch(_){
-      active=false;
+      active=false;serviceAvailable=false;
       message('Az élő naptár-előfizetési szolgáltatás még nem érhető el. Az egyszeri export továbbra is használható.','error');
       generate.disabled=true;
     }
