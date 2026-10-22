@@ -1,0 +1,44 @@
+name: Combined Player calendar + protocol QA
+on:
+  push:
+    branches: [integration/20261022-player-calendar-protocol-qa]
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'calendar-subscription.js'
+      - 'config.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'statistics.js'
+      - 'tests/player-official-protocol-20261022.test.cjs'
+      - 'tests/calendar-subscription.test.mjs'
+      - 'tests/protocol-match-order-20261019.test.cjs'
+      - '.github/workflows/integration-calendar-protocol.yml'
+jobs:
+  mixed-feature-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check app.js
+          node --check calendar-subscription.js
+          node --check statistics.js
+          node --check sw.js
+      - name: Combined regression in one process
+        run: |
+          node --test \
+            tests/calendar-subscription.test.mjs \
+            tests/player-official-protocol-20261022.test.cjs \
+            tests/protocol-match-order-20261019.test.cjs \
+            tests/player-statistics-wl.test.cjs \
+            tests/mrsz-standings.test.cjs \
+            tests/player-men-b-restore-20261020.test.cjs
+      - name: No automatic release and no secret stored
+        run: |
+          grep -q 'CALENDAR_SUBSCRIPTION_ENABLED: false' config.js
+          grep -q 'id="calendarSubscriptionPanel" hidden' index.html
+          ! grep -E -q 'localStorage|sessionStorage|document.cookie' calendar-subscription.js
