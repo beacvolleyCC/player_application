@@ -135,6 +135,8 @@ test('Player legacy fallback cannot leak cross-division official reports or fede
    userMatches:[wrongOfficial,wrongOther]
   },
   competitionLeagueInsights:{data:{matches:[wrongOfficial,wrongOther]}},
+  CC_PLAYER_MEN_A_LABEL_:'Férfi Budapest I. osztály – A csoport',
+  CC_PLAYER_MEN_B_LABEL_:men,
   ccPlayerVerifiedReschedule_:()=>null,
   ccPlayerOfficialMatchReportUrl_:m=>m.verified?'https://source.example/protocol':'',
   ccMrszPlayerFixtureKey_:m=>String(m.startsAt).slice(0,10)+'|'+m.homeName+'|'+m.awayName,
