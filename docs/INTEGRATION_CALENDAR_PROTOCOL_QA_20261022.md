@@ -1,5 +1,7 @@
 # Player – Apple Naptár + MRSZ 2686/2700 közös QA (2026-10-22)
 
+**Friss, elsődleges folytatási átadás (2026-10-23):** [HANDOVER_20261023_PLAYER_CURRENT.md](HANDOVER_20261023_PLAYER_CURRENT.md); a teljes Club Control átadás a [Manager aktuális handoverjében](https://github.com/beacvolleyCC/club-control-manager/blob/integration/20261022-manager-calendar-protocol-crosswalk-qa/docs/handover/HANDOVER_20261023_CC_CURRENT.md).
+
 **Ez kizárólag teszt- és kompatibilitási ág.** Nincs főági merge, Cloudflare Pages élesítés vagy Supabase-adatbázis-módosítás.
 
 ## Forráságak
