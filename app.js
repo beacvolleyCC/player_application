@@ -2574,9 +2574,11 @@ function ccPlayerMenACurrentView_(){
 }
 
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
+ // Full competition label includes gender, division and group; teams can share names.
+ const inLeague=m=>String(m?.competitionLabel||'')===competitionLabel;
  const shared=ccMrszPlayerPhoto_.canonicalMatches;
  if(Array.isArray(shared)&&shared.length){
-  return shared.filter(m=>String(m.competitionLabel)===competitionLabel)
+  return shared.filter(inLeague)
    .sort((a,b)=>ccPlayerMatchListSort_(a,b));
  }
  if(competitionLabel===CC_PLAYER_MEN_A_LABEL_){
@@ -2587,11 +2589,12 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
   const current=ccPlayerMenBImportedRows_();
   if(current)return ccPlayerMenBMatches_(current);
  }
- const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
- const brsz=(ccMrszPlayerPhoto_.sourceMatches||[]).filter(m=>String(m.competitionLabel)===competitionLabel);
- const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)?competitionLeagueInsights.data.matches:[];
+ const snapshot=(ccMrszPlayerPhoto_.matches||[]).filter(inLeague);
+ const brsz=(ccMrszPlayerPhoto_.sourceMatches||[]).filter(inLeague);
+ const feed=withCanonical&&Array.isArray(competitionLeagueInsights?.data?.matches)
+  ?competitionLeagueInsights.data.matches.filter(inLeague):[];
  const corrections=(ccMrszPlayerPhoto_.userMatches||[])
-   .filter(m=>ccPlayerVerifiedReschedule_(m,competitionLabel)||!!ccPlayerOfficialMatchReportUrl_(m));
+   .filter(m=>inLeague(m)&&(ccPlayerVerifiedReschedule_(m,competitionLabel)||!!ccPlayerOfficialMatchReportUrl_(m)));
  const obsolete=m=>!((m?.homeSets!=null)||(m?.awaySets!=null)) && corrections.some(v=>{
   const correction=ccPlayerVerifiedReschedule_(v,competitionLabel);
   return correction && ccMrszPlayerLocalKickoff_(m?.startsAt).date===correction.from
@@ -2600,7 +2603,7 @@ function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  });
  const unique=new Map();
  const add=(m,priority)=>{
-  if(obsolete(m))return;
+  if(!inLeague(m)||obsolete(m))return;
   const original=m._ccOriginalStartsAt?{...m,startsAt:m._ccOriginalStartsAt,
    homeName:m._ccOriginalHomeName||m.homeName,awayName:m._ccOriginalAwayName||m.awayName}:m;
   const key=ccMrszPlayerFixtureKey_(original),previous=unique.get(key);
