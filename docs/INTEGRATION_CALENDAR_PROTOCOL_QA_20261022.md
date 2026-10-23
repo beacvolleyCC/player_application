@@ -41,3 +41,9 @@ Két biztonságos eltérést átvettem az integrációs Player-ágban:
 A Player [Actions 39861553068](https://github.com/beacvolleyCC/player_application/actions/runs/39861553068) közös QA sikeres. Az új kód **csak az integrációs tesztágban van**, nem került sem a Player #25, sem a #26 PR-ba. Nincs LIVE bevezetés, az Apple előfizetés `CALENDAR_SUBSCRIPTION_ENABLED: false` állapotú.
 
 A Manager-oldali eltérések: [CC_20261022_LEGACY_SCHEDULE_CONFLICTS.md](https://github.com/beacvolleyCC/club-control-manager/blob/integration/20261022-manager-calendar-protocol-crosswalk-qa/docs/handover/CC_20261022_LEGACY_SCHEDULE_CONFLICTS.md).
+
+## Osztály és csoport izoláció (2026-10-23)
+
+A `ccMrszPlayerAllLeagueMatches_` canonical és fallback útjai minden forrásrekordnál azonos teljes `competitionLabel` értéket követelnek, beleértve a `competitionLeagueInsights` feedet és a hivatalos jegyzőkönyves kézi korrekciókat is. A **BEAC–Mozdulj** férfi I/B és női I. mérkőzése nem lehet azonos; a női II/A és II/B is külön verseny, még azonos csapatnévnél és időpontnál is. A részleges tabellák saját bajnokságukon belül számolnak, nem visznek át nyert vagy vesztett szetteket más osztályból.
+
+Negatív regressziók: `tests/player-canonical-partial-stats-20261022.test.cjs`; Manager ellenőrzés: `tests/manager-canonical-legacy-compat-20261022.test.cjs` és `tests/five-league-canonical-audit-20261023.test.cjs`. A változások csak az integrációs tesztágakon vannak; sem Player `main`, sem adatbázis nem módosult.
