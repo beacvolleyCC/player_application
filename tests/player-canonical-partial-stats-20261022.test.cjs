@@ -105,7 +105,7 @@ test('legacy 300-match requirement is not an enabled canonical identity gate',()
 });
 
 
-test('Player canonical results do not mix BEAC–Mozdulj in men's B versus women's I',()=>{
+test('Player canonical results isolate BEAC–Mozdulj between male B and female I',()=>{
  const women='Női Budapest I. osztály';
  const men='Férfi Budapest I. osztály – B csoport';
  const base={homeName:'BEAC',awayName:'Mozdulj SE',
