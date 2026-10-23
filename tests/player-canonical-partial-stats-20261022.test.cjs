@@ -103,3 +103,64 @@ test('legacy 300-match requirement is not an enabled canonical identity gate',()
  const form=section(stats,'function ccStatsSource_()','function ccStatsRecent_(');
  assert.match(form,/!m\.__ccResultConflict/);
 });
+
+
+test('Player canonical results do not mix BEAC–Mozdulj in men's B versus women's I',()=>{
+ const women='Női Budapest I. osztály';
+ const men='Férfi Budapest I. osztály – B csoport';
+ const base={homeName:'BEAC',awayName:'Mozdulj SE',
+   startsAt:'2026-11-19T19:00:00+01:00',homeSets:3,awaySets:0};
+ const male={...base,competitionLabel:men,matchId:'MENS',matchCode:'A'};
+ const female={...base,competitionLabel:women,matchId:'WOMENS',matchCode:'B',homeSets:0,awaySets:3};
+ const ctx=vm.createContext({
+  ccMrszPlayerPhoto_:{canonicalMatches:[male,female]},
+  ccPlayerMatchListSort_:()=>0,JSON,Array,String
+ });
+ vm.runInContext(section(app,'function ccMrszPlayerAllLeagueMatches_(',
+   '// Preserve unconfirmed BEAC self-fixtures'),ctx);
+ assert.deepEqual(ctx.ccMrszPlayerAllLeagueMatches_(men,false).map(x=>x.matchId),['MENS']);
+ assert.deepEqual(ctx.ccMrszPlayerAllLeagueMatches_(women,false).map(x=>x.matchId),['WOMENS']);
+});
+test('Player legacy fallback cannot leak cross-division official reports or federation feed matches',()=>{
+ const women='Női Budapest I. osztály',men='Férfi Budapest I. osztály – B csoport';
+ const target='Női Budapest II. osztály – A csoport';
+ const root={homeName:'BEAC',awayName:'Mozdulj SE',
+  startsAt:'2026-11-19T19:00:00+01:00',homeSets:3,awaySets:0};
+ const valid={...root,competitionLabel:target,matchId:'TARGET',_ccSourceSystem:'user'};
+ const wrongOfficial={...root,competitionLabel:women,matchId:'WOMENS-REPORT',verified:true};
+ const wrongOther={...root,competitionLabel:men,matchId:'MENS-REPORT',verified:true};
+ const ctx=vm.createContext({
+  ccMrszPlayerPhoto_:{
+   canonicalMatches:[],fixtures:[valid],matches:[wrongOfficial],sourceMatches:[wrongOther],
+   userMatches:[wrongOfficial,wrongOther]
+  },
+  competitionLeagueInsights:{data:{matches:[wrongOfficial,wrongOther]}},
+  ccPlayerVerifiedReschedule_:()=>null,
+  ccPlayerOfficialMatchReportUrl_:m=>m.verified?'https://source.example/protocol':'',
+  ccMrszPlayerFixtureKey_:m=>String(m.startsAt).slice(0,10)+'|'+m.homeName+'|'+m.awayName,
+  ccPlayerMatchListSort_:()=>0,JSON,Array,String
+ });
+ vm.runInContext(section(app,'function ccMrszPlayerAllLeagueMatches_(',
+   '// Preserve unconfirmed BEAC self-fixtures'),ctx);
+ const rows=ctx.ccMrszPlayerAllLeagueMatches_(target,true);
+ assert.equal(rows.length,1,'cross-league result must never replace or append to target fixture');
+ assert.equal(rows[0].matchId,'TARGET');
+ assert.ok(rows.every(x=>x.competitionLabel===target));
+});
+test('Player provisional win/loss stats never count same-named teams in another division',()=>{
+ const women='Női Budapest I. osztály';
+ const male={...game(3,1),matchId:'MEN-B'};
+ const female={...game(0,3),matchId:'WOMEN-I',competitionLabel:women};
+ const ctx=vm.createContext({
+  ccMrszPlayerPhoto_:{fixtures:[],matches:[]},
+  ccMrszPlayerUnverifiedSelfFixture_:()=>false,
+  ccMrszPlayerLocalKickoff_:x=>({date:String(x||'').slice(0,10)}),
+  JSON,Map,Array,Number,String,Intl
+ });
+ vm.runInContext(section(app,'function ccPlayerMatchTeamKey_(',
+   'function ccPlayerPhotoStandingRows_('),ctx);
+ const result=ctx.ccPlayerResultsOnlyStandings_(league,[],[male,female]);
+ assert.equal(result.matched,1);
+ const beac=result.rows.find(x=>x.teamName==='BEAC');
+ assert.deepEqual([beac.played,beac.wins,beac.losses,beac.setsFor,beac.setsAgainst],[1,1,0,3,1]);
+});
