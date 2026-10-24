@@ -2295,7 +2295,7 @@ async function ccLoadCompetitionStandings_(){
 
 
 /* MRSZ screenshot snapshots are separate from the team's canonical BRSZ table. */
-let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[],canonicalMatches:[],canonicalCoverage:[],canonicalTeamStats:[]};
+let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[],canonicalMatches:[],canonicalCoverage:[],canonicalTeamStats:[],verifiedLegacyMatchBridge:[]};
 
 /* Read-only league browser shares the saved MRSZ source used by Manager. */
 let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-player-league-context-v1')||'')}catch(_){return''}})();
@@ -2341,11 +2341,29 @@ async function ccLoadMrszPlayerPhoto_(){
   if(ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.loading||!ccSupabase||!SUPABASE_ENABLED)return;
   ccMrszPlayerPhoto_.loading=true;
   try{
-    const [{data,error},{data:sourceMatches,error:sourceError},{data:userMatches,error:userError}]=await Promise.all([ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v2'),ccSupabase.rpc('cc_player_competition_source_matches_effective_v1'),Promise.resolve(ccSupabase.rpc('cc_player_competition_user_schedule_v1')).catch(err=>({data:null,error:err}))]);
-    if(error)throw error;
+    const ccPlayerFetchSnapshot_=async name=>{
+      const result=await ccSupabase.rpc(name);
+      if(result?.error)throw result.error;
+      return result?.data;
+    };
+    const [data,{data:sourceMatches,error:sourceError},{data:userMatches,error:userError}]=await Promise.all([
+      window.CCVerifiedMatchBridge
+        ?window.CCVerifiedMatchBridge.loadSnapshot(ccPlayerFetchSnapshot_,'player',window.CLUB_CONTROL_CONFIG?.CANONICAL_BRIDGE_V3_ENABLED===true)
+        :ccPlayerFetchSnapshot_('cc_player_competition_mrsz_snapshot_v2'),
+      ccSupabase.rpc('cc_player_competition_source_matches_effective_v1'),
+      Promise.resolve(ccSupabase.rpc('cc_player_competition_user_schedule_v1')).catch(err=>({data:null,error:err}))
+    ]);
     if(sourceError)throw sourceError;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
-    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:Array.isArray(p.canonicalMatches)?p.canonicalMatches:[],canonicalCoverage:Array.isArray(p.canonicalCoverage)?p.canonicalCoverage:[],canonicalTeamStats:Array.isArray(p.canonicalTeamStats)?p.canonicalTeamStats:[]};
+    const ccBridgeEnabled=window.CLUB_CONTROL_CONFIG?.CANONICAL_BRIDGE_V3_ENABLED===true;
+    const ccCanonicalRows=Array.isArray(p.canonicalMatches)?p.canonicalMatches:[];
+    const ccVerifiedLinks=ccBridgeEnabled&&window.CCVerifiedMatchBridge
+      ?window.CCVerifiedMatchBridge.normalize(p.verifiedLegacyMatchBridge):[];
+    // Verified IDs are annotations ONLY; never link an event or write RSVP data.
+    const ccVerifiedCanonical=ccVerifiedLinks.length
+      ?window.CCVerifiedMatchBridge.annotateCanonical(ccCanonicalRows,ccVerifiedLinks)
+      :ccCanonicalRows;
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:ccVerifiedCanonical,canonicalCoverage:Array.isArray(p.canonicalCoverage)?p.canonicalCoverage:[],canonicalTeamStats:Array.isArray(p.canonicalTeamStats)?p.canonicalTeamStats:[],verifiedLegacyMatchBridge:ccVerifiedLinks};
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
