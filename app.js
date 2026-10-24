@@ -2851,7 +2851,7 @@ function ccPlayerScoreboardHtml_(m){
  return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+(String(m.status)==='postponed'?' is-postponed':'')+'"'
   +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':reportClickable?' data-player-external-report="'+escapeHtml_(externalReport)+'" role="link" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
-  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?'Halasztva':kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?'Időpont egyeztetés alatt':kick.time||'')+'</span></div>'
+  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?(kick.date?'Halasztva · '+kick.date:'Halasztva · Időpont nélkül'):kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?'Időpont egyeztetés alatt':kick.time||'')+'</span></div>'
   +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b></div>'
   +'<div class="player-match-result">'+(score==='VS.'?'<span class="player-match-vs">VS.</span>':'<strong>'+escapeHtml_(score)+'</strong>')+'</div>'
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
@@ -4038,7 +4038,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261024-verified-bridge-v1').catch(()=>{}));
 }
 
 
@@ -4445,7 +4445,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e');
+    return await navigator.serviceWorker.register('./sw.js?v=20261024-verified-bridge-v1');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
