@@ -114,9 +114,14 @@ test('Other competitions keep existing standings and matching paths',()=>{
  assert.ok(app.includes("const men=['Férfi Budapest I. osztály – A csoport','Férfi Budapest I. osztály – B csoport']"));
 });
 test('PWA cache version matches script and worker',()=>{
- assert.ok(html.includes('app.js?v=20261020-official-protocol-v23e'));
- assert.ok(sw.includes('club-control-player-20261020-official-protocol-v23e'));
- assert.ok(app.includes('sw.js?v=20261020-official-protocol-v23e'));
+ const version=/app\.js\?v=([^"]+)/.exec(html)?.[1];
+ assert.ok(version,'Player app.js must have an explicit cache token');
+ assert.ok(html.includes('styles.css?v='+version));
+ assert.ok(html.includes('statistics.js?v='+version));
+ assert.ok(html.includes('competition-match-bridge.js?v='+version));
+ assert.ok(sw.includes('club-control-player-'+version));
+ assert.ok(sw.includes('competition-match-bridge.js?v='+version));
+ assert.ok(app.includes('sw.js?v='+version));
 });
 
 test("Two real men's B results must not make the seven-team league disappear",()=>{

@@ -2295,7 +2295,7 @@ async function ccLoadCompetitionStandings_(){
 
 
 /* MRSZ screenshot snapshots are separate from the team's canonical BRSZ table. */
-let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[],canonicalMatches:[],canonicalCoverage:[],canonicalTeamStats:[]};
+let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[],canonicalMatches:[],canonicalCoverage:[],canonicalTeamStats:[],verifiedLegacyMatchBridge:[]};
 
 /* Read-only league browser shares the saved MRSZ source used by Manager. */
 let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-player-league-context-v1')||'')}catch(_){return''}})();
@@ -2341,11 +2341,31 @@ async function ccLoadMrszPlayerPhoto_(){
   if(ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.loading||!ccSupabase||!SUPABASE_ENABLED)return;
   ccMrszPlayerPhoto_.loading=true;
   try{
-    const [{data,error},{data:sourceMatches,error:sourceError},{data:userMatches,error:userError}]=await Promise.all([ccSupabase.rpc('cc_player_competition_mrsz_snapshot_v2'),ccSupabase.rpc('cc_player_competition_source_matches_effective_v1'),Promise.resolve(ccSupabase.rpc('cc_player_competition_user_schedule_v1')).catch(err=>({data:null,error:err}))]);
-    if(error)throw error;
+    const ccPlayerFetchSnapshot_=async name=>{
+      const result=await ccSupabase.rpc(name);
+      if(result?.error)throw result.error;
+      return result?.data;
+    };
+    const ccBridgeApi=typeof window!=='undefined'?window.CCVerifiedMatchBridge:null;
+    const ccBridgeFlag=typeof window!=='undefined'&&window.CLUB_CONTROL_CONFIG?.CANONICAL_BRIDGE_V3_ENABLED===true;
+    const [data,{data:sourceMatches,error:sourceError},{data:userMatches,error:userError}]=await Promise.all([
+      ccBridgeApi
+        ?ccBridgeApi.loadSnapshot(ccPlayerFetchSnapshot_,'player',ccBridgeFlag)
+        :ccPlayerFetchSnapshot_('cc_player_competition_mrsz_snapshot_v2'),
+      ccSupabase.rpc('cc_player_competition_source_matches_effective_v1'),
+      Promise.resolve(ccSupabase.rpc('cc_player_competition_user_schedule_v1')).catch(err=>({data:null,error:err}))
+    ]);
     if(sourceError)throw sourceError;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
-    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:Array.isArray(p.canonicalMatches)?p.canonicalMatches:[],canonicalCoverage:Array.isArray(p.canonicalCoverage)?p.canonicalCoverage:[],canonicalTeamStats:Array.isArray(p.canonicalTeamStats)?p.canonicalTeamStats:[]};
+    const ccBridgeEnabled=ccBridgeFlag;
+    const ccCanonicalRows=Array.isArray(p.canonicalMatches)?p.canonicalMatches:[];
+    const ccVerifiedLinks=ccBridgeEnabled&&ccBridgeApi
+      ?ccBridgeApi.normalize(p.verifiedLegacyMatchBridge):[];
+    // Verified IDs are annotations ONLY; never link an event or write RSVP data.
+    const ccVerifiedCanonical=ccVerifiedLinks.length
+      ?ccBridgeApi.annotateCanonical(ccCanonicalRows,ccVerifiedLinks)
+      :ccCanonicalRows;
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:ccVerifiedCanonical,canonicalCoverage:Array.isArray(p.canonicalCoverage)?p.canonicalCoverage:[],canonicalTeamStats:Array.isArray(p.canonicalTeamStats)?p.canonicalTeamStats:[],verifiedLegacyMatchBridge:ccVerifiedLinks};
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
@@ -2833,7 +2853,7 @@ function ccPlayerScoreboardHtml_(m){
  return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+(String(m.status)==='postponed'?' is-postponed':'')+'"'
   +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':reportClickable?' data-player-external-report="'+escapeHtml_(externalReport)+'" role="link" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
-  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?'Halasztva':kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?'Időpont egyeztetés alatt':kick.time||'')+'</span></div>'
+  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?(kick.date?'Halasztva · '+kick.date:'Halasztva · Időpont nélkül'):kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?'Időpont egyeztetés alatt':kick.time||'')+'</span></div>'
   +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b></div>'
   +'<div class="player-match-result">'+(score==='VS.'?'<span class="player-match-vs">VS.</span>':'<strong>'+escapeHtml_(score)+'</strong>')+'</div>'
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
@@ -4020,7 +4040,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261024-verified-bridge-v1').catch(()=>{}));
 }
 
 
@@ -4427,7 +4447,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e');
+    return await navigator.serviceWorker.register('./sw.js?v=20261024-verified-bridge-v1');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
