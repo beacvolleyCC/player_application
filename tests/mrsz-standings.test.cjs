@@ -102,11 +102,13 @@ test('PWA cache and HTML assets are versioned for the mobile match-row fix',()=>
  const html=fs.readFileSync('index.html','utf8');
  const sw=fs.readFileSync('sw.js','utf8');
  const assetVersion=html.match(/app\.js\?v=([^"]+)/)?.[1];
- assert.ok(assetVersion?.startsWith('20261020-official-protocol-'));
+ assert.ok(/^20\d{6}-[a-z0-9-]+$/.test(assetVersion||''),'PWA cache asset version must be modern and explicit');
  for(const asset of ['styles.css','statistics.css','app.js','statistics.js'])
   assert.ok(html.includes(asset+'?v='+assetVersion),asset+' cache must match');
  assert.ok(html.includes('competition-context-catalog.js?v=20261015-lc1'));
- assert.ok(sw.includes('club-control-player-'+assetVersion));
+ assert.ok(html.includes('competition-match-bridge.js?v='+assetVersion));
+  assert.ok(sw.includes('competition-match-bridge.js?v='+assetVersion));
+  assert.ok(sw.includes('club-control-player-'+assetVersion));
 });
 
 test('official UTC kickoff is shown in Budapest time and not duplicated against fixture',()=>{
@@ -207,7 +209,8 @@ test('saved results update a separately labeled partial standings model without 
  assert.equal(model.matched,1);
  assert.equal(model.rows.find(x=>x.teamName==='Semmelweis Egyetem Sport Klub').wins,1);
  assert.equal(model.rows.find(x=>x.teamName==='EMERICUS SE').losses,1);
- assert.equal(JSON.stringify(model.rows.map(x=>x.position)),JSON.stringify([1,2]));
+ assert.equal(JSON.stringify(model.rows.map(x=>x.position)),JSON.stringify([null,null]));
+  assert.ok(model.rows.every(x=>x.tablePoints===null),'Partial results must not invent league points');
  const view=js.slice(js.indexOf('function renderCompetitionStandings_(){'),js.indexOf('function syncPlannerSectionUi_()'));
  assert.ok(!view.includes('nem hivatalos tabella'));
  assert.ok(view.includes("const meta='';"));
@@ -227,23 +230,23 @@ test('four main menu entries: statistics accordion inside Tabella, profile last'
  assert.ok(js.includes("plannerSection='schedule'"));
 });
 
-test('verified match results produce numeric ranking for men A/B and women II/B without inventing fixtures',()=>{
+test('verified results keep ranking and table points unknown in all partial leagues',()=>{
  const fn=vm.runInContext('ccPlayerResultsOnlyStandings_',context);
  const menAmodel=fn(menA,[{teamName:'MAFC-Kármán'},{teamName:'Ráckeve'},{teamName:'Kandó Sport Club'}],[{
   competitionLabel:menA,homeName:'MAFC-Kármán',awayName:'Ráckeve',startsAt:'2026-10-13',
   homeSets:3,awaySets:0,setScores:[{home:32,away:30},{home:25,away:20},{home:25,away:21}]
  }]);
  assert.ok(menAmodel);
- assert.equal(JSON.stringify(menAmodel.rows.map(x=>x.position)),JSON.stringify([1,2,3]));
+ assert.equal(JSON.stringify(menAmodel.rows.map(x=>x.position)),JSON.stringify([null,null,null]));
  assert.equal(menAmodel.rows[0].played,1);
- assert.equal(menAmodel.rows[0].tablePoints,2);
+ assert.equal(menAmodel.rows[0].tablePoints,null);
  assert.equal(menAmodel.rows[0].teamName,'MAFC-Kármán');
  assert.equal(menAmodel.rows[1].teamName,'Ráckeve');
  const menBmodel=fn(menB,[{teamName:'BEAC'},{teamName:'MAFC-Vásárhelyi'},{teamName:'MAFC-Schönherz'}],[{
   competitionLabel:menB,homeName:'MAFC-Vásárhelyi',awayName:'MAFC-Schönherz',startsAt:'2026-10-15',
   homeSets:3,awaySets:0,setScores:[{home:25,away:15},{home:25,away:21},{home:25,away:16}]
  }]);
- assert.equal(menBmodel.rows[0].position,1);
+ assert.equal(menBmodel.rows[0].position,null);
  assert.equal(menBmodel.rows[0].teamName,'MAFC-Vásárhelyi');
  const women2=fn(w2,[{teamName:'MTK Budapest kék'},{teamName:'RKSK felnőtt női'},{teamName:'BEAC II.'}],[{
   competitionLabel:w2,homeName:'MTK kék',awayName:'RKSK felnőtt női',startsAt:'2026-10-13',
@@ -251,8 +254,8 @@ test('verified match results produce numeric ranking for men A/B and women II/B 
  }]);
  assert.ok(women2);
  assert.equal(women2.rows[0].teamName,'MTK Budapest kék');
- assert.equal(women2.rows[0].position,1);
- assert.equal(women2.rows[1].position,2);
+ assert.equal(women2.rows[0].position,null);
+ assert.equal(women2.rows[1].position,null);
  const unknown=fn('Női Budapest II. osztály – A csoport',[],[]);
  assert.equal(unknown,null);
 });
