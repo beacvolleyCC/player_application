@@ -10653,3 +10653,28 @@ body.dark{
 .cc-partial-standings-note{margin:10px 12px 12px;border:1px solid var(--line,#dedede);border-radius:11px;background:var(--card,#fff);padding:11px 13px;display:grid;gap:4px;}
 .cc-partial-standings-note>b{font-size:12px;font-weight:750;}
 .cc-partial-standings-note>span{font-size:11px;line-height:1.5;color:var(--muted,#6a6a6a);}
+
+
+/* Official protocols: mobile close affordance remains visible while the roster scrolls. */
+#playerProtocolDialog .player-protocol-dialog-card{
+  padding:8px 18px 20px !important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+#playerProtocolDialog #closePlayerProtocolDialog{
+  position:sticky !important;
+  top:8px !important;
+  right:auto !important;
+  margin:0 0 8px auto !important;
+  background:var(--card,#fff) !important;
+  box-shadow:0 1px 8px rgba(0,0,0,.12);
+}
+#playerProtocolDialog .player-protocol-scroll{
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+@media(max-width:650px){
+  #playerProtocolDialog .player-protocol-dialog-card{padding:6px 10px 14px!important}
+  #playerProtocolDialog .player-protocol-team table{min-width:370px}
+}

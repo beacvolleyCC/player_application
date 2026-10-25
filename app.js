@@ -2706,7 +2706,8 @@ function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.
   matched++;
   for(const [row,won,forSets,againstSets,isHome] of [[home,h>a,h,a,true],[away,a>h,a,h,false]]){
    row.played++;row.wins+=Number(won);row.losses+=Number(!won);
-   // Do not infer official competition points from partial results.row.setsFor+=forSets;row.setsAgainst+=againstSets;
+   // Set totals are known from verified match results even when the league's official points and ranking are unknown.
+   row.setsFor+=forSets;row.setsAgainst+=againstSets;
    if(!validSets){row.pointsFor=null;row.pointsAgainst=null}
    else if(row.pointsFor!==null&&row.pointsAgainst!==null){
     row.pointsFor+=setPoints.reduce((sum,p)=>sum+Number(isHome?p.home:p.away),0);
@@ -2787,6 +2788,10 @@ function ccPlayerOpenProtocol_(matchCode,league){
  const dialog=document.getElementById('playerProtocolDialog'),target=document.getElementById('playerProtocolContent');
  if(!dialog||!target)return;
  target.innerHTML=ccPlayerProtocolDetailHtml_(list[0]);
+ // A previous long report must not reopen half-way down on iOS/PWA.
+ const protocolSheet=dialog.querySelector('.player-protocol-dialog-card');
+ if(protocolSheet)protocolSheet.scrollTop=0;
+ dialog.scrollTop=0;
  ccOpenDialog_(dialog);
 }
 document.getElementById('closePlayerProtocolDialog')?.addEventListener('click',()=>ccCloseDialog_(document.getElementById('playerProtocolDialog')));
@@ -2833,7 +2838,7 @@ function ccPlayerScoreboardHtml_(m){
  return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+(String(m.status)==='postponed'?' is-postponed':'')+'"'
   +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':reportClickable?' data-player-external-report="'+escapeHtml_(externalReport)+'" role="link" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
-  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?'Halasztva':kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?'Időpont egyeztetés alatt':kick.time||'')+'</span></div>'
+  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?(kick.date?'Halasztva · '+kick.date:'Halasztva · Időpont nélkül'):kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?'Időpont egyeztetés alatt':kick.time||'')+'</span></div>'
   +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b></div>'
   +'<div class="player-match-result">'+(score==='VS.'?'<span class="player-match-vs">VS.</span>':'<strong>'+escapeHtml_(score)+'</strong>')+'</div>'
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
@@ -4020,7 +4025,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261025-protocol-mobile-v2').catch(()=>{}));
 }
 
 
@@ -4427,7 +4432,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e');
+    return await navigator.serviceWorker.register('./sw.js?v=20261025-protocol-mobile-v2');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
