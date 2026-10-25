@@ -10,7 +10,7 @@ const source=fs.readFileSync('app.js','utf8');
 const section=(start,end)=>{const a=source.indexOf(start),b=source.indexOf(end,a+start.length);
  assert.ok(a>=0&&b>a,'Missing live Player function '+start);return source.slice(a,b)};
 const escapeHtml_=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const views={body:{innerHTML:''},dialog:{},opened:0,closed:0,closeButton:{handlers:{},addEventListener(name,fn){this.handlers[name]=fn}},cards:[]};
+const views={body:{innerHTML:''},sheet:{scrollTop:73},dialog:{scrollTop:12,querySelector(selector){return selector==='.player-protocol-dialog-card'?views.sheet:null}},opened:0,closed:0,closeButton:{handlers:{},addEventListener(name,fn){this.handlers[name]=fn}},cards:[]};
 const ctx={
  URL,Intl,Date,
  document:{
@@ -90,9 +90,13 @@ for(const m of mapped)test('Player official '+m.matchCode+' score, full roster, 
    assert.ok(protocol.includes(p.code)===false,'Do not fabricate federation athlete URL from registration code');
   }
  }
+ views.sheet.scrollTop=90;
+ views.dialog.scrollTop=22;
  const before=views.opened;
  ctx.open(m.matchCode,m.competitionLabel);
  assert.equal(views.opened,before+1,'valid canonical protocol modal must open');
+ assert.equal(views.sheet.scrollTop,0,'reopened protocol must start at top');
+ assert.equal(views.dialog.scrollTop,0,'dialog root must reset scroll');
  assert.ok(views.body.innerHTML.includes('Meccskód: '+m.matchCode));
 });
 test('MRSZ number cannot open a different competition or a duplicate same-league result',()=>{
