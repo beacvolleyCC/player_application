@@ -10,11 +10,16 @@ const source=fs.readFileSync('app.js','utf8');
 const section=(start,end)=>{const a=source.indexOf(start),b=source.indexOf(end,a+start.length);
  assert.ok(a>=0&&b>a,'Missing live Player function '+start);return source.slice(a,b)};
 const escapeHtml_=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const views={body:{innerHTML:''},dialog:{},opened:0};
+const views={body:{innerHTML:''},dialog:{},opened:0,closed:0,closeButton:{handlers:{},addEventListener(name,fn){this.handlers[name]=fn}},cards:[]};
 const ctx={
  URL,Intl,Date,
- document:{getElementById:kind=>kind==='playerProtocolDialog'?views.dialog:kind==='playerProtocolContent'?views.body:null},
- ccOpenDialog_:()=>{views.opened++},ccCloseDialog_:()=>{},
+ document:{
+  getElementById:kind=>kind==='playerProtocolDialog'?views.dialog:
+    kind==='playerProtocolContent'?views.body:
+    kind==='closePlayerProtocolDialog'?views.closeButton:null,
+  querySelectorAll:query=>query==='[data-player-protocol]'?views.cards:[]
+ },
+ ccOpenDialog_:()=>{views.opened++},ccCloseDialog_:()=>{views.closed++},
  ccMrszPlayerPhoto_:{canonicalMatches:[],matches:[]},
  ccMrszPlayerLocalKickoff_:v=>({date:String(v||'').slice(0,10),time:String(v||'').slice(11,16)}),
  ccPlayerOfficialMatchReportUrl_:()=>'',escapeHtml_,standingsTeamLogoHtml_:()=>'<i class="club-icon"></i>'
@@ -28,6 +33,7 @@ this.report=ccPlayerProtocolDetailHtml_;
 this.card=ccPlayerScoreboardHtml_;
 this.open=ccPlayerOpenProtocol_;
 this.nameHtml=ccPlayerProtocolNameHtml_;
+this.bind=ccPlayerBindProtocols_;
 `,ctx);
 const ids={'2686':'04eaceee-57e2-7563-a618-beb933c0ffc0',
  '2700':'25a14406-2887-62fc-086c-ad770d160a6b'};
@@ -104,4 +110,46 @@ test('Official protocol source ID must not imply a guessed individual athlete pr
  assert.ok(example.code);
  assert.ok(!example.profileUrl);
  assert.equal(ctx.nameHtml(example),example.name);
+});
+
+test('mobile tap/keyboard event binder opens exact internal protocol and respects nested actions',()=>{
+ const events={};
+ const card={
+  dataset:{playerProtocol:'2686',playerProtocolLeague:'Női Budapest I. osztály'},
+  addEventListener:(type,callback)=>{events[type]=callback}
+ };
+ views.cards=[card];
+ ctx.bind();
+ assert.equal(typeof events.click,'function');
+ assert.equal(typeof events.keydown,'function');
+ const target=(nested=false)=>({closest:()=>nested?{tagName:'A'}:null});
+ let before=views.opened;
+ events.click({target:target()});
+ assert.equal(views.opened,before+1,'touch/click opens PDF-derived in-app report');
+ assert.ok(views.body.innerHTML.includes('Meccskód: 2686'));
+ before=views.opened;
+ events.click({target:target(true)});
+ assert.equal(views.opened,before,'nested link/button must not double-open report');
+ let prevented=0;
+ events.keydown({key:'Enter',target:target(),preventDefault(){prevented++}});
+ events.keydown({key:' ',target:target(),preventDefault(){prevented++}});
+ assert.equal(prevented,2,'Enter and Space remain keyboard accessible');
+ assert.equal(views.opened,before+2);
+ events.keydown({key:'Escape',target:target(),preventDefault(){prevented++}});
+ events.keydown({key:'Enter',target:target(true),preventDefault(){prevented++}});
+ assert.equal(prevented,2,'irrelevant or nested-key input remains untouched');
+ const beforeClose=views.closed;
+ assert.equal(typeof views.closeButton.handlers.click,'function','modal close handler must bind');
+ views.closeButton.handlers.click();
+ assert.equal(views.closed,beforeClose+1,'close button closes the report');
+ views.cards=[];
+});
+test('a completed report cannot open without active canonical matchCode+league and exactly one record',()=>{
+ const old=ctx.ccMrszPlayerPhoto_.canonicalMatches;
+ try{
+  ctx.ccMrszPlayerPhoto_.canonicalMatches=[];
+  const before=views.opened;
+  ctx.open('2686','Női Budapest I. osztály');
+  assert.equal(views.opened,before,'no fabricated report from schedule-only state');
+ }finally{ctx.ccMrszPlayerPhoto_.canonicalMatches=old}
 });
