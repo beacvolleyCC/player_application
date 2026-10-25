@@ -4025,7 +4025,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261025-authoritative-results-v1').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261025-protocol-mobile-v2').catch(()=>{}));
 }
 
 
@@ -4432,7 +4432,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261025-authoritative-results-v1');
+    return await navigator.serviceWorker.register('./sw.js?v=20261025-protocol-mobile-v2');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
