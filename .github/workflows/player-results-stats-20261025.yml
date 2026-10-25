@@ -1,0 +1,25 @@
+name: Player canonical fixtures and partial result statistics QA
+on:
+  push:
+    branches: [feat/20261025-results-stats-release-check]
+    paths:
+      - 'app.js'
+      - 'tests/player-results-statistics-20261025.test.cjs'
+      - '.github/workflows/player-results-stats-20261025.yml'
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'tests/player-results-statistics-20261025.test.cjs'
+      - '.github/workflows/player-results-stats-20261025.yml'
+jobs:
+  canonical-fixture-results:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify JS integrity
+        run: node --check app.js
+      - name: Canonical user-confirmed fixtures and partial scores
+        run: node --test tests/player-results-statistics-20261025.test.cjs
