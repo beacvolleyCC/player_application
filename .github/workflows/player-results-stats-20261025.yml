@@ -23,3 +23,5 @@ jobs:
         run: node --check app.js
       - name: Canonical user-confirmed fixtures and partial scores
         run: node --test tests/player-results-statistics-20261025.test.cjs
+      - name: Existing Player schedule, league, protocol and standings regressions
+        run: node --test tests/protocol-match-order-20261019.test.cjs tests/player-men-b-restore-20261020.test.cjs tests/mrsz-standings.test.cjs
