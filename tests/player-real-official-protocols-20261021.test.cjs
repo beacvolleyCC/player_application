@@ -157,3 +157,15 @@ test('a completed report cannot open without active canonical matchCode+league a
   assert.equal(views.opened,before,'no fabricated report from schedule-only state');
  }finally{ctx.ccMrszPlayerPhoto_.canonicalMatches=old}
 });
+
+
+test('Player mobile protocol CSS keeps close visible, roster swipable, and pinch zoom possible',()=>{
+ const css=fs.readFileSync('styles.css','utf8');
+ const html=fs.readFileSync('index.html','utf8');
+ assert.match(css,/#playerProtocolDialog #closePlayerProtocolDialog\s*\{\s*position:sticky\s*!important;/);
+ assert.match(css,/#playerProtocolDialog \.player-protocol-scroll\s*\{[\s\S]*?overflow-x:auto;/);
+ assert.match(css,/#playerProtocolDialog \.player-protocol-team table\s*\{min-width:370px\}/);
+ assert.ok(html.includes('width=device-width, initial-scale=1, viewport-fit=cover'));
+ assert.ok(!html.includes('user-scalable=no'));
+ assert.ok(!html.includes('maximum-scale=1'));
+});
