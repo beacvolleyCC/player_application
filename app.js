@@ -2788,6 +2788,10 @@ function ccPlayerOpenProtocol_(matchCode,league){
  const dialog=document.getElementById('playerProtocolDialog'),target=document.getElementById('playerProtocolContent');
  if(!dialog||!target)return;
  target.innerHTML=ccPlayerProtocolDetailHtml_(list[0]);
+ // A previous long report must not reopen half-way down on iOS/PWA.
+ const protocolSheet=dialog.querySelector('.player-protocol-dialog-card');
+ if(protocolSheet)protocolSheet.scrollTop=0;
+ dialog.scrollTop=0;
  ccOpenDialog_(dialog);
 }
 document.getElementById('closePlayerProtocolDialog')?.addEventListener('click',()=>ccCloseDialog_(document.getElementById('playerProtocolDialog')));
