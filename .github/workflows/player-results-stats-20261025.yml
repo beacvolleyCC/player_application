@@ -5,11 +5,15 @@ on:
     paths:
       - 'app.js'
       - 'tests/player-results-statistics-20261025.test.cjs'
+      - 'tests/player-real-official-protocols-20261021.test.cjs'
+      - 'tests/fixtures/official-protocols-20261021-manager74-snapshot.json'
       - '.github/workflows/player-results-stats-20261025.yml'
   pull_request:
     paths:
       - 'app.js'
       - 'tests/player-results-statistics-20261025.test.cjs'
+      - 'tests/player-real-official-protocols-20261021.test.cjs'
+      - 'tests/fixtures/official-protocols-20261021-manager74-snapshot.json'
       - '.github/workflows/player-results-stats-20261025.yml'
 jobs:
   canonical-fixture-results:
@@ -23,5 +27,7 @@ jobs:
         run: node --check app.js
       - name: Canonical user-confirmed fixtures and partial scores
         run: node --test tests/player-results-statistics-20261025.test.cjs
+      - name: Full official #2686/#2700 results and 38 athlete report contract
+        run: node --test tests/player-real-official-protocols-20261021.test.cjs
       - name: Existing Player schedule, league, protocol and standings regressions
         run: node --test tests/protocol-match-order-20261019.test.cjs tests/player-men-b-restore-20261020.test.cjs tests/mrsz-standings.test.cjs
