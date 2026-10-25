@@ -1,11 +1,11 @@
-const CACHE='club-control-player-20261025-authoritative-results-v1';
+const CACHE='club-control-player-20261025-protocol-mobile-v2';
 const CORE=[
   './manifest.webmanifest',
-  './app.js?v=20261025-authoritative-results-v1',
-  './styles.css?v=20261025-authoritative-results-v1',
+  './app.js?v=20261025-protocol-mobile-v2',
+  './styles.css?v=20261025-protocol-mobile-v2',
   './competition-context-catalog.js',
-  './statistics.js?v=20261025-authoritative-results-v1',
-  './statistics.css?v=20261025-authoritative-results-v1',
+  './statistics.js?v=20261025-protocol-mobile-v2',
+  './statistics.css?v=20261025-protocol-mobile-v2',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
