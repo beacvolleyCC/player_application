@@ -20,3 +20,4 @@ GitHub → új repo → Settings → Pages → Source: **GitHub Actions**. A `.g
 Nézetek, görgetés, sötét mód, eseménykártya, helyi jelenlétjelölés, menetrend, mobilos részletező ablak, iOS kezdőképernyőre telepítés. A demó alapértelmezett eseményei fejlesztési minták. **A 298 valódi mérkőzés, jegyzőkönyv és a bejelentkezési/értesítési rendszer csak külön staging Supabase mellett tesztelhető**.
 
 Az új repo létrehozása/Pages deploy még nem történt meg. A tesztág nem olvashatja és nem módosíthatja az éles sportolók adatait.
+A főképernyős ikon is különálló: narancssárga CC TEST feliratú PNG, 180/192/512 méretben.
