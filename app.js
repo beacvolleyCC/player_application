@@ -1,5 +1,5 @@
 
-const DEMO_NOW = new Date('2026-09-05T12:00:00');
+const DEMO_NOW = new Date();
 
 let events = [
   {id:'ev-2026-08-30',archived:true,date:'2026.08.30.',day:'Vasárnap',time:'18:00–20:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 1. pálya',month:'Aug',status:'yes',yes:['Anna','Dóri','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Te'],no:['Viki'],unknown:['Emma','Zsófi'],positions:{'Feladó':2,'Átló':2,'Négyes':4,'Center':3,'Liberó':2}},
@@ -252,7 +252,7 @@ let currentFinanceSettings={
 
 let currentTeamData = null;
 
-const HOME_FILTER_KEY='cc-home-filters-v2';
+const HOME_FILTER_KEY='cc-test-home-filters-v2';
 let homeFilters={period:'next14',type:'all',status:'all',from:'',to:''};
 try{ homeFilters={...homeFilters,...JSON.parse(localStorage.getItem(HOME_FILTER_KEY)||'{}')}; }catch(_){}
 
@@ -5025,7 +5025,7 @@ const SUPABASE_URL = String(CC_CONFIG.SUPABASE_URL || '').trim();
 const SUPABASE_PUBLISHABLE_KEY = String(CC_CONFIG.SUPABASE_PUBLISHABLE_KEY || '').trim();
 const SUPABASE_ENABLED = ccSupabaseConfigured_();
 
-const SESSION_KEY = 'cc-session-token-v1';
+const SESSION_KEY = 'cc-test-session-token-v1';
 let currentSessionToken = localStorage.getItem(SESSION_KEY) || '';
 let pendingLoginEmail = '';
 let ccSupabase = null;

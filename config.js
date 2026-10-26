@@ -1,12 +1,5 @@
-window.CLUB_CONTROL_CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbyyZSJC9-eHZ-TWWSDVoaAC3ISFo2KK9uQTbegP-lNrfQ2NZTXHJLLKaA4JYUPEvkHB_g/exec',
-
-  DATA_BACKEND: 'supabase',
-
-  SUPABASE_URL: 'https://snqsxlyhontaepembaic.supabase.co',
-
-  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_k1tiZDFFUHGu4aO8DbfIiw_YvBH-qPx',
-
-  PUSH_ENABLED: true,
-  VAPID_PUBLIC_KEY: 'BJxasxc_dJz4kPAUOiE_-oDQ9mCBUI-E5V9fMTZXi4sTXzzm7oPxvfsriW5M49U2HxeLg9d8WLn79ASh4SCSvio'
-};
+// Isolated CC Player TEST: NEVER add a production endpoint.
+window.CLUB_CONTROL_CONFIG=Object.freeze({
+ API_URL:'', DATA_BACKEND:'demo', SUPABASE_URL:'',
+ SUPABASE_PUBLISHABLE_KEY:'', PUSH_ENABLED:false, VAPID_PUBLIC_KEY:''
+});

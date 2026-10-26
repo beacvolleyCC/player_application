@@ -8,15 +8,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://*.supabase.co wss://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
-  <title>Club Control – Versenycsapat</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
+  <title>CC TEST – Player</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
   <link rel="stylesheet" href="./styles.css?v=20261025-protocol-mobile-v2">
   <link rel="stylesheet" href="./statistics.css?v=20261025-protocol-mobile-v2">
 </head>
-<body>
+<body data-cc-test="isolated">
+<div role="status" id="ccTestModeBadge" style="position:relative;z-index:100;background:#a4430d;color:#fff;padding:8px 10px;text-align:center;font:700 13px/1.2 system-ui,sans-serif;letter-spacing:.08em">CC TEST · DEMÓ · NEM ÉLES</div>
   <div class="login-overlay hidden" id="loginOverlay">
     <div class="login-card" role="dialog" aria-labelledby="loginTitle" aria-modal="true">
       <div class="eyebrow">CLUB CONTROL</div>
@@ -546,7 +547,7 @@
     </form>
   </dialog>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Offline test build: Supabase client deliberately omitted. -->
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
   <script src="./competition-context-catalog.js?v=20261015-lc1"></script>
   <script src="./app.js?v=20261025-protocol-mobile-v2"></script>
