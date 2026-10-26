@@ -1,3 +1,9 @@
+// TEST sandbox: namespace localStorage keys on shared-origin GitHub Pages.
+const ccMobileTestStorage_=Object.freeze({
+ getItem:key=>window.localStorage.getItem('cc-mobile-test-20261026:'+String(key)),
+ setItem:(key,v)=>window.localStorage.setItem('cc-mobile-test-20261026:'+String(key),v),
+ removeItem:key=>window.localStorage.removeItem('cc-mobile-test-20261026:'+String(key))
+});
 
 const DEMO_NOW = new Date();
 
@@ -14,7 +20,7 @@ let events = [
   {id:'ev-2026-12-03',date:'2026.12.03.',day:'Csütörtök',time:'18:00–20:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 2. pálya',month:'Dec',status:null,yes:['Anna'],no:[],unknown:['Te','Dóri','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Emma','Zsófi','Viki'],positions:{'Feladó':1,'Átló':0,'Négyes':0,'Center':0,'Liberó':0}},
 ];
 
-const saved = JSON.parse(localStorage.getItem('cc-demo-state-v2')||'{}');
+const saved = JSON.parse(ccMobileTestStorage_.getItem('cc-demo-state-v2')||'{}');
 events.forEach(e => {
   if (saved[e.id] !== undefined) {
     e.status = saved[e.id].status ?? null;
@@ -41,8 +47,8 @@ let plannerSection='schedule';
 let competitionStandings={contexts:[],loaded:false,error:''};
 let competitionInsights={key:'',loaded:false,loading:false,error:'',data:null};
 let competitionLeagueInsights={key:'',loaded:false,loading:false,error:'',data:null};
-let selectedStandingTeamId=localStorage.getItem('cc-standings-team')||'';
-let selectedStandingsRowTeamId=localStorage.getItem('cc-standings-row-team')||'all';
+let selectedStandingTeamId=ccMobileTestStorage_.getItem('cc-standings-team')||'';
+let selectedStandingsRowTeamId=ccMobileTestStorage_.getItem('cc-standings-row-team')||'all';
 // Hidden until Club Control actually has players with multiple active competition teams.
 const PLAYER_STANDINGS_TEAM_SWITCHER_ENABLED=false;
 
@@ -254,7 +260,7 @@ let currentTeamData = null;
 
 const HOME_FILTER_KEY='cc-test-home-filters-v2';
 let homeFilters={period:'next14',type:'all',status:'all',from:'',to:''};
-try{ homeFilters={...homeFilters,...JSON.parse(localStorage.getItem(HOME_FILTER_KEY)||'{}')}; }catch(_){}
+try{ homeFilters={...homeFilters,...JSON.parse(ccMobileTestStorage_.getItem(HOME_FILTER_KEY)||'{}')}; }catch(_){}
 
 function ccConfig_(){
   return window.CLUB_CONTROL_CONFIG || {};
@@ -436,7 +442,7 @@ function persist(event, status, note='') {
   else if(status==='no') event.no.push(label);
   else event.unknown.push(label);
   saved[event.id] = {status, note, at:new Date().toISOString()};
-  localStorage.setItem('cc-demo-state-v2', JSON.stringify(saved));
+  ccMobileTestStorage_.setItem('cc-demo-state-v2', JSON.stringify(saved));
 }
 
 
@@ -1123,8 +1129,8 @@ function renderEvents(){
   renderProfileStats_();
 }
 
-const plannerDefaultMode=localStorage.getItem('cc-planner-default') || 'last';
-const plannerLastMode=localStorage.getItem('cc-planner-mode') || 'grid';
+const plannerDefaultMode=ccMobileTestStorage_.getItem('cc-planner-default') || 'last';
+const plannerLastMode=ccMobileTestStorage_.getItem('cc-planner-mode') || 'grid';
 let plannerMode=(plannerDefaultMode==='last' ? plannerLastMode : plannerDefaultMode);
 if(!['grid','calendar'].includes(plannerMode)) plannerMode='grid';
 
@@ -1575,7 +1581,7 @@ function activeStandingsContext_(){
   if(!selected) selected=contexts[0];
   if(selected && String(selectedStandingTeamId||'')!==String(selected.contextTeamId||'')){
     selectedStandingTeamId=String(selected.contextTeamId||'');
-    try{localStorage.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
+    try{ccMobileTestStorage_.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
   }
   return selected;
 }
@@ -1736,7 +1742,7 @@ function standingsFilterIdByTeamName_(allRows,name){
 function applyStandingsTeamFilter_(teamId){
   const next=String(teamId||'all')||'all';
   selectedStandingsRowTeamId=next;
-  try{localStorage.setItem('cc-standings-row-team',next)}catch(_){}
+  try{ccMobileTestStorage_.setItem('cc-standings-row-team',next)}catch(_){}
   const select=document.getElementById('standingsRowTeamFilter');
   if(select) select.value=next;
   competitionInsights.key='';
@@ -2298,7 +2304,7 @@ async function ccLoadCompetitionStandings_(){
 let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[],canonicalMatches:[],canonicalCoverage:[],canonicalTeamStats:[]};
 
 /* Read-only league browser shares the saved MRSZ source used by Manager. */
-let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-player-league-context-v1')||'')}catch(_){return''}})();
+let ccPlayerLeagueSelection_=(()=>{try{return String(ccMobileTestStorage_.getItem('cc-player-league-context-v1')||'')}catch(_){return''}})();
 function ccPlayerLeagueCatalog_(){
  // This is the Player's authorised VISIBILITY filter, not the underlying
  // league source catalog (which remains shared with Manager).
@@ -2335,7 +2341,7 @@ function ccPlayerLeagueSelectorHtml_(){
  +entries.map(c=>'<option value="'+escapeHtml_(c.competitionLabel)+'" '+(c.competitionLabel===current?'selected':'')+'>'+escapeHtml_(c.competitionLabel)+'</option>').join('')
  +'</select></label></div>';
 }
-function ccPlayerClearLeagueSelection_(){ccPlayerLeagueSelection_='';try{localStorage.removeItem('cc-player-league-context-v1')}catch(_){}}
+function ccPlayerClearLeagueSelection_(){ccPlayerLeagueSelection_='';try{ccMobileTestStorage_.removeItem('cc-player-league-context-v1')}catch(_){}}
 
 async function ccLoadMrszPlayerPhoto_(){
   if(ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.loading||!ccSupabase||!SUPABASE_ENABLED)return;
@@ -2908,7 +2914,7 @@ function renderPlanner(){
       const label=String(event.target.value||'');
       if(!ccPlayerLeagueCatalog_().some(c=>c.competitionLabel===label))return;
       ccPlayerLeagueSelection_=label;selectedStandingsRowTeamId='all';ccLeaguePlayerMatchScope_='all';
-      try{localStorage.setItem('cc-player-league-context-v1',label)}catch(_){}
+      try{ccMobileTestStorage_.setItem('cc-player-league-context-v1',label)}catch(_){}
       renderPlanner();
     });
     if(!ccMrszPlayerPhoto_.loaded&&!ccMrszPlayerPhoto_.loading)void ccLoadMrszPlayerPhoto_();
@@ -2924,7 +2930,7 @@ function renderPlanner(){
     }));
     document.getElementById('standingsTeamSelect')?.addEventListener('change',event=>{
       selectedStandingTeamId=String(event.target.value||'');
-      try{localStorage.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
+      try{ccMobileTestStorage_.setItem('cc-standings-team',selectedStandingTeamId)}catch(_){}
       competitionInsights={key:'',loaded:false,loading:false,error:'',data:null};
       competitionLeagueInsights={key:'',loaded:false,loading:false,error:'',data:null};
       renderPlanner();
@@ -2951,7 +2957,7 @@ function renderPlanner(){
     });
   }
   const defaultView=document.getElementById('settingsDefaultView');
-  if(defaultView) defaultView.value=localStorage.getItem('cc-planner-default') || 'last';
+  if(defaultView) defaultView.value=ccMobileTestStorage_.getItem('cc-planner-default') || 'last';
 
   document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>btn.classList.toggle('active',btn.dataset.mode===plannerMode));
 
@@ -3177,7 +3183,7 @@ document.getElementById('confirmCancel').addEventListener('click',ev=>{
 
 const CC_FILTER_PANEL_PREF_PREFIX='cc-player-filter-open:';
 function ccFilterPanelPref_(panelId){
-  try{const v=localStorage.getItem(CC_FILTER_PANEL_PREF_PREFIX+panelId);return v==null?null:v==='1'}catch(_){return null}
+  try{const v=ccMobileTestStorage_.getItem(CC_FILTER_PANEL_PREF_PREFIX+panelId);return v==null?null:v==='1'}catch(_){return null}
 }
 function toggleFilterPanel_(buttonId,panelId,force){
   const btn=document.getElementById(buttonId), panel=document.getElementById(panelId);
@@ -3187,7 +3193,7 @@ function toggleFilterPanel_(buttonId,panelId,force){
   panel.setAttribute('aria-hidden',open?'false':'true');
   btn.setAttribute('aria-expanded',open?'true':'false');
   btn.classList.toggle('filter-open',open);
-  try{localStorage.setItem(CC_FILTER_PANEL_PREF_PREFIX+panelId,open?'1':'0')}catch(_){}
+  try{ccMobileTestStorage_.setItem(CC_FILTER_PANEL_PREF_PREFIX+panelId,open?'1':'0')}catch(_){}
 }
 function ccRestoreFilterPanelPrefs_(){
   [['eventFilterBtn','eventFilterPanel'],['plannerFilterBtn','plannerFilterPanel']].forEach(([buttonId,panelId])=>{const pref=ccFilterPanelPref_(panelId);if(pref!==null)toggleFilterPanel_(buttonId,panelId,pref)});
@@ -3220,7 +3226,7 @@ document.getElementById('eventFilterBtn')?.addEventListener('click',e=>{toggleFi
     if(id==='eventPeriodFilter') homeFilters.period=e.target.value;
     if(id==='eventTypeFilter') homeFilters.type=e.target.value;
     if(id==='eventStatusFilter') homeFilters.status=e.target.value;
-    localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
+    ccMobileTestStorage_.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
     ccAfterNativePicker_(e.target,renderEvents);
   });
 });
@@ -3228,19 +3234,19 @@ document.getElementById('eventFilterBtn')?.addEventListener('click',e=>{toggleFi
   document.getElementById(id)?.addEventListener('change',e=>{
     if(id==='eventDateFrom') homeFilters.from=e.target.value.trim();
     if(id==='eventDateTo') homeFilters.to=e.target.value.trim();
-    localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
+    ccMobileTestStorage_.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
     ccAfterNativePicker_(e.target,renderEvents);
   });
 });
 document.getElementById('resetEventFiltersBtn')?.addEventListener('click',()=>{
   homeFilters={period:'next14',type:'all',status:'all',from:'',to:''};
-  localStorage.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
+  ccMobileTestStorage_.setItem(HOME_FILTER_KEY,JSON.stringify(homeFilters));
   renderEvents();
   toggleFilterPanel_('eventFilterBtn','eventFilterPanel',true);
 });
 
 document.getElementById('plannerFilterBtn')?.addEventListener('click',e=>{toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel');ccBlurPointerControl_(e.currentTarget)});
-document.getElementById('standingsRowTeamFilter')?.addEventListener('change',e=>{selectedStandingsRowTeamId=String(e.target.value||'all');try{localStorage.setItem('cc-standings-row-team',selectedStandingsRowTeamId)}catch(_){}ccAfterNativePicker_(e.target,()=>{renderPlanner();toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);});});
+document.getElementById('standingsRowTeamFilter')?.addEventListener('change',e=>{selectedStandingsRowTeamId=String(e.target.value||'all');try{ccMobileTestStorage_.setItem('cc-standings-row-team',selectedStandingsRowTeamId)}catch(_){}ccAfterNativePicker_(e.target,()=>{renderPlanner();toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true);});});
 ['plannerPeriodFilter','monthFilter','typeFilter'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change',e=>{
     ccAfterNativePicker_(e.target,()=>{
@@ -3274,7 +3280,7 @@ document.getElementById('missingOnlyBtn')?.addEventListener('click',e=>{
 document.getElementById('resetPlannerFiltersBtn')?.addEventListener('click',()=>{
   if(plannerSection==='standings'){
     selectedStandingsRowTeamId='all';
-    try{localStorage.setItem('cc-standings-row-team','all')}catch(_){}
+    try{ccMobileTestStorage_.setItem('cc-standings-row-team','all')}catch(_){}
     const standingSelect=document.getElementById('standingsRowTeamFilter'); if(standingSelect) standingSelect.value='all';
     renderPlanner(); toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',true); return;
   }
@@ -3965,12 +3971,12 @@ function switchView(viewId){
     // The standalone Tabella must never inherit a hidden row filter from
     // the old Menetrend toolbar. Row-specific statistics remain selectable.
     selectedStandingsRowTeamId='all';
-    try{localStorage.setItem('cc-standings-row-team','all')}catch(_){}
+    try{ccMobileTestStorage_.setItem('cc-standings-row-team','all')}catch(_){}
   }
   // Keep the schedule's view mode independent of the bottom-level Tabella.
   if(plannerSection!==nextSection){
     plannerSection=nextSection;
-    try{localStorage.setItem('cc-planner-section','schedule')}catch(_){}
+    try{ccMobileTestStorage_.setItem('cc-planner-section','schedule')}catch(_){}
   }
 
   forcePlannerPageTop_();
@@ -4009,7 +4015,7 @@ ccBindBackgroundPageSwipe_();
 window.addEventListener('resize',()=>requestAnimationFrame(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();}));
 window.addEventListener('orientationchange',()=>setTimeout(()=>{syncPlannerPageLock_();syncPlannerGridViewport_();},80));
 
-function currentThemePreference_(){ return localStorage.getItem('cc-theme-mode') || localStorage.getItem('cc-theme') || 'system'; }
+function currentThemePreference_(){ return ccMobileTestStorage_.getItem('cc-theme-mode') || ccMobileTestStorage_.getItem('cc-theme') || 'system'; }
 function applyThemePreference_(pref=currentThemePreference_()){
   const isDark=pref==='dark' || (pref==='system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
   document.body.classList.toggle('dark',!!isDark);
@@ -4042,10 +4048,10 @@ document.querySelectorAll('.view-mode-btn[data-mode]').forEach(btn=>{
     if(!leavingStandings && !modeChanged) return;
 
     plannerSection='schedule';
-    try{localStorage.setItem('cc-planner-section',plannerSection)}catch(_){}
+    try{ccMobileTestStorage_.setItem('cc-planner-section',plannerSection)}catch(_){}
     if(leavingStandings) toggleFilterPanel_('plannerFilterBtn','plannerFilterPanel',false);
     plannerMode=nextMode;
-    localStorage.setItem('cc-planner-mode',plannerMode);
+    ccMobileTestStorage_.setItem('cc-planner-mode',plannerMode);
     plannerUserPositioned=false;
     syncPlannerPageLock_();
     forcePlannerPageTop_();
@@ -4728,8 +4734,8 @@ let ccSettingsSaveTimer=null;
 
 function defaultSettingsPayload_(){
   return {
-    theme:localStorage.getItem('cc-theme-mode')||'system',
-    scheduleDefaultView:localStorage.getItem('cc-planner-default')||'last',
+    theme:ccMobileTestStorage_.getItem('cc-theme-mode')||'system',
+    scheduleDefaultView:ccMobileTestStorage_.getItem('cc-planner-default')||'last',
     language:'hu',
     detailedMode:false,
     avatarId:'',
@@ -4792,9 +4798,9 @@ function applySettingsUi_(value){
 async function savePlayerSettingsNow_(){
   const settings=collectSettingsUi_();
   currentPlayerSettings=settings;
-  localStorage.setItem('cc-theme-mode',settings.theme);
-  localStorage.setItem('cc-planner-default',settings.scheduleDefaultView);
-  localStorage.removeItem('cc-detailed-mode');
+  ccMobileTestStorage_.setItem('cc-theme-mode',settings.theme);
+  ccMobileTestStorage_.setItem('cc-planner-default',settings.scheduleDefaultView);
+  ccMobileTestStorage_.removeItem('cc-detailed-mode');
   applyThemePreference_(settings.theme);
   detailedMode=false;
 
@@ -4830,11 +4836,11 @@ document.getElementById('closeSettingsBtn')?.addEventListener('click',async()=>{
   ccCloseDialog_(settingsDialog);
 });
 document.getElementById('settingsDefaultView')?.addEventListener('change',e=>{
-  localStorage.setItem('cc-planner-default',e.target.value);
+  ccMobileTestStorage_.setItem('cc-planner-default',e.target.value);
   scheduleSettingsSave_();
 });
 document.getElementById('settingsThemeMode')?.addEventListener('change',e=>{
-  localStorage.setItem('cc-theme-mode',e.target.value);
+  ccMobileTestStorage_.setItem('cc-theme-mode',e.target.value);
   applyThemePreference_(e.target.value);
   scheduleSettingsSave_();
 });
@@ -5026,7 +5032,7 @@ const SUPABASE_PUBLISHABLE_KEY = String(CC_CONFIG.SUPABASE_PUBLISHABLE_KEY || ''
 const SUPABASE_ENABLED = ccSupabaseConfigured_();
 
 const SESSION_KEY = 'cc-test-session-token-v1';
-let currentSessionToken = localStorage.getItem(SESSION_KEY) || '';
+let currentSessionToken = ccMobileTestStorage_.getItem(SESSION_KEY) || '';
 let pendingLoginEmail = '';
 let ccSupabase = null;
 let ccSupabaseSession = null;
@@ -5062,7 +5068,7 @@ function hideLogin(){ document.getElementById('loginOverlay')?.classList.add('hi
 function clearSession(){
   currentSessionToken='';
   ccSupabaseSession=null;
-  localStorage.removeItem(SESSION_KEY);
+  ccMobileTestStorage_.removeItem(SESSION_KEY);
 }
 function setLoginMessage(id,text,isError=false){
   const el=document.getElementById(id); if(!el) return;
@@ -5421,7 +5427,7 @@ async function verifyLogin(){
       const j=await apiPost({action:'verifyLoginCode',email:pendingLoginEmail,code});
       if(!j.sessionToken) throw new Error('Nem érkezett munkamenet-token.');
       currentSessionToken=j.sessionToken;
-      localStorage.setItem(SESSION_KEY,currentSessionToken);
+      ccMobileTestStorage_.setItem(SESSION_KEY,currentSessionToken);
     }
     setLoginMessage('loginCodeMsg','Sikeres belépés.');
     await loadBootstrap();

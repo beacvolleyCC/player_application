@@ -21,3 +21,5 @@ Nézetek, görgetés, sötét mód, eseménykártya, helyi jelenlétjelölés, m
 
 Az új repo létrehozása/Pages deploy még nem történt meg. A tesztág nem olvashatja és nem módosíthatja az éles sportolók adatait.
 A főképernyős ikon is különálló: narancssárga CC TEST feliratú PNG, 180/192/512 méretben.
+
+**Tárhely-izoláció:** minden helyi beállítás/próba-jelentkezés a saját `cc-mobile-test-20261026:` kulcs-előtag alatt él, még akkor is, ha más GitHub Pages PWA ugyanazon domainen fut.

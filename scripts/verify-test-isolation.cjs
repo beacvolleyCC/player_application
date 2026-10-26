@@ -11,3 +11,8 @@ assert.match(sw,/cc-player-test-20261025-protocol-mobile-v2/);
 assert.doesNotMatch(sw,/['"]push['"]|cc-player-20261025/);
 assert.equal(m.short_name,'CC TEST');assert.ok(m.id.includes('cc-test-id'));
 console.log('PASS: CC TEST is offline/demo-only, with no production API config.');
+
+const src=fs.readFileSync('app.js','utf8');
+assert.match(src,/ccMobileTestStorage_=Object\.freeze/);
+assert.match(src,/window\.localStorage\.getItem\('cc-mobile-test-20261026:/);
+assert.doesNotMatch(src,/(?<!window\.)\blocalStorage\.(?:getItem|setItem|removeItem)\(/);
