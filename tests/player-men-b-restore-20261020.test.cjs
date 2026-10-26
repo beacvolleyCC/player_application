@@ -118,7 +118,9 @@ test('PWA cache version matches script and worker',()=>{
  assert.ok(version,'Player app must have a PWA cache version');
  for(const name of ['styles.css','statistics.css','app.js','statistics.js'])
   assert.ok(html.includes(name+'?v='+version),'missing matching cache version for '+name);
- assert.ok(sw.includes('club-control-player-'+version));
+ if(html.includes('CC TEST · DEMÓ · NEM ÉLES')){
+  assert.ok(sw.includes('cc-player-test-'+version),'test cache must be independent');
+ }else assert.ok(sw.includes('club-control-player-'+version));
  assert.ok(sw.includes('app.js?v='+version));
  assert.ok(app.includes('sw.js?v='+version));
 });

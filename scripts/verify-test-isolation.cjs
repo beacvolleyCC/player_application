@@ -7,7 +7,7 @@ assert.match(h,/connect-src 'none'/);assert.match(h,/script-src 'self'/);
 assert.doesNotMatch(h,/cdn\.jsdelivr\.net|script\.google\.com|\.supabase\.co/);
 assert.match(c,/DATA_BACKEND:'demo'/);assert.match(c,/API_URL:''/);assert.match(c,/SUPABASE_URL:''/);assert.match(c,/PUSH_ENABLED:false/);
 assert.doesNotMatch(c,/https?:\/\//);
-assert.match(sw,/cc-player-test-20261026/);
+assert.match(sw,/cc-player-test-20261025-protocol-mobile-v2/);
 assert.doesNotMatch(sw,/['"]push['"]|cc-player-20261025/);
 assert.equal(m.short_name,'CC TEST');assert.ok(m.id.includes('cc-test-id'));
 console.log('PASS: CC TEST is offline/demo-only, with no production API config.');
