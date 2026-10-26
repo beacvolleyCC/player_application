@@ -1,0 +1,29 @@
+name: Player LIVE BB2 future archive hotfix QA
+on:
+  push:
+    branches:
+      - hotfix/20261026-player-bb2-future-archived
+      - main
+    paths:
+      - app.js
+      - index.html
+      - sw.js
+      - tests/player-bb2-future-archived-20261026.test.cjs
+      - .github/workflows/player-bb2-future-archived-20261026.yml
+  pull_request:
+    paths:
+      - app.js
+      - index.html
+      - sw.js
+      - tests/player-bb2-future-archived-20261026.test.cjs
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: |
+          node --check app.js
+          node --check sw.js
+          node --test tests/player-bb2-future-archived-20261026.test.cjs
