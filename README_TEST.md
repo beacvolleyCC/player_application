@@ -1,3 +1,9 @@
+# AKTUÁLIS TELEPÍTÉSI ÚTVONAL — 2026-10-26
+
+**NEM szükséges két új GitHub-repository létrehozása.** A Player TEST PWA közvetlenül publikálható a meglévő `beacvolleyCC/player_application` repó TEST ágából, egy **külön Cloudflare Pages Free projektbe**. Pontos lépések: [docs/TEST_CLOUDFLARE_PAGES_INSTALL_20261026.md](docs/TEST_CLOUDFLARE_PAGES_INSTALL_20261026.md). A régi leírás alább történeti alternatíva; ne azt kövesd, hacsak kifejezetten GitHub Pages-hostolást szeretnél.
+
+---
+
 # Club Control TEST – iPhone Player PWA
 
 The **Player TEST** branch is `beacvolleyCC/player_application:test/20261026-isolated-player-mobile`. This is a DEMO-only PWA, intentionally separate from LIVE Supabase. Orange CC TEST banner and own icon, browser storage keys and service-worker cache.
