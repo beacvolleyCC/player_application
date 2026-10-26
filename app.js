@@ -479,6 +479,15 @@ function isPast(e){
   return e.archived===true || eventEnd(e) <= now;
 }
 
+// Archived future matches have been superseded. Keep their historical RSVPs,
+// but never show them as current fixtures or mark missing RSVPs as absences.
+function ccIsFutureArchivedMatch_(e,now=ccNow_()){
+  const start=eventStart(e);
+  return e?.type==='Meccs' && e.archived===true
+    && start instanceof Date && Number.isFinite(start.getTime())
+    && start.getTime()>now.getTime();
+}
+
 function cardClass(e){
   if(e.status==='yes') return 'status-yes';
   if(e.status==='no') return 'status-no';
@@ -590,8 +599,11 @@ function eventCard(e){
   const awayLine=isAway && e.address
     ? `<div class="away-location event-away-compact"><span class="away-address">${e.address}</span></div>`
     : '';
-  const autoAbsence = archived && e.status===null
+  const retiredFuture=ccIsFutureArchivedMatch_(e);
+  const autoAbsence = archived && !retiredFuture && e.status===null
     ? `<div class="auto-absence">Automatikus hiányzás a lezáráskor</div>` : '';
+  const retiredNotice=retiredFuture
+    ? '<div class="auto-absence" role="note">Archivált időpont – már nem aktuális mérkőzés. A régi jelentkezések megmaradtak.</div>' : '';
 
   return `<article class="event-card ${cardClass(e)} ${archived?'archived-card':''}">
     <div class="event-collapsed">
@@ -602,6 +614,7 @@ function eventCard(e){
           ${matchTitle}
           <div class="event-meta event-meta-compact">${compactMeta}</div>
           ${awayLine}
+          ${retiredNotice}
           ${autoAbsence}
         </div>
         <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
@@ -675,6 +688,7 @@ function filteredHomeEvents(){
   const customTo=parseHuDate_(homeFilters.to);
 
   return [...events].sort((a,b)=>eventStart(a)-eventStart(b)).filter(e=>{
+    if(ccIsFutureArchivedMatch_(e) && homeFilters.period!=='past') return false;
     const d=dateOnly_(eventDateObj(e));
     if(homeFilters.period==='next14' && (d<now || d>to14)) return false;
     if(homeFilters.period==='next30' && (d<now || d>to30)) return false;
@@ -1173,6 +1187,7 @@ function filteredPlannerEvents(){
 
   return events.filter(e => {
     const past=isPast(e);
+    if(ccIsFutureArchivedMatch_(e) && pf!=='past') return false;
 
     // Default: current/ongoing event + future events only.
     if(pf==='upcoming' && past) return false;
@@ -1297,7 +1312,7 @@ function renderGridMatrix(rows){
     const eventButton=archived
       ? `<div class="matrix-event-side-btn matrix-event-closed" aria-label="${typeLabel(e)} · ${e.title} · lezárt esemény">
           <span class="matrix-side-icon">${typeIcon(e)}</span>
-          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day} · ${e.time}</small></span>
+          <span class="matrix-event-copy"><b>${e.title}</b><small>${e.date} · ${e.day} · ${e.time}${ccIsFutureArchivedMatch_(e)?' · Archivált időpont':''}</small></span>
         </div>`
       : `<button class="matrix-event-open matrix-event-side-btn" data-open-event="${e.id}" title="${typeLabel(e)} · ${e.title}">
           <span class="matrix-side-icon">${typeIcon(e)}</span>
@@ -1408,7 +1423,11 @@ function renderCalendar(rows){
   for(let i=0;i<startOffset;i++) cells.push(null);
   for(let d=1;d<=last.getDate();d++) cells.push(new Date(y,m,d));
   while(cells.length%7) cells.push(null);
-  const visible=rows.filter(e=>{const d=eventDateObj(e); return d.getFullYear()===y && d.getMonth()===m;});
+  const visible=rows.filter(e=>{
+    if(ccIsFutureArchivedMatch_(e)) return false;
+    const d=eventDateObj(e);
+    return d.getFullYear()===y && d.getMonth()===m;
+  });
 
   return `<div class="calendar-shell">
     <div class="calendar-head"><button class="calendar-nav" data-cal-nav="prev" aria-label="Előző hónap">‹</button><h4>${calendarMonthLabel(calendarCursor)}</h4><button class="calendar-nav" data-cal-nav="next" aria-label="Következő hónap">›</button></div>
@@ -1438,7 +1457,7 @@ function renderCardSchedule(rows){
       : '';
     return `<div class="planner-row planner-event-open ${cardClass(e)} ${archived?'archived-row':''}" data-open-event="${e.id}" data-event-id="${e.id}">
       <div class="planner-icon bare-icon">${typeIcon(e)}</div>
-      <div class="planner-main"><b>${e.date} · ${e.title}</b><small>${baseMeta}</small>${awayQuick}${archived?'<span class="archive-badge">Lezárt</span>':''}</div>
+      <div class="planner-main"><b>${e.date} · ${e.title}</b><small>${baseMeta}</small>${awayQuick}${ccIsFutureArchivedMatch_(e)?'<span class="archive-badge">Archivált időpont</span>':archived?'<span class="archive-badge">Lezárt</span>':''}</div>
       <div class="planner-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
       ${plannerStatusControls(e,archived)}
     </div>`;
@@ -4020,7 +4039,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261026-bb2-archived-v1').catch(()=>{}));
 }
 
 
@@ -4427,7 +4446,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261020-official-protocol-v23e');
+    return await navigator.serviceWorker.register('./sw.js?v=20261026-bb2-archived-v1');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
