@@ -16,3 +16,8 @@ const src=fs.readFileSync('app.js','utf8');
 assert.match(src,/ccMobileTestStorage_=Object\.freeze/);
 assert.match(src,/window\.localStorage\.getItem\('cc-mobile-test-20261026:/);
 assert.doesNotMatch(src,/(?<!window\.)\blocalStorage\.(?:getItem|setItem|removeItem)\(/);
+
+const exportScript=fs.readFileSync('scripts/export-player-test-pages.ps1','utf8');
+assert.match(exportScript,/Target must be empty except the .git directory/);
+assert.match(exportScript,/Copy-Item -LiteralPath \$in -Destination \$to/);
+assert.doesNotMatch(exportScript,/Copy-Item.+data\/|Copy-Item.+supabase\/migrations/);

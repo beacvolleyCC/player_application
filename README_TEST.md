@@ -1,25 +1,21 @@
-# Club Control Player – elkülönített telefonos TEST
-Az eredeti Player #28 kódjára épülő telepíthető PWA DEMÓ módban. **Az éles Player és Manager main ágai változatlanok.** Nincs Supabase, nincs Google Apps Script, nincs push, nincs távoli adatírás, a hálózati API-kéréseket CSP tiltja. A „Jövök/Nem jövök” próba helyben mentődik.
+# Club Control TEST – iPhone Player PWA
 
-## Külön repo előkészítése
-A tesztág: `beacvolleyCC/player_application` → `test/20261026-isolated-player-mobile`. A kívánt új GitHub-repo: **`beacvolleyCC/club-control-player-test`**. Az új repo még **nincs létrehozva** – ezt a GitHub New Repository felületén létre kell hozni. Ezt követően a tesztág fájljai külön Git-történettel kerüljenek az új repo `main` ágára:
+The **Player TEST** branch is `beacvolleyCC/player_application:test/20261026-isolated-player-mobile`. This is a DEMO-only PWA, intentionally separate from LIVE Supabase. Orange CC TEST banner and own icon, browser storage keys and service-worker cache.
 
+**Do not copy the whole source repository to a public GitHub repository.** The development repository contains archive and test data that are NOT part of the published static app. Use the vetted PowerShell export:
+1. Create a new, empty repository `beacvolleyCC/club-control-player-test`. The GitHub connector used for coding cannot create a new repository.
+2. On Windows, clone both the source branch and the **new empty** repo into different directories:
 ```powershell
-git clone --depth 1 --branch test/20261026-isolated-player-mobile https://github.com/beacvolleyCC/player_application.git cc-player-test
-cd cc-player-test
-Remove-Item -Recurse -Force .git
-git init -b main
+git clone --depth 1 --branch test/20261026-isolated-player-mobile https://github.com/beacvolleyCC/player_application.git cc-player-test-source
+git clone https://github.com/beacvolleyCC/club-control-player-test.git cc-player-test-publish
+pwsh -NoProfile -File ./cc-player-test-source/scripts/export-player-test-pages.ps1 -Destination ./cc-player-test-publish
+cd cc-player-test-publish
 git add .
-git commit -m "Isolated Player mobile test PWA"
-git remote add origin https://github.com/beacvolleyCC/club-control-player-test.git
+git commit -m "Publish isolated CC Player TEST demo"
 git push -u origin main
 ```
-GitHub → új repo → Settings → Pages → Source: **GitHub Actions**. A `.github/workflows/cc-test-pages.yml` CSAK az egzakt `beacvolleyCC/club-control-player-test` repo esetén enged publikálást. A Pages sikeres futása utáni HTTPS URL-t iPhone Safariban megnyitva → Megosztás → Hozzáadás a Főképernyőhöz. Külön neve **CC TEST**, narancssárga **NEM ÉLES** csíkkal.
+3. In new repo Settings → Pages choose **GitHub Actions**. The deploy workflow is enabled only for the exact `beacvolleyCC/club-control-player-test` repository.
+4. Use the HTTPS GitHub Pages URL reported by the *successful* deployment. On iOS Safari choose Share → Add to Home Screen. The app icon reads CC TEST.
+5. Later, only after staging schema/RLS/test accounts and acceptance checks, switch from local DEMO config to Supabase TEST URL and TEST publishable key.
 
-## Mit lehet tesztelni?
-Nézetek, görgetés, sötét mód, eseménykártya, helyi jelenlétjelölés, menetrend, mobilos részletező ablak, iOS kezdőképernyőre telepítés. A demó alapértelmezett eseményei fejlesztési minták. **A 298 valódi mérkőzés, jegyzőkönyv és a bejelentkezési/értesítési rendszer csak külön staging Supabase mellett tesztelhető**.
-
-Az új repo létrehozása/Pages deploy még nem történt meg. A tesztág nem olvashatja és nem módosíthatja az éles sportolók adatait.
-A főképernyős ikon is különálló: narancssárga CC TEST feliratú PNG, 180/192/512 méretben.
-
-**Tárhely-izoláció:** minden helyi beállítás/próba-jelentkezés a saját `cc-mobile-test-20261026:` kulcs-előtag alatt él, még akkor is, ha más GitHub Pages PWA ugyanazon domainen fut.
+The current site has not been deployed, and the Free Supabase TEST project is still empty as an application backend. LIVE Player stays untouched. No paid resources.
