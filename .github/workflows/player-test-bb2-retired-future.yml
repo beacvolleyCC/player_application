@@ -1,0 +1,20 @@
+name: Player TEST archived future BB2 fixture regression
+on:
+  push:
+    branches: [test/20261026-isolated-player-mobile]
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'tests/player-bb2-retired-future-fixture-20261026.test.cjs'
+      - '.github/workflows/player-test-bb2-retired-future.yml'
+jobs:
+  bb2-archived-future:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: JavaScript syntax and archived fixture regression
+        run: |
+          node --check app.js
+          node --test tests/player-bb2-retired-future-fixture-20261026.test.cjs
