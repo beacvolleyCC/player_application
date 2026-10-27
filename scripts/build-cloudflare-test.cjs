@@ -63,4 +63,24 @@ fs.writeFileSync(path.join(dest,'robots.txt'),'User-agent: *\nDisallow: /\n','ut
 assert(!fs.existsSync(path.join(dest,'data'))&&!fs.existsSync(path.join(dest,'supabase'))
  &&!fs.existsSync(path.join(dest,'docs'))&&!fs.existsSync(path.join(dest,'tests'))
  &&!fs.existsSync(path.join(dest,'.github')),'unexpected developer/private data copied');
+
+// Publish only the isolated TEST bundle as connected STAGING.
+// The source stays in offline DEMO mode for safe local inspection.
+const STAGING_URL='https://szzoubvhlwnojtzqjebc.supabase.co';
+const stageConfig="// BUILT FOR CC PLAYER TEST. Public/publishable API key, not a server secret.\nwindow.CLUB_CONTROL_CONFIG=Object.freeze({\n API_URL:'', DATA_BACKEND:'supabase', SUPABASE_URL:'https://szzoubvhlwnojtzqjebc.supabase.co',\n SUPABASE_PUBLISHABLE_KEY:'sb_publishable_1iOpBTxKteHCgJdNyzXQCA_5gxcFWZB', PUSH_ENABLED:false, VAPID_PUBLIC_KEY:''\n});\n";
+assert(/^sb_publishable_/.test("sb_publishable_1iOpBTxKteHCgJdNyzXQCA_5gxcFWZB"),'TEST publishable key missing');
+assert(stageConfig.includes(STAGING_URL)&&!stageConfig.includes('snqsxlyhontaepembaic'),'TEST endpoint invariant');
+fs.writeFileSync(path.join(dest,'config.js'),stageConfig,'utf8');
+let stageHtml=fs.readFileSync(path.join(dest,'index.html'),'utf8');
+assert(stageHtml.includes("script-src 'self';")&&stageHtml.includes("connect-src 'none';"),'offline CSP baseline modified');
+stageHtml=stageHtml.replace("script-src 'self';","script-src 'self' https://cdn.jsdelivr.net;");
+stageHtml=stageHtml.replace("connect-src 'none';",`connect-src 'self' ${STAGING_URL} wss://szzoubvhlwnojtzqjebc.supabase.co;`);
+assert(stageHtml.includes('<script src="./config.js'),'config script insertion point missing');
+stageHtml=stageHtml.replace('<script src="./config.js', '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script>\n  <script src="./config.js');
+assert(stageHtml.includes('CC TEST · DEMÓ · NEM ÉLES'),'source TEST banner missing');
+stageHtml=stageHtml.replace('CC TEST · DEMÓ · NEM ÉLES','CC TEST · STAGING · NEM ÉLES');
+fs.writeFileSync(path.join(dest,'index.html'),stageHtml,'utf8');
+assert(stageHtml.includes('CC TEST · STAGING · NEM ÉLES'),'TEST banner not visible');
+assert(!/https?:\/\/snqsxlyhontaepembaic\.supabase\.co/.test(stageHtml+stageConfig),'production endpoint in publish output');
+
 console.log('PASS: PLAYER TEST static-only Pages bundle:',count,'files,',bytes,'bytes; target=dist-test');
