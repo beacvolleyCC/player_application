@@ -1,0 +1,21 @@
+name: CC Player TEST notification update RPC QA
+on:
+  push:
+    branches: [test/20261026-isolated-player-mobile]
+    paths:
+      - 'tests/player-test-notification-update-20261027.test.cjs'
+      - '.github/workflows/test-notification-update-20261027.yml'
+      - 'app.js'
+      - 'config.js'
+  workflow_dispatch:
+jobs:
+  notification-update:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/player-test-notification-update-20261027.test.cjs
