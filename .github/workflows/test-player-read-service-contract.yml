@@ -1,0 +1,22 @@
+name: CC TEST Player read-service contract QA
+on:
+  push:
+    branches: [test/20261026-isolated-player-mobile]
+    paths:
+      - 'app.js'
+      - 'config.js'
+      - 'index.html'
+      - 'tests/player-test-read-service-contract-20261027.test.cjs'
+      - '.github/workflows/test-player-read-service-contract.yml'
+  workflow_dispatch:
+jobs:
+  read-service-contract:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/player-test-read-service-contract-20261027.test.cjs
