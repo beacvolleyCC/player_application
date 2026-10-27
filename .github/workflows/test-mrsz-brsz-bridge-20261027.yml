@@ -1,0 +1,22 @@
+name: CC Player TEST MRSZ/BRSZ bridge QA
+on:
+  push:
+    branches: [test/20261026-isolated-player-mobile]
+    paths:
+      - 'app.js'
+      - 'config.js'
+      - 'index.html'
+      - 'tests/player-test-mrsz-brsz-bridge-20261027.test.cjs'
+      - '.github/workflows/test-mrsz-brsz-bridge-20261027.yml'
+  workflow_dispatch:
+jobs:
+  bridge-qa:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/player-test-mrsz-brsz-bridge-20261027.test.cjs
