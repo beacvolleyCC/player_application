@@ -1,0 +1,21 @@
+name: CC Player TEST competition RPC contract QA
+on:
+  push:
+    branches: [test/20261026-isolated-player-mobile]
+    paths:
+      - 'app.js'
+      - 'config.js'
+      - 'tests/player-test-competition-rpc-20261027.test.cjs'
+      - '.github/workflows/test-competition-rpc-20261027.yml'
+  workflow_dispatch:
+jobs:
+  competition-contract:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/player-test-competition-rpc-20261027.test.cjs
