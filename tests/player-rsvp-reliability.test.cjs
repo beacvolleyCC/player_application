@@ -54,7 +54,7 @@ test('remote refusal reverts optimistic state even without an online reload',asy
  assert.equal(h.event.status,'no');
  assert.equal(h.event.note,'old');
  assert.deepEqual(Array.from(h.event.no),['Te']);
- assert.equal(h.saved?.value,undefined);
+ assert.equal(Object.hasOwn(h.ctx.saved,h.event.id),false);
  assert.equal(h.alerts.get('ccRsvpSaveError')?.hidden,false);
  assert.equal(h.counters.events,1);
 });
@@ -132,7 +132,7 @@ test('a failed event does not roll back a successfully saved different event',as
  await next();await next();
  assert.equal(h.event.status,null);
  assert.equal(other.status,'no');
- assert.equal(h.saved['other-event'].status,'no');
+ assert.equal(h.ctx.saved['other-event'].status,'no');
  assert.equal(h.alerts.get('ccRsvpSaveError').hidden,false);
 });
 test('superseded queued edits discard intermediate statuses and keep the final note',async()=>{
@@ -147,5 +147,5 @@ test('superseded queued edits discard intermediate statuses and keep the final n
  h.writes[1].resolve();await next();await next();
  assert.equal(h.event.status,'yes');
  assert.equal(h.event.note,'final note');
- assert.equal(h.saved[h.event.id].note,'final note');
+ assert.equal(h.ctx.saved[h.event.id].note,'final note');
 });
