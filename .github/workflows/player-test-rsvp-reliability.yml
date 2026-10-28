@@ -25,3 +25,6 @@ jobs:
           node --check rsvp-reliability.js
           node --test tests/player-rsvp-reliability.test.cjs
           node --test tests/cloudflare-test-bundle-20261026.test.cjs
+          # Second independent QA pass: repeat the RSVP race and isolated PWA bundle suites.
+          node --test tests/player-rsvp-reliability.test.cjs
+          node --test tests/cloudflare-test-bundle-20261026.test.cjs
