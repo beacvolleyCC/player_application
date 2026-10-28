@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const source=path.resolve(__dirname,'..');
 const dest=path.join(source,'dist-test');
-const files=["index.html","config.js","app.js","sw.js","manifest.webmanifest","styles.css","statistics.css","statistics.js","competition-context-catalog.js"];
+const files=["index.html","config.js","app.js","rsvp-reliability.js","sw.js","manifest.webmanifest","styles.css","statistics.css","statistics.js","competition-context-catalog.js"];
 const dirs=['assets','icons'];
 const mediaExt=new Set(['.png','.jpg','.jpeg','.webp','.svg','.gif','.ico','.avif']);
 const assert=(truth,msg)=>{if(!truth)throw Error('CC PLAYER TEST build blocked: '+msg)};

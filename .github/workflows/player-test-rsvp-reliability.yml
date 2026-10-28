@@ -1,0 +1,27 @@
+name: Player TEST RSVP save reliability
+on:
+  push:
+    branches: [test/20261026-isolated-player-mobile]
+    paths:
+      - 'rsvp-reliability.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'styles.css'
+      - 'scripts/build-cloudflare-test.cjs'
+      - 'tests/player-rsvp-reliability.test.cjs'
+      - '.github/workflows/player-test-rsvp-reliability.yml'
+  workflow_dispatch:
+jobs:
+  rsvp-reliability:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check rsvp-reliability.js
+          node --test tests/player-rsvp-reliability.test.cjs
+          node --test tests/cloudflare-test-bundle-20261026.test.cjs
