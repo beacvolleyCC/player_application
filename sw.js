@@ -1,5 +1,5 @@
 // CC TEST: scoped static-only cache. Never touches a production cache name.
-const CACHE='cc-player-test-20261028-rsvp-v1';
+const CACHE='cc-player-test-20261025-protocol-mobile-v2';
 const STATIC=['./','./index.html','./config.js','./app.js?v=20261025-protocol-mobile-v2','./styles.css?v=20261025-protocol-mobile-v2','./rsvp-reliability.js?v=20261028-rsvp-v1','./statistics.js?v=20261025-protocol-mobile-v2','./statistics.css?v=20261025-protocol-mobile-v2','./competition-context-catalog.js','./manifest.webmanifest','./icons/cc-test-192.png','./icons/cc-test-180.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('cc-player-test-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
