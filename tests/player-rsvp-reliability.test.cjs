@@ -108,3 +108,44 @@ test('different events may save concurrently without waiting for each other',asy
  assert.equal(h.event.status,'yes');
  assert.equal(other.status,'no');
 });
+
+test('a later confirmed RSVP clears the warning only after its save succeeds',async()=>{
+ const h=makeHarness();
+ h.ctx.persist(h.event,'yes','first');await next();
+ h.writes[0].reject(new Error('offline'));await next();await next();
+ assert.equal(h.alerts.get('ccRsvpSaveError').hidden,false);
+ h.ctx.persist(h.event,'no','retried');await next();
+ assert.equal(h.alerts.get('ccRsvpSaveError').hidden,false);
+ h.writes[1].resolve();await next();await next();
+ assert.equal(h.event.status,'no');
+ assert.equal(h.alerts.get('ccRsvpSaveError').hidden,true);
+});
+test('a failed event does not roll back a successfully saved different event',async()=>{
+ const h=makeHarness();
+ const other={id:'other-event',status:null,note:'',yes:[],no:[],unknown:[]};
+ h.ctx.persist(h.event,'yes','failed');
+ h.ctx.persist(other,'no','confirmed');
+ await next();
+ assert.equal(h.writes.length,2);
+ h.writes[0].reject(new Error('permission denied'));
+ h.writes[1].resolve();
+ await next();await next();
+ assert.equal(h.event.status,null);
+ assert.equal(other.status,'no');
+ assert.equal(h.saved['other-event'].status,'no');
+ assert.equal(h.alerts.get('ccRsvpSaveError').hidden,false);
+});
+test('superseded queued edits discard intermediate statuses and keep the final note',async()=>{
+ const h=makeHarness();
+ h.ctx.persist(h.event,'yes','original');await next();
+ h.ctx.persist(h.event,'no','intermediate');
+ h.ctx.persist(h.event,'yes','final note');
+ h.writes[0].resolve();await next();
+ assert.equal(h.writes.length,2);
+ assert.equal(h.writes[1].status,'yes');
+ assert.equal(h.writes[1].note,'final note');
+ h.writes[1].resolve();await next();await next();
+ assert.equal(h.event.status,'yes');
+ assert.equal(h.event.note,'final note');
+ assert.equal(h.saved[h.event.id].note,'final note');
+});
