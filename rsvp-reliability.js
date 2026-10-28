@@ -60,6 +60,12 @@
         await ccSaveAvailabilitySupabase_(event,status,note);
         // Keep only acknowledged state for rollback of newer pending edits.
         state.confirmed=desired;
+        // A subsequent acknowledged save resolves the previous visible failure.
+        // Only the most recent choice may clear the warning.
+        if(version===state.version){
+          const warning=document.getElementById('ccRsvpSaveError');
+          if(warning)warning.hidden=true;
+        }
       }catch(err){
         console.error('TEST RSVP mentési hiba:',err);
         // A stale response must not revert a newer choice.
