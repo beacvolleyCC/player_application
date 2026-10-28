@@ -28,7 +28,7 @@
     renderPlanner();
     renderProfileStats_();
   }
-  function errorMessage(){
+  function errorMessage(eventKey){
     let el=document.getElementById('ccRsvpSaveError');
     if(!el){
       el=document.createElement('div');
@@ -39,6 +39,7 @@
       document.body.appendChild(el);
     }
     el.textContent='A jelentkezés mentése sikertelen volt. Az előző állapotot visszaállítottuk.';
+    el.ccRsvpFailureEventId=eventKey;
     el.hidden=false;
   }
   persist=function(event,status,note=''){
@@ -64,14 +65,17 @@
         // Only the most recent choice may clear the warning.
         if(version===state.version){
           const warning=document.getElementById('ccRsvpSaveError');
-          if(warning)warning.hidden=true;
+          if(warning&&warning.ccRsvpFailureEventId===key){
+            warning.hidden=true;
+            warning.ccRsvpFailureEventId=null;
+          }
         }
       }catch(err){
         console.error('TEST RSVP mentési hiba:',err);
         // A stale response must not revert a newer choice.
         if(version!==state.version)return;
         rollback(event,state.confirmed);
-        errorMessage();
+        errorMessage(key);
       }
     });
     state.chain=work;
