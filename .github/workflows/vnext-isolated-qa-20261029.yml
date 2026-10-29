@@ -1,0 +1,23 @@
+name: CC vNext Player isolation QA (no deploy)
+on:
+  push:
+    branches: [vnext/20261029-modular-rebuild]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  vnext-player-safe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Guard RSVP and isolated static bundle twice
+        run: |
+          node --check app.js
+          node --check rsvp-reliability.js
+          node --test tests/player-rsvp-reliability.test.cjs
+          node --test tests/cloudflare-test-bundle-20261026.test.cjs
+          node --test tests/player-rsvp-reliability.test.cjs
+          node --test tests/cloudflare-test-bundle-20261026.test.cjs
