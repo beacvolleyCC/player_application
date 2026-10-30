@@ -52,6 +52,6 @@ test('Player TEST PWA shell and SW cache use matching fresh Magic Link version',
  assert.ok(html.includes('app.js?v='+version));
  assert.ok(html.includes('styles.css?v='+version));
  assert.ok(html.includes('statistics.js?v='+version));
- assert.ok(sw.includes("const CACHE='cc-player-test-"+version+"'"));
+ assert.ok(sw.includes("const CACHE='cc-player-"+version+"'"));
  assert.ok(sw.includes('app.js?v='+version));
 });
