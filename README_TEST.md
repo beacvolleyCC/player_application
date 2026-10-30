@@ -1,6 +1,10 @@
-# AKTUÁLIS TELEPÍTÉSI ÚTVONAL — 2026-10-26
+# AKTUÁLIS TELEPÍTÉSI ÚTVONAL — 2026-10-30 (Workers)
 
-**NEM szükséges két új GitHub-repository létrehozása.** A Player TEST PWA közvetlenül publikálható a meglévő `beacvolleyCC/player_application` repó TEST ágából, egy **külön Cloudflare Pages Free projektbe**. Pontos lépések: [docs/TEST_CLOUDFLARE_PAGES_INSTALL_20261026.md](docs/TEST_CLOUDFLARE_PAGES_INSTALL_20261026.md). A régi leírás alább történeti alternatíva; ne azt kövesd, hacsak kifejezetten GitHub Pages-hostolást szeretnél.
+A Player TEST-et a Manager TEST-tel azonos módon, **Cloudflare Workers Static Assets** szolgáltatással telepítjük. A meglevő `wrangler.jsonc` Worker neve `cc-player-test-beac`, a forrás `beacvolleyCC/player_application`, a kizárólagos TEST branch `test/20261026-isolated-player-mobile`. Build: `node scripts/build-cloudflare-test.cjs`; deploy: `npx wrangler deploy` a build után. Külön repo, fizetős szolgáltatás, LIVE branch módosítás nem kell.
+
+**Részletes, jelenlegi útmutató:** [docs/TEST_CLOUDFLARE_WORKERS_INSTALL_20261030.md](docs/TEST_CLOUDFLARE_WORKERS_INSTALL_20261030.md).
+
+Az alábbi korábbi GitHub Pages eljárás **csak történeti leírás**, nem az aktuálisan használt útvonal.
 
 ---
 
