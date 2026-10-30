@@ -5073,7 +5073,37 @@ if(SUPABASE_ENABLED){
   }
 }
 
+function ccPlayerMagicLinkRedirect_(){
+  // Fail closed unless deployed on the designated isolated Player TEST Worker.
+  const expected='https://cc-player-test-beac.elteroplabda.workers.dev';
+  if(location.origin!==expected) throw new Error('A belépési link csak a külön Player TEST webcímről kérhető.');
+  return expected+'/';
+}
+function ccPlayerLoginPresentation_(){
+  if(!SUPABASE_ENABLED)return; // Legacy/non-Supabase code flow remains untouched.
+  const emailStep=document.getElementById('loginEmailStep');
+  const sentStep=document.getElementById('loginCodeStep');
+  const p=emailStep?.querySelector('p');
+  if(p)p.textContent='A fiókodhoz rendelt e-mail-címre egyszer használatos belépési linket küldünk.';
+  const request=document.getElementById('requestCodeBtn');
+  if(request)request.textContent='Belépési link kérése';
+  const title=sentStep?.querySelector('h2');
+  if(title)title.textContent='Belépési link elküldve';
+  const desc=sentStep?.querySelector('p');
+  if(desc)desc.textContent='Nyisd meg az e-mailben kapott Sign in linket. Visszairányít a Player TEST alkalmazásba:';
+  const code=document.getElementById('loginCode');
+  if(code)code.hidden=true;
+  const codeLabel=sentStep?.querySelector('label[for="loginCode"]');
+  if(codeLabel)codeLabel.hidden=true;
+  const verify=document.getElementById('verifyCodeBtn');
+  if(verify)verify.hidden=true;
+  const resend=document.getElementById('resendCodeBtn');
+  if(resend)resend.textContent='Új link küldése';
+  const note=sentStep?.querySelector('.login-note');
+  if(note)note.textContent='A belépési link egyszer használható. A hitelesítés továbbra is kötelező.';
+}
 function showLoginStep(step){
+  ccPlayerLoginPresentation_();
   const overlay=document.getElementById('loginOverlay');
   if(!overlay) return;
   overlay.classList.remove('hidden');
@@ -5392,14 +5422,14 @@ async function startLogin(){
     return;
   }
   pendingLoginEmail=email;
-  setLoginMessage('loginMsg','Kód küldése…');
+  setLoginMessage('loginMsg',SUPABASE_ENABLED?'Belépési link küldése…':'Kód küldése…');
   const btn=document.getElementById('requestCodeBtn'); if(btn) btn.disabled=true;
   try{
     if(SUPABASE_ENABLED){
       if(!ccSupabase) throw new Error('A Supabase kapcsolat nincs beállítva.');
       const {error}=await ccSupabase.auth.signInWithOtp({
         email,
-        options:{shouldCreateUser:false}
+        options:{shouldCreateUser:false,emailRedirectTo:ccPlayerMagicLinkRedirect_()}
       });
       if(error) throw error;
     }else{
@@ -5407,11 +5437,11 @@ async function startLogin(){
     }
     document.getElementById('loginEmailPreview').textContent=email;
     document.getElementById('loginCode').value='';
-    setLoginMessage('loginCodeMsg','');
+    setLoginMessage('loginCodeMsg',SUPABASE_ENABLED?'A levélben a Sign in linkre kattints.':'');
     showLoginStep('loginCodeStep');
   }catch(err){
     console.error(err);
-    setLoginMessage('loginMsg','A kód küldése nem sikerült. Ellenőrizd, hogy a játékos fiókja létre van-e hozva.',true);
+    setLoginMessage('loginMsg',SUPABASE_ENABLED?'A belépési link küldése nem sikerült. Ellenőrizd a Player-fiókod és a TEST beállításait.':'A kód küldése nem sikerült. Ellenőrizd, hogy a játékos fiókja létre van-e hozva.',true);
   }finally{ if(btn) btn.disabled=false; }
 }
 
@@ -5504,16 +5534,16 @@ if(ccRemoteConfigured_()){
   });
   document.getElementById('resendCodeBtn')?.addEventListener('click',async()=>{
     if(!pendingLoginEmail) return showLoginStep('loginEmailStep');
-    setLoginMessage('loginCodeMsg','Új kód küldése…');
+    setLoginMessage('loginCodeMsg',SUPABASE_ENABLED?'Új belépési link küldése…':'Új kód küldése…');
     try{
       if(SUPABASE_ENABLED){
-        const {error}=await ccSupabase.auth.signInWithOtp({email:pendingLoginEmail,options:{shouldCreateUser:false}});
+        const {error}=await ccSupabase.auth.signInWithOtp({email:pendingLoginEmail,options:{shouldCreateUser:false,emailRedirectTo:ccPlayerMagicLinkRedirect_()}});
         if(error) throw error;
       }else{
         await apiPost({action:'requestLoginCode',email:pendingLoginEmail});
       }
       document.getElementById('loginCode').value='';
-      setLoginMessage('loginCodeMsg','Új kódot küldtünk.');
+      setLoginMessage('loginCodeMsg',SUPABASE_ENABLED?'Új belépési linket küldtünk. A legutóbbi e-mailben lévő Sign in linket nyisd meg.':'Új kódot küldtünk.');
     }catch(err){ setLoginMessage('loginCodeMsg',err.message||'Nem sikerült új kódot küldeni.',true); }
   });
 
