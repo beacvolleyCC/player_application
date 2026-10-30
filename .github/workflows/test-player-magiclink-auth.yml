@@ -1,0 +1,31 @@
+name: TEST Player Magic Link authentication QA
+on:
+  push:
+    branches: [test/20261026-isolated-player-mobile]
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/player-magiclink-auth-20261030.test.cjs'
+      - 'scripts/build-cloudflare-test.cjs'
+      - '.github/workflows/test-player-magiclink-auth.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify syntax and behavioral tests twice
+        run: |
+          node --check app.js
+          node --test tests/player-magiclink-auth-20261030.test.cjs
+          node --test tests/player-magiclink-auth-20261030.test.cjs
+      - name: Build connected TEST bundle and verify target
+        run: |
+          node scripts/build-cloudflare-test.cjs
+          node -e "const fs=require('fs'),a=require('node:assert/strict');let s=fs.readFileSync('dist-test/config.js','utf8');a.match(s,/szzoubvhlwnojtzqjebc.supabase.co/);a.doesNotMatch(s,/snqsxlyhontaepembaic/);"
