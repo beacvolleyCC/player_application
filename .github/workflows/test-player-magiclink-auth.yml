@@ -7,6 +7,7 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'tests/player-magiclink-auth-20261030.test.cjs'
+      - 'tests/player-slider-tap-drag-20261101.test.cjs'
       - 'scripts/build-cloudflare-test.cjs'
       - '.github/workflows/test-player-magiclink-auth.yml'
   workflow_dispatch:
@@ -24,7 +25,9 @@ jobs:
         run: |
           node --check app.js
           node --test tests/player-magiclink-auth-20261030.test.cjs
+          node --test tests/player-slider-tap-drag-20261101.test.cjs
           node --test tests/player-magiclink-auth-20261030.test.cjs
+          node --test tests/player-slider-tap-drag-20261101.test.cjs
       - name: Build connected TEST bundle and verify target
         run: |
           node scripts/build-cloudflare-test.cjs
