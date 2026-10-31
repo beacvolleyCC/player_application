@@ -48,7 +48,7 @@ test('TEST Player build remains isolated and disables outbound push',()=>{
  assert.doesNotMatch(builder,/https:\/\/snqsxlyhontaepembaic\.supabase\.co/);
 });
 test('Player TEST PWA shell and SW cache use matching fresh Magic Link version',()=>{
- const version='test-20261030-player-magiclink-v1';
+ const version='test-20261101-player-rsvp-tap-v1';
  assert.ok(html.includes('app.js?v='+version));
  assert.ok(html.includes('styles.css?v='+version));
  assert.ok(html.includes('statistics.js?v='+version));
