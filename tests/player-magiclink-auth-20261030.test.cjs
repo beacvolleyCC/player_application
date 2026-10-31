@@ -55,3 +55,15 @@ test('Player TEST PWA shell and SW cache use matching fresh Magic Link version',
  assert.ok(sw.includes("const CACHE='cc-player-"+version+"'"));
  assert.ok(sw.includes('app.js?v='+version));
 });
+
+test('TEST Player displays actionable, safe 429 rate-limit errors',()=>{
+  const start=app.indexOf('function ccPlayerLoginFailureMessage_(err){');
+  const end=app.indexOf('async function startLogin(){',start);
+  assert.ok(start>=0&&end>start);
+  const fn=vm.runInNewContext(app.slice(start,end)+';ccPlayerLoginFailureMessage_',{});
+  assert.match(fn({code:'over_email_send_rate_limit',status:429,message:'email rate limit exceeded'}),/e-mailküldési kerete/);
+  assert.match(fn({code:'over_request_rate_limit',status:429}),/legalább egy percet/);
+  assert.match(fn({code:'network_error'}),/Hálózati hiba/);
+  assert.doesNotMatch(fn({code:'user_not_found',message:'user not found'}),/user not found/i);
+  assert.match(app,/SUPABASE_ENABLED\?ccPlayerLoginFailureMessage_\(err\)/);
+});
