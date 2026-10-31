@@ -5415,6 +5415,24 @@ async function loadBootstrap(options={}){
   return true;
 }
 
+// TEST: communicate Supabase Auth send limits without exposing account existence or raw errors.
+function ccPlayerLoginFailureMessage_(err){
+  const code=String(err?.code||'').toLowerCase();
+  const status=Number(err?.status||0);
+  const message=String(err?.message||'');
+  if(code==='over_email_send_rate_limit' || code==='email_rate_limit_exceeded' ||
+      (status===429 && /email.+(rate|limit)|rate limit exceeded/i.test(message))){
+    return 'A TEST e-mailküldési kerete most betelt. Később kérj új belépési linket; a gomb ismételt megnyomása nem segít.';
+  }
+  if(status===429 || code==='over_request_rate_limit'){
+    return 'Túl sok belépési kérés érkezett. Várj legalább egy percet, mielőtt új linket kérsz.';
+  }
+  if(code==='network_error' || /failed to fetch|networkerror/i.test(message)){
+    return 'Hálózati hiba miatt nem sikerült a TEST belépési linket elküldeni. Ellenőrizd az internetkapcsolatot.';
+  }
+  return 'Nem sikerült TEST belépési linket kérni. Ellenőrizd a kapcsolatot vagy jelezd az adminisztrátornak.';
+}
+
 async function startLogin(){
   const email=normalizeLoginEmail(document.getElementById('loginEmail')?.value);
   if(!validEmail(email)){
@@ -5441,7 +5459,7 @@ async function startLogin(){
     showLoginStep('loginCodeStep');
   }catch(err){
     console.error(err);
-    setLoginMessage('loginMsg',SUPABASE_ENABLED?'A belépési link küldése nem sikerült. Ellenőrizd a Player-fiókod és a TEST beállításait.':'A kód küldése nem sikerült. Ellenőrizd, hogy a játékos fiókja létre van-e hozva.',true);
+    setLoginMessage('loginMsg',SUPABASE_ENABLED?ccPlayerLoginFailureMessage_(err):'A kód küldése nem sikerült. Ellenőrizd, hogy a játékos fiókja létre van-e hozva.',true);
   }finally{ if(btn) btn.disabled=false; }
 }
 
@@ -5544,7 +5562,7 @@ if(ccRemoteConfigured_()){
       }
       document.getElementById('loginCode').value='';
       setLoginMessage('loginCodeMsg',SUPABASE_ENABLED?'Új belépési linket küldtünk. A legutóbbi e-mailben lévő Sign in linket nyisd meg.':'Új kódot küldtünk.');
-    }catch(err){ setLoginMessage('loginCodeMsg',err.message||'Nem sikerült új kódot küldeni.',true); }
+    }catch(err){ setLoginMessage('loginCodeMsg',SUPABASE_ENABLED?ccPlayerLoginFailureMessage_(err):(err.message||'Nem sikerült új kódot küldeni.'),true); }
   });
 
   if(SUPABASE_ENABLED && ccSupabase){
