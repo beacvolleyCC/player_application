@@ -4346,7 +4346,8 @@ function bindSliderDrag(){
       startLeft=stateLeft(normalizedState(),g); currentLeft=startLeft;
       lastX=e.clientX; lastT=performance.now(); velocityX=0;
       setFreeLeft(startLeft);
-      slider.setPointerCapture?.(e.pointerId);
+      // Keep the original button as the click target for tap/mouse/keyboard.
+      // Pointer capture moves to pointermove after horizontal drag intent.
     });
 
     slider.addEventListener('pointermove',e=>{
@@ -4363,6 +4364,10 @@ function bindSliderDrag(){
         }
         locked=true;
         slider.classList.add('cc-slider-dragging');
+        // Capture only real horizontal drags. Capturing on pointerdown retargets
+        // the subsequent click to the slider instead of its state button.
+        // That made taps/clicks silently do nothing on iOS and desktop.
+        try{slider.setPointerCapture?.(e.pointerId);}catch(_){}
       }
       const g=geometry();
       const next=Math.min(g.max,Math.max(g.min,startLeft+dx));
