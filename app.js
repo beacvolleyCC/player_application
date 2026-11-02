@@ -988,7 +988,7 @@ function profilePaymentCellState_(fee,monthKey){
   if(!fee) return 'empty';
   const status=String(fee?.status||'').toLowerCase();
 
-  if(status==='paid') return 'paid';
+  if(status==='paid'||status==='prior_paid') return 'paid';
   if(status==='waived') return 'waived';
 
   const dueDate=profilePaymentDueDate_(fee,monthKey);
