@@ -5313,6 +5313,19 @@ async function ccLoadPlayerFinanceOverrides_(){
   return await ccSupabase.rpc('cc_player_payment_overrides_v2382');
 }
 
+// TEST: re-read profile/finance only when the profile's payments section is visible.
+let ccProfileSyncBusy_=false;
+async function ccProfileSyncVisible_(){
+  const box=document.getElementById('profilePaymentsContent');
+  if(document.hidden||!ccSupabaseSession||!box||!box.getClientRects().length||ccProfileSyncBusy_)return;
+  ccProfileSyncBusy_=true;
+  try{await ccLoadProfileData_()}catch(err){console.warn('TEST profile refresh failed:',err)}
+  finally{ccProfileSyncBusy_=false}
+}
+window.setInterval(()=>{void ccProfileSyncVisible_()},45000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void ccProfileSyncVisible_()});
+window.addEventListener('focus',()=>{void ccProfileSyncVisible_()});
+
 async function ccLoadProfileData_(){
   if(!SUPABASE_ENABLED || !ccSupabase){
     currentProfileData={attendance:[],payments:[],loaded:false};
