@@ -979,14 +979,13 @@ function profileBudapestDateKey_(){
 }
 
 function profilePaymentCellState_(fee,monthKey){
-  if(!fee) return 'empty';
   const status=String(fee?.status||'').toLowerCase();
-
-  if(status==='paid') return 'paid';
+  if(status==='paid'||status==='prior_paid') return 'paid';
   if(status==='waived') return 'waived';
-
-  const dueDate=profilePaymentDueDate_(fee,monthKey);
-  return profileBudapestDateKey_()>dueDate ? 'late' : 'pending';
+  // Monthly fees remain neutral until the entire calendar month has ended.
+  // A missing monthly payment is also overdue after that month.
+  if(/^\d{4}-(0[1-9]|1[0-2])$/.test(monthKey) && monthKey<profileBudapestMonthKey_()) return 'late';
+  return 'pending';
 }
 
 function profilePaymentCell_(fee,monthKey){
