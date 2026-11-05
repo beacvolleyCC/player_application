@@ -5332,6 +5332,8 @@ async function loadBootstrap(options={}){
     if(!session) throw Object.assign(new Error('Nincs aktív munkamenet.'),{code:'AUTH_REQUIRED'});
     ccSupabaseSession=session;
 
+    const claim=await ccSupabase.rpc('cc_player_claim_identity_v1');
+    if(claim.error) throw claim.error;
     let bootstrapResult=await ccSupabase.rpc('cc_player_bootstrap_filtered_v1');
     if(bootstrapResult.error && /cc_player_bootstrap_filtered_v1|schema cache|function/i.test(String(bootstrapResult.error?.message||''))){
       bootstrapResult=await ccSupabase.rpc('cc_player_bootstrap');
@@ -5385,9 +5387,12 @@ async function startLogin(){
   try{
     if(SUPABASE_ENABLED){
       if(!ccSupabase) throw new Error('A Supabase kapcsolat nincs beállítva.');
+      const eligible=await ccSupabase.rpc('cc_player_email_eligible_v1',{p_email:email});
+      if(eligible.error) throw eligible.error;
+      if(eligible.data!==true) throw new Error('Játékos nem található.');
       const {error}=await ccSupabase.auth.signInWithOtp({
         email,
-        options:{shouldCreateUser:false}
+        options:{shouldCreateUser:true}
       });
       if(error) throw error;
     }else{
