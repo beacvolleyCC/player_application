@@ -5392,7 +5392,7 @@ async function startLogin(){
       if(eligible.data!==true) throw new Error('Játékos nem található.');
       const {error}=await ccSupabase.auth.signInWithOtp({
         email,
-        options:{shouldCreateUser:true}
+        options:{shouldCreateUser:true,emailRedirectTo:window.location.origin+window.location.pathname}
       });
       if(error) throw error;
     }else{
@@ -5400,7 +5400,7 @@ async function startLogin(){
     }
     document.getElementById('loginEmailPreview').textContent=email;
     document.getElementById('loginCode').value='';
-    setLoginMessage('loginCodeMsg','');
+    setLoginMessage('loginCodeMsg','Ha ez az első belépésed, először erősítsd meg az e-mail-címedet a kapott levélben. Ezután térj vissza ide, és kérj új belépési kódot. Ha már volt fiókod, a levélben kapott kódot írd be.');
     showLoginStep('loginCodeStep');
   }catch(err){
     console.error(err);
