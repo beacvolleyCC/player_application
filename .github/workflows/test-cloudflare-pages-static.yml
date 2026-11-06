@@ -8,6 +8,7 @@ on:
       - 'tests/cloudflare-test-bundle-20261026.test.cjs'
       - 'index.html'
       - 'app.js'
+      - 'match-sheet-player.js'
       - 'sw.js'
       - 'config.js'
       - 'manifest.webmanifest'
@@ -27,6 +28,7 @@ jobs:
           node-version: '22'
       - run: |
           node --check app.js
+          node --check match-sheet-player.js
           node --check sw.js
           node --check scripts/build-cloudflare-test.cjs
           node --test tests/cloudflare-test-bundle-20261026.test.cjs
