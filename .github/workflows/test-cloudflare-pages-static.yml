@@ -9,6 +9,7 @@ on:
       - 'index.html'
       - 'app.js'
       - 'match-sheet-player.js'
+      - 'tests/match-sheet-player-20261106.test.cjs'
       - 'sw.js'
       - 'config.js'
       - 'manifest.webmanifest'
@@ -29,6 +30,7 @@ jobs:
       - run: |
           node --check app.js
           node --check match-sheet-player.js
+          node --test tests/match-sheet-player-20261106.test.cjs
           node --check sw.js
           node --check scripts/build-cloudflare-test.cjs
           node --test tests/cloudflare-test-bundle-20261026.test.cjs
