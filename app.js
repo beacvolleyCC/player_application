@@ -4989,6 +4989,7 @@ function openEventDialog(eventId){
     <div class="event-dialog-slider">${plannerStatusControls(e,archived)}</div>
     ${eventNoteSection_(e,archived)}
     ${eventDialogRoster(e)}`;
+  if(e.type==='Meccs'&&window.CCPlayerMatchSheet&&SUPABASE_ENABLED&&ccSupabase){window.CCPlayerMatchSheet.attach(document.getElementById('eventDialogContent'),{eventId:e.id,db:ccSupabase})}
   ccOpenDialog_(eventDialog);
   // showModal() auto-focuses the first button on Safari/iOS (the X). Move focus
   // to the dialog surface so opening details never looks like the close button
