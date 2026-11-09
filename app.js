@@ -2883,7 +2883,7 @@ function ccPlayerProvisionalCanonicalStandings_(league,stats){
  // Never join match names again: that loses points when the names differ.
  const rows=stats.map(r=>{
   const wins=Number(r.wins)||0,losses=Number(r.losses)||0;
-  return {...r,tablePoints:2*wins+losses};
+  return {...r,tablePoints:2*wins+losses-(Number(r.forfeits)||0)};
  });
  return rows.sort((a,b)=>b.tablePoints-a.tablePoints||b.wins-a.wins||(b.setsFor-b.setsAgainst)-(a.setsFor-a.setsAgainst)||String(a.teamName).localeCompare(String(b.teamName),'hu'))
   .map((r,i)=>({...r,position:i+1,officialRankVerified:false}));
