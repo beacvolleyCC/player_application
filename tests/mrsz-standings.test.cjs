@@ -199,7 +199,7 @@ test('Player opens saved protocol from whole card and preserves verified-only li
   assert.equal(link('https://hunvolley.hu.evil.example/athlete/123'),'');
  }finally{matches.pop();context.qa.setScope('beac');}
 });
-test('saved results update a separately labeled partial standings model without guessing rank',()=>{
+test('saved results update a separately labeled calculated standings model',()=>{
  const table=[{teamName:'Semmelweis Egyetem Sport Klub',position:1},
   {teamName:'EMERICUS SE',position:2}];
  const fn=vm.runInContext('ccPlayerResultsOnlyStandings_',context);
@@ -236,7 +236,7 @@ test('verified match results produce numeric ranking for men A/B and women II/B 
  assert.ok(menAmodel);
  assert.equal(JSON.stringify(menAmodel.rows.map(x=>x.position)),JSON.stringify([1,2,3]));
  assert.equal(menAmodel.rows[0].played,1);
- assert.equal(menAmodel.rows[0].tablePoints,2);
+ assert.equal(menAmodel.rows[0].tablePoints,3);
  assert.equal(menAmodel.rows[0].teamName,'MAFC-Kármán');
  assert.equal(menAmodel.rows[1].teamName,'Ráckeve');
  const menBmodel=fn(menB,[{teamName:'BEAC'},{teamName:'MAFC-Vásárhelyi'},{teamName:'MAFC-Schönherz'}],[{
