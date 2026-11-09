@@ -2791,7 +2791,7 @@ function ccPlayerProtocolDetailHtml_(m){
  score=m.homeSets!=null&&m.awaySets!=null?m.homeSets+' – '+m.awaySets:'VS.';
  const sets=Array.isArray(m.setScores)?m.setScores.map((v,i)=>'<span>'+(i+1)+'. szett: <b>'+escapeHtml_(v.home)+' : '+escapeHtml_(v.away)+'</b></span>').join(''):'';
  const officials=Array.isArray(p.officials)?p.officials:[];
- const link=ccPlayerProtocolProfileUrl_(p.sourceUrl||m.sourceUrl);
+ const link=ccPlayerProtocolProfileUrl_(p.sourceUrl||m.protocolUrl||m.sourceUrl);
  return '<div class="player-protocol-report">'
   +'<div class="player-protocol-meta"><span>'+escapeHtml_(m.competitionLabel)+'</span><span>'+escapeHtml_(kick.date+' · '+kick.time)+'</span>'
   +(m.matchCode?'<span>Meccskód: '+escapeHtml_(m.matchCode)+'</span>':'')+(m.venue?'<span>'+escapeHtml_(m.venue)+'</span>':'')+'</div>'
@@ -2799,7 +2799,7 @@ function ccPlayerProtocolDetailHtml_(m){
   +(sets?'<div class="player-protocol-sets">'+sets+'</div>':'')
   +'<div class="player-protocol-teams">'+teams.map(t=>ccPlayerProtocolRosterHtml_(t)).join('')+'</div>'
   +(officials.length?'<section class="player-protocol-officials"><h4>Játékvezetők és hivatalos személyek</h4>'+officials.map(o=>'<div><span>'+escapeHtml_(o.role||'Hivatalos személy')+'</span><b>'+ccPlayerProtocolNameHtml_(o)+'</b></div>').join('')+'</section>':'')
-  +(link?'<a href="'+escapeHtml_(link)+'" target="_blank" rel="noopener noreferrer">Hunvolley-forrás ↗</a>':'')
+  +(link?'<div style="display:flex;justify-content:flex-end;margin-top:16px"><a href="'+escapeHtml_(link)+'" target="_blank" rel="noopener noreferrer">Eredeti Hunvolley-jegyzőkönyv ↗</a></div>':'')
   +'</div>';
 }
 function ccPlayerOpenProtocol_(matchCode,league){
@@ -2860,7 +2860,7 @@ function ccPlayerScoreboardHtml_(m){
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
   +(sets?'<div class="player-match-sets">'+escapeHtml_(sets)+'</div>':'')+'</div>'
   +'<div class="player-match-footer"><span>'+escapeHtml_(m.venue||'Helyszín nincs megadva')+'</span>'
-  +(externalReport&&!protocol?'<a class="cc-player-official-report" href="'+escapeHtml_(externalReport)+'" target="_blank" rel="noopener noreferrer">Jegyzőkönyv ↗</a>':'')
+  
   +'</div></article>';
 }
 function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
