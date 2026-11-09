@@ -2878,6 +2878,21 @@ function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
   +'<div class="standings-match-list player-match-list">'+(filtered.map(ccPlayerScoreboardHtml_).join('')||'<div class="standings-match-empty">Nincs megjeleníthető mérkőzés.</div>')+'</div></section>';
 }
 
+function ccPlayerProvisionalCanonicalStandings_(league,stats){
+ const games=(ccMrszPlayerPhoto_.canonicalMatches||[]).filter(m=>m.competitionLabel===league&&m.status==='played'&&m.homeSets!=null&&m.awaySets!=null);
+ const key=name=>ccPlayerMatchTeamKey_(name);
+ const points=new Map();
+ for(const m of games){
+  const h=Number(m.homeSets),a=Number(m.awaySets);
+  if(!((h===3&&a>=0&&a<=2)||(a===3&&h>=0&&h<=2)))continue;
+  const hp=h===3?(a===2?2:3):(h===2?1:0),ap=a===3?(h===2?2:3):(a===2?1:0);
+  points.set(key(m.homeName),(points.get(key(m.homeName))||0)+hp);
+  points.set(key(m.awayName),(points.get(key(m.awayName))||0)+ap);
+ }
+ return stats.map(r=>({...r,tablePoints:points.get(key(r.teamName))??0}))
+  .sort((a,b)=>b.tablePoints-a.tablePoints||b.wins-a.wins||(b.setsFor-b.setsAgainst)-(a.setsFor-a.setsAgainst)||String(a.teamName).localeCompare(String(b.teamName),'hu'))
+  .map((r,i)=>({...r,position:i+1,officialRankVerified:false}));
+}
 function ccMrszPlayerMainScreenshotHtml_(forcedLabel=''){
  const menA=ccMrszPlayerIsMensTeam_()&&ccMrszPlayerMenGroup_==='A',womenB=ccMrszPlayerIsWomen2_(),womenI=ccMrszPlayerIsWomenI_();
  if(!forcedLabel&&!menA&&!womenB&&!womenI)return null;
@@ -2888,9 +2903,9 @@ function ccMrszPlayerMainScreenshotHtml_(forcedLabel=''){
  const officialPartialRows=(ccMrszPlayerPhoto_.canonicalTeamStats||[]).filter(r=>r.competitionLabel===label);
  const coverage=(ccMrszPlayerPhoto_.canonicalCoverage||[]).find(r=>r.competitionLabel===label);
  const savedTable=officialPartialRows.length?null:ccPlayerResultsOnlyStandings_(label,originalRows);
- const rows=officialPartialRows.length?officialPartialRows:savedTable?.rows||originalRows;
+ const rows=officialPartialRows.length?ccPlayerProvisionalCanonicalStandings_(label,officialPartialRows):savedTable?.rows||originalRows;
  const heading='<div class="standings-headline"><div class="standings-context-title"><b>'+escapeHtml_(label)+'</b></div></div>';
- const coverageNote=officialPartialRows.length?'<div class="standings-state cc-partial-standings-note"><b>Részleges eredménystatisztika · nem hivatalos tabella</b><span>'+escapeHtml_(String(coverage?.played??0)+' / '+String(coverage?.total??0)+' mérkőzés eredménye rögzítve. Helyezés és bajnoki pont nincs ellenőrzött hivatalos tabella nélkül.')+'</span></div>':'';
+ const coverageNote=officialPartialRows.length?'<div class="standings-state cc-partial-standings-note"><b>Részleges eredménystatisztika · nem hivatalos tabella</b><span>'+escapeHtml_(String(coverage?.played??0)+' / '+String(coverage?.total??0)+' mérkőzés eredménye rögzítve. A sorrend és a bajnoki pontok a rendelkezésre álló eredményekből számított, nem hivatalos állapotot mutatják.')+'</span></div>':'';
  if(!ccMrszPlayerPhoto_.loaded)return heading+'<div class="standings-state">Tabella betöltése…</div>'+groupButtons;
  if(ccMrszPlayerPhoto_.error)return heading+'<div class="standings-state">'+escapeHtml_(ccMrszPlayerPhoto_.error)+'</div>'+groupButtons;
  if(!rows.length)return heading+'<div class="standings-state">Még nincs rögzített eredmény.</div>'+groupButtons+ccMrszPlayerLeagueScheduleHtml_(label,false);
