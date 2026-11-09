@@ -2593,7 +2593,9 @@ function ccPlayerMenACurrentView_(){
 
 function ccMrszPlayerAllLeagueMatches_(competitionLabel,withCanonical){
  const shared=ccMrszPlayerPhoto_.canonicalMatches;
- if(Array.isArray(shared)&&shared.length){
+ if(Array.isArray(shared)&&ccMrszPlayerPhoto_.loaded&&!ccMrszPlayerPhoto_.error){
+  // The canonical LIVE feed is authoritative, including an empty league.
+  // Never silently reintroduce superseded fixtures or stale results.
   return shared.filter(m=>String(m.competitionLabel)===competitionLabel)
    .sort((a,b)=>ccPlayerMatchListSort_(a,b));
  }
