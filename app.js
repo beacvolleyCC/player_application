@@ -2900,7 +2900,7 @@ function ccMrszPlayerMainScreenshotHtml_(forcedLabel=''){
  const savedTable=officialPartialRows.length?null:ccPlayerResultsOnlyStandings_(label,originalRows);
  const rows=officialPartialRows.length?ccPlayerProvisionalCanonicalStandings_(label,officialPartialRows):savedTable?.rows||originalRows;
  const heading='<div class="standings-headline"><div class="standings-context-title"><b>'+escapeHtml_(label)+'</b></div></div>';
- const coverageNote=officialPartialRows.length?'<div class="standings-state cc-partial-standings-note"><b>Részleges eredménystatisztika · nem hivatalos tabella</b><span>'+escapeHtml_(String(coverage?.played??0)+' / '+String(coverage?.total??0)+' mérkőzés eredménye rögzítve. A sorrend és a bajnoki pontok a rendelkezésre álló eredményekből számított, nem hivatalos állapotot mutatják.')+'</span></div>':'';
+ const coverageNote='';
  if(!ccMrszPlayerPhoto_.loaded)return heading+'<div class="standings-state">Tabella betöltése…</div>'+groupButtons;
  if(ccMrszPlayerPhoto_.error)return heading+'<div class="standings-state">'+escapeHtml_(ccMrszPlayerPhoto_.error)+'</div>'+groupButtons;
  if(!rows.length)return heading+'<div class="standings-state">Még nincs rögzített eredmény.</div>'+groupButtons+ccMrszPlayerLeagueScheduleHtml_(label,false);
