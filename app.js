@@ -2688,7 +2688,7 @@ function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.
  }
  for(const m of saved){add(m.homeName);add(m.awayName)}
  if(!unique.size)return null;
- const records=[...unique.values()].map(r=>({...r,position:null,played:0,wins:0,losses:0,tablePoints:null,
+ const records=[...unique.values()].map(r=>({...r,position:null,played:0,wins:0,losses:0,tablePoints:0,
    setsFor:0,setsAgainst:0,pointsFor:0,pointsAgainst:0,source:'saved_results_only'}));
  const lookup=new Map(records.map(r=>[ccPlayerMatchTeamKey_(r.teamName),r]));
  const byFixture=new Map();
@@ -2726,7 +2726,7 @@ function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.
   matched++;
   for(const [row,won,forSets,againstSets,isHome] of [[home,h>a,h,a,true],[away,a>h,a,h,false]]){
    row.played++;row.wins+=Number(won);row.losses+=Number(!won);
-   // Do not infer official competition points from partial results.
+   row.tablePoints+=won?(againstSets===2?2:3):(forSets===2?1:0);
    row.setsFor+=forSets;row.setsAgainst+=againstSets;
    if(!validSets){row.pointsFor=null;row.pointsAgainst=null}
    else if(row.pointsFor!==null&&row.pointsAgainst!==null){
@@ -2740,7 +2740,7 @@ function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.
  records.sort((a,b)=>b.tablePoints-a.tablePoints||b.wins-a.wins
    ||(b.setsFor-b.setsAgainst)-(a.setsFor-a.setsAgainst)
    ||difference(b)-difference(a)||a.teamName.localeCompare(b.teamName,'hu'));
- // Position remains unknown: calculated partial results are not an official ranking.
+ records.forEach((row,i)=>{row.position=i+1});
  return {rows:records,matched,sourceMatches:saved.length,partial:true};
 }
 function ccPlayerPhotoStandingRows_(photo){
