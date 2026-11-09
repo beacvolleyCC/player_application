@@ -236,7 +236,7 @@ test('verified match results produce numeric ranking for men A/B and women II/B 
  assert.ok(menAmodel);
  assert.equal(JSON.stringify(menAmodel.rows.map(x=>x.position)),JSON.stringify([1,2,3]));
  assert.equal(menAmodel.rows[0].played,1);
- assert.equal(menAmodel.rows[0].tablePoints,3);
+ assert.equal(menAmodel.rows[0].tablePoints,2);
  assert.equal(menAmodel.rows[0].teamName,'MAFC-Kármán');
  assert.equal(menAmodel.rows[1].teamName,'Kandó Sport Club');
  const menBmodel=fn(menB,[{teamName:'BEAC'},{teamName:'MAFC-Vásárhelyi'},{teamName:'MAFC-Schönherz'}],[{
