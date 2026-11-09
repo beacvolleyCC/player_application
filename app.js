@@ -2726,7 +2726,7 @@ function ccPlayerResultsOnlyStandings_(league,roster,matches=ccMrszPlayerPhoto_.
   matched++;
   for(const [row,won,forSets,againstSets,isHome] of [[home,h>a,h,a,true],[away,a>h,a,h,false]]){
    row.played++;row.wins+=Number(won);row.losses+=Number(!won);
-   row.tablePoints+=won?(againstSets===2?2:3):(forSets===2?1:0);
+   row.tablePoints+=won?2:(String(m.status).toLowerCase().includes('forfeit')||m.walkover===true||m.noShow===true?0:1);
    row.setsFor+=forSets;row.setsAgainst+=againstSets;
    if(!validSets){row.pointsFor=null;row.pointsAgainst=null}
    else if(row.pointsFor!==null&&row.pointsAgainst!==null){
@@ -2885,7 +2885,8 @@ function ccPlayerProvisionalCanonicalStandings_(league,stats){
  for(const m of games){
   const h=Number(m.homeSets),a=Number(m.awaySets);
   if(!((h===3&&a>=0&&a<=2)||(a===3&&h>=0&&h<=2)))continue;
-  const hp=h===3?(a===2?2:3):(h===2?1:0),ap=a===3?(h===2?2:3):(a===2?1:0);
+  const forfeit=String(m.status).toLowerCase().includes('forfeit')||m.walkover===true||m.noShow===true;
+  const hp=h===3?2:(forfeit?0:1),ap=a===3?2:(forfeit?0:1);
   points.set(key(m.homeName),(points.get(key(m.homeName))||0)+hp);
   points.set(key(m.awayName),(points.get(key(m.awayName))||0)+ap);
  }
