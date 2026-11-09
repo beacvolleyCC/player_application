@@ -129,7 +129,7 @@ test("Two real men's B results must not make the seven-team league disappear",()
  const h=qa.score(second);
  assert.ok(h.includes('3 – 0'));
  assert.ok(h.includes('25:18 · 25:23 · 25:20'));
- assert.ok(h.includes('Jegyzőkönyv'));
+ assert.ok(!h.includes('Jegyzőkönyv'), 'Protocol link belongs in the detail modal, not the match card');
  const changed={...second,homeSets:0,awaySets:3};
  assert.ok(!qa.score(changed).includes('Jegyzőkönyv'));
 });
