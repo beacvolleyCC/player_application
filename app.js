@@ -2879,19 +2879,13 @@ function ccMrszPlayerLeagueScheduleHtml_(label,withCanonical=true){
 }
 
 function ccPlayerProvisionalCanonicalStandings_(league,stats){
- const games=(ccMrszPlayerPhoto_.canonicalMatches||[]).filter(m=>m.competitionLabel===league&&m.status==='played'&&m.homeSets!=null&&m.awaySets!=null);
- const key=name=>ccPlayerMatchTeamKey_(name);
- const points=new Map();
- for(const m of games){
-  const h=Number(m.homeSets),a=Number(m.awaySets);
-  if(!((h===3&&a>=0&&a<=2)||(a===3&&h>=0&&h<=2)))continue;
-  const forfeit=String(m.status).toLowerCase().includes('forfeit')||m.walkover===true||m.noShow===true;
-  const hp=h===3?2:(forfeit?0:1),ap=a===3?2:(forfeit?0:1);
-  points.set(key(m.homeName),(points.get(key(m.homeName))||0)+hp);
-  points.set(key(m.awayName),(points.get(key(m.awayName))||0)+ap);
- }
- return stats.map(r=>({...r,tablePoints:points.get(key(r.teamName))??0}))
-  .sort((a,b)=>b.tablePoints-a.tablePoints||b.wins-a.wins||(b.setsFor-b.setsAgainst)-(a.setsFor-a.setsAgainst)||String(a.teamName).localeCompare(String(b.teamName),'hu'))
+ // The canonical team statistics already reconcile team aliases and match results.
+ // Never join match names again: that loses points when the names differ.
+ const rows=stats.map(r=>{
+  const wins=Number(r.wins)||0,losses=Number(r.losses)||0;
+  return {...r,tablePoints:2*wins+losses};
+ });
+ return rows.sort((a,b)=>b.tablePoints-a.tablePoints||b.wins-a.wins||(b.setsFor-b.setsAgainst)-(a.setsFor-a.setsAgainst)||String(a.teamName).localeCompare(String(b.teamName),'hu'))
   .map((r,i)=>({...r,position:i+1,officialRankVerified:false}));
 }
 function ccMrszPlayerMainScreenshotHtml_(forcedLabel=''){
