@@ -2780,10 +2780,10 @@ function ccPlayerProtocolBadgesHtml_(player){
 function ccPlayerProtocolRosterHtml_(team){
  const players=Array.isArray(team?.players)?team.players:[];
  const staff=Array.isArray(team?.staff)?team.staff:[];
- const row=players.map(p=>'<tr><td>'+escapeHtml_(p.number||'–')+'</td><td>'+(p.designation==='K'?'<strong class="player-protocol-starter">'+ccPlayerProtocolNameHtml_(p)+'</strong>':ccPlayerProtocolNameHtml_(p))+'</td><td>'+
+ const row=players.map(p=>'<tr><td>'+escapeHtml_(p.code||p.playerCode||p.federationId||'–')+'</td><td>'+escapeHtml_(p.number||'–')+'</td><td>'+(p.designation==='K'?'<strong class="player-protocol-starter">'+ccPlayerProtocolNameHtml_(p)+'</strong>':ccPlayerProtocolNameHtml_(p))+'</td><td>'+
    ccPlayerProtocolBadgesHtml_(p)+'</td></tr>').join('');
- return '<section class="player-protocol-team"><h4>'+ccPlayerProtocolNameHtml_(team)+'</h4><div class="player-protocol-scroll"><table><thead><tr><th>Mez</th><th>Játékos</th><th></th></tr></thead><tbody>'
-  +(row||'<tr><td colspan="3">Nincs mentett névsor.</td></tr>')+'</tbody></table></div>'
+ return '<section class="player-protocol-team"><h4>'+ccPlayerProtocolNameHtml_(team)+'</h4><div class="player-protocol-scroll"><table><thead><tr><th>Játékoskód</th><th>Mez</th><th>Játékos</th><th></th></tr></thead><tbody>'
+  +(row||'<tr><td colspan="4">Nincs mentett névsor.</td></tr>')+'</tbody></table></div>'
   +(staff.length?'<div class="player-protocol-staff">'+staff.map(o=>'<div><span>'+escapeHtml_(o.role||'Stáb')+'</span><b>'+ccPlayerProtocolNameHtml_(o)+'</b></div>').join('')+'</div>':'')+'</section>';
 }
 function ccPlayerProtocolDetailHtml_(m){
