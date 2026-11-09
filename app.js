@@ -2853,7 +2853,7 @@ function ccPlayerScoreboardHtml_(m){
  return '<article class="player-match-scoreboard '+(protocol?'has-protocol':'')+(String(m.status)==='postponed'?' is-postponed':'')+'"'
   +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':reportClickable?' data-player-external-report="'+escapeHtml_(externalReport)+'" role="link" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
-  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?'Halasztva':kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?'Időpont egyeztetés alatt':kick.time||'')+'</span></div>'
+  +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?'Halasztva':kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?(kick.date?'Időpont egyeztetés alatt':'Időpont nélkül'):kick.time||'')+'</span></div>'
   +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b></div>'
   +'<div class="player-match-result">'+(score==='VS.'?'<span class="player-match-vs">VS.</span>':'<strong>'+escapeHtml_(score)+'</strong>')+'</div>'
   +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
