@@ -593,6 +593,11 @@ function translateStatic(text,language){
  const value=match[2];
  if(Object.prototype.hasOwnProperty.call(en,value))return match[1]+en[value]+match[3];
  const dynamic=[
+  [/^(\d+)\s*\/\s*(\d+)\s+meccs$/,(m,n,total)=>n+' / '+total+' matches'],
+  [/^(\d+)\s*\/\s*5\s+győzelem$/,(m,n)=>n+'/5 wins'],
+  [/^(\d+)\.\s+szett:$/,(m,n)=>'Set '+n+':'],
+  [/^([\d–-]+)\s+szett$/,(m,n)=>n+' sets'],
+  [/^(\d+)\s+csapat$/,(m,n)=>n+' teams'],
   [/^(\d+)\s+fő$/,(m,n)=>n+' players'],
   [/^(\d+)\s+meccs$/,(m,n)=>n+' matches'],
   [/^(\d+)\s+mérkőzés$/,(m,n)=>n+' matches'],
