@@ -1,5 +1,10 @@
 
 const DEMO_NOW = new Date('2026-09-05T12:00:00');
+// Presentation-only localisation. API enums, IDs, comparisons and stored data remain Hungarian.
+function ccDisplayLanguage_(){return window.CCPlayerLanguage?.getLanguage?.()||'hu';}
+function ccDisplayLocale_(){return ccDisplayLanguage_()==='en'?'en-GB':'hu-HU';}
+function ccUiMessage_(text){return window.CCPlayerStaticI18n?.translateStatic(text,ccDisplayLanguage_())||text;}
+
 
 let events = [
   {id:'ev-2026-08-30',archived:true,date:'2026.08.30.',day:'Vasárnap',time:'18:00–20:00',type:'Edzés',title:'Edzés',place:'Bogdánfy • 1. pálya',month:'Aug',status:'yes',yes:['Anna','Dóri','Petra','Luca','Fanni','Réka','Nóri','Eszter','Juli','Kata','Lili','Sára','Te'],no:['Viki'],unknown:['Emma','Zsófi'],positions:{'Feladó':2,'Átló':2,'Négyes':4,'Center':3,'Liberó':2}},
@@ -657,7 +662,7 @@ function dateInputValue_(text){
     String(d.getDate()).padStart(2,'0')
   ].join('-');
 }
-function monthDividerLabel_(e){ return eventDateObj(e).toLocaleDateString('hu-HU',{year:'numeric',month:'long'}); }
+function monthDividerLabel_(e){ return eventDateObj(e).toLocaleDateString(ccDisplayLocale_(),{year:'numeric',month:'long'}); }
 function monthDividerHtml_(e){ return `<div class="month-divider" aria-hidden="true"><span>${monthDividerLabel_(e)}</span></div>`; }
 function renderEventCardsWithMonths_(rows){
   let lastMonth='';
@@ -1363,7 +1368,7 @@ function monthKeyFromDate(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 function calendarMonthLabel(d){
-  return d.toLocaleDateString('hu-HU',{year:'numeric',month:'long'});
+  return d.toLocaleDateString(ccDisplayLocale_(),{year:'numeric',month:'long'});
 }
 function initialCalendarCursor(rows){
   const mf=document.getElementById('monthFilter').value;
@@ -1579,7 +1584,7 @@ function standingText_(value,fallback='–'){
 function standingsDateLabel_(value){
   const d=value?new Date(value):null;
   if(!d || Number.isNaN(d.getTime())) return '';
-  return new Intl.DateTimeFormat('hu-HU',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
+  return new Intl.DateTimeFormat(ccDisplayLocale_(),{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
 }
 
 function activeStandingsContext_(){
@@ -1708,7 +1713,7 @@ function parseMatchTeams_(title){
 function shortMatchDate_(e){
   const d=eventDateObj(e);
   if(!d || Number.isNaN(d.getTime())) return String(e?.date||'');
-  return new Intl.DateTimeFormat('hu-HU',{month:'short',day:'numeric',timeZone:'Europe/Budapest'}).format(d).replace(/\.$/,'');
+  return new Intl.DateTimeFormat(ccDisplayLocale_(),{month:'short',day:'numeric',timeZone:'Europe/Budapest'}).format(d).replace(/\.$/,'');
 }
 function standingsMatchRows_(selectedRow){
   let rows=(Array.isArray(events)?events:[]).filter(e=>e?.type==='Meccs').slice().sort((a,b)=>eventDateObj(a)-eventDateObj(b));
@@ -1771,8 +1776,8 @@ function bindStandingsTeamFilterClicks_(){
 function sourceMatchDateParts_(match){
   const d=match?.startsAt?new Date(match.startsAt):null;
   if(!d||Number.isNaN(d.getTime())) return {date:'–',time:''};
-  const date=new Intl.DateTimeFormat('hu-HU',{month:'short',day:'numeric',timeZone:'Europe/Budapest'}).format(d).replace(/\.$/,'');
-  const time=new Intl.DateTimeFormat('hu-HU',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Europe/Budapest'}).format(d);
+  const date=new Intl.DateTimeFormat(ccDisplayLocale_(),{month:'short',day:'numeric',timeZone:'Europe/Budapest'}).format(d).replace(/\.$/,'');
+  const time=new Intl.DateTimeFormat(ccDisplayLocale_(),{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Europe/Budapest'}).format(d);
   return {date,time};
 }
 function sourceMatchScore_(match){
@@ -3021,7 +3026,7 @@ renderEvents();
 
 function neutralizeEvent(ev){
   if(ev.status==='yes'){
-    const ok = confirm('Már jelezted, hogy jössz. Biztosan visszaállítod „Nincs jelzés” állapotra?');
+    const ok = confirm(ccUiMessage_('Már jelezted, hogy jössz. Biztosan visszaállítod „Nincs jelzés” állapotra?'));
     if(!ok) return;
   }
   persist(ev,null,ev.note||'');
@@ -3424,7 +3429,7 @@ function ccNotificationTime_(value){
   const d=new Date(value||'');
   if(Number.isNaN(d.getTime())) return '';
   try{
-    return new Intl.DateTimeFormat('hu-HU',{
+    return new Intl.DateTimeFormat(ccDisplayLocale_(),{
       timeZone:'Europe/Budapest',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'
     }).format(d).replace(',',' ·');
   }catch(_){ return ''; }
@@ -3858,7 +3863,7 @@ function ccMedicalFormatDate_(value){
   if(!raw) return '–';
   const d=new Date(raw.length===10 ? `${raw}T12:00:00` : raw);
   if(Number.isNaN(d.getTime())) return raw;
-  try{return new Intl.DateTimeFormat('hu-HU',{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}catch(_){return raw}
+  try{return new Intl.DateTimeFormat(ccDisplayLocale_(),{timeZone:'Europe/Budapest',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}catch(_){return raw}
 }
 function ccMedicalLocalInput_(value){
   if(!value) return '';
@@ -4294,7 +4299,7 @@ function bindSliderDrag(){
       // Preserve the existing confirmation before visually leaving a confirmed
       // "Jövök" state. A cancelled confirmation leaves the thumb untouched.
       if(current==='yes' && state==='none'){
-        const ok=confirm('Már jelezted, hogy jössz. Biztosan visszaállítod „Nincs jelzés” állapotra?');
+        const ok=confirm(ccUiMessage_('Már jelezted, hogy jössz. Biztosan visszaállítod „Nincs jelzés” állapotra?'));
         if(!ok) return;
       }
 
@@ -4889,8 +4894,8 @@ document.getElementById('avatarPickerGrid')?.addEventListener('click',async even
     if(currentPlayerSettings) currentPlayerSettings.avatarId=previous;
     try{ await ccLoadAvatarDirectory_(); }catch(_){ renderAvatarPicker_(); }
     const msg=String(err?.message||err||'');
-    if(msg.includes('AVATAR_TAKEN_IN_TEAM')) window.alert('Ezt az avatart közben már kiválasztotta valaki a csapatból. Válassz másikat.');
-    else window.alert('Az avatar mentése nem sikerült. Próbáld újra.');
+    if(msg.includes('AVATAR_TAKEN_IN_TEAM')) window.alert(ccUiMessage_('Ezt az avatart közben már kiválasztotta valaki a csapatból. Válassz másikat.'));
+    else window.alert(ccUiMessage_('Az avatar mentése nem sikerült. Próbáld újra.'));
   }
 });
 document.getElementById('avatarModeMonogramBtn')?.addEventListener('click',()=>{
@@ -5681,3 +5686,13 @@ function markCalendarToday(){
 
 
 
+
+// Date and dynamic card content must be re-rendered when switching display language.
+window.addEventListener('cc-player-language-changed',()=>{
+  if(!currentPlayerData)return;
+  renderEvents();
+  renderPlanner();
+  renderProfileStats_();
+  renderProfilePayments_();
+  if(document.getElementById('notificationsDialog')?.open)renderNotificationInbox_();
+});
