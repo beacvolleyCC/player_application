@@ -608,6 +608,29 @@ Object.assign(en,{
   "Utolsó frissítés": "Last updated",
   "Szezon": "Season"
 });
+Object.assign(en,{
+  "HAZAI MECCS": "HOME MATCH",
+  "IDEGENBELI MECCS": "AWAY MATCH",
+  "Útvonaltervezés ehhez a címhez a Google Mapsben": "Get directions to this address in Google Maps",
+  "Ezt az avatart már használja valaki a csapatban.": "Another player on this team is already using this avatar.",
+  "Edző:": "Coach:",
+  "részleteinek megnyitása": "Open details",
+  "lezárt esemény": "closed event",
+  "lezárt": "closed",
+  "Mérkőzés": "Match",
+  "Pontarány": "Points ratio",
+  "részleges eredmények": "partial results",
+  "Pl. Ma kb. 15 percet kések, mert órám van.": "e.g. I'll be about 15 minutes late because of a class.",
+  "Mentés folyamatban": "Saving",
+  "Elmentve": "Saved",
+  "Részletek": "Details",
+  "Megjegyzés": "Note",
+  "Részleges eredmények": "Partial results",
+  "Edző": "Coach",
+  "Edzők": "Coaches",
+  "Szűrés": "Filter",
+  "Összes csapat": "All teams"
+});
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
