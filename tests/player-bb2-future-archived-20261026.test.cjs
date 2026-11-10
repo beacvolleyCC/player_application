@@ -32,5 +32,5 @@ test('iOS app, styles, statistics and service worker use the same release versio
  assert.ok(releases.length>=4);
  assert.equal(new Set(releases).size,1,'All Player asset versions must match');
  assert.ok(sw.includes('club-control-player-'+releases[0]));
- assert.match(code,/sw\.js\?v=20261026-bb2-archived-v1/);
+ assert.ok(code.includes('sw.js?v='+releases[0]));
 });
