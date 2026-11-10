@@ -584,6 +584,30 @@ Object.assign(en,{
   "Találkozó": "Meeting time",
   "Pálya": "Court"
 });
+Object.assign(en,{
+  "Rács": "Grid",
+  "Rácsnézet – játékosok": "Grid view – players",
+  "Rács és naptár a teljes szezonhoz.": "Grid and calendar for the full season.",
+  "Nincs befizetve": "Not paid",
+  "Befizetve": "Paid",
+  "Elengedve": "Waived",
+  "Fizetési mód": "Payment method",
+  "Hazai meccs": "Home match",
+  "Idegen meccs": "Away match",
+  "hó": "month",
+  "hónap": "month",
+  "havi": "monthly",
+  "Edzés időpontja": "Training time",
+  "Mérkőzés időpontja": "Match time",
+  "Sportorvosi": "Medical clearance",
+  "Szűrt események.": "Filtered events.",
+  "Távolmaradás": "Absence",
+  "Részt vett": "Attended",
+  "Jelenlét": "Attendance",
+  "Jelenlétek": "Attendance records",
+  "Utolsó frissítés": "Last updated",
+  "Szezon": "Season"
+});
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
