@@ -10,6 +10,7 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'config.js'
+      - 'scripts/build-cloudflare-test.cjs'
       - 'tests/i18n.test.js'
       - 'tests/player-i18n-ui.test.cjs'
       - 'tests/player-i18n-coverage.test.cjs'
@@ -21,6 +22,7 @@ on:
       - 'i18n*.js'
       - 'index.html'
       - 'sw.js'
+      - 'scripts/build-cloudflare-test.cjs'
       - 'tests/i18n.test.js'
       - 'tests/player-i18n-ui.test.cjs'
       - 'tests/player-i18n-coverage.test.cjs'
@@ -46,6 +48,12 @@ jobs:
           node --check sw.js
       - name: Check player bilingual UI and isolated TEST configuration
         run: node --test tests/i18n.test.js tests/player-i18n-ui.test.cjs tests/player-i18n-coverage.test.cjs
+      - name: Build isolated Cloudflare TEST preview (never deploy)
+        run: |
+          node scripts/build-cloudflare-test.cjs
+          test -f dist-test/index.html
+          test -f dist-test/i18n-static.js
+          test -f dist-test/config.js
       - name: Check match, standings and protocol regressions
         run: |
           node --test tests/mrsz-standings.test.cjs
