@@ -617,6 +617,8 @@ function translateStatic(text,language){
  const value=match[2];
  if(Object.prototype.hasOwnProperty.call(en,value))return match[1]+en[value]+match[3];
  const dynamic=[
+  [/^(.+)\s*\/\s*hó$/,(m,amount)=>amount+' / month'],
+  [/^(\d+)\s+főből\s+(\d+)$/,(m,total,attending)=>attending+' of '+total+' players'],
   [/^(\d+)\s*\/\s*(\d+)\s+meccs$/,(m,n,total)=>n+' / '+total+' matches'],
   [/^(\d+)\s*\/\s*5\s+győzelem$/,(m,n)=>n+'/5 wins'],
   [/^(\d+)\.\s+szett:$/,(m,n)=>'Set '+n+':'],
