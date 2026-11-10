@@ -7,6 +7,7 @@ let language='hu', observer=null, busy=false;
 const writtenText=new WeakMap();
 const writtenAttrs=new WeakMap();
 const trans=()=>root.CCPlayerStaticI18n;
+const sourceTitle=typeof document!=='undefined'?document.title:'';
 function translateText(node){
  if(!node||!node.parentElement||node.parentElement.closest('script,style,textarea,[contenteditable="true"]'))return;
  const previous=writtenText.get(node);
@@ -43,11 +44,16 @@ function visit(rootNode){
  }
 }
 function setLanguage(next){
+ const previous=language;
  language=root.CCPlayerI18n?.normalizeLanguage(next)||'hu';
  document.documentElement.lang=language;
+ document.title=trans()?.translateStatic(sourceTitle,language)||sourceTitle;
  try{localStorage.setItem('cc-player-language',language);}catch(_){}
  busy=true;
  try{visit(document.body);}finally{busy=false;}
+ if(previous!==language && typeof root.dispatchEvent==='function'){
+  root.dispatchEvent(new CustomEvent('cc-player-language-changed',{detail:{language}}));
+ }
  return language;
 }
 function start(){
@@ -62,6 +68,8 @@ function start(){
    for(const record of records){
     if(record.type==='childList'){
      for(const node of record.addedNodes)visit(node);
+    }else if(record.type==='attributes'){
+     translateElement(record.target);
     }else if(record.type==='characterData'){
      const node=record.target;
      if(node.nodeValue!==writtenText.get(node))translateText(node);
@@ -69,7 +77,7 @@ function start(){
    }
   }finally{busy=false;}
  });
- observer.observe(document.body,{childList:true,characterData:true,subtree:true});
+ observer.observe(document.body,{childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label','alt'],subtree:true});
 }
 root.CCPlayerLanguage=Object.freeze({setLanguage,getLanguage:()=>language,start});
 if(typeof document!=='undefined'){
