@@ -69,3 +69,55 @@ jobs:
           path: dist-test/
           if-no-files-found: error
           retention-days: 7
+
+  deploy-test:
+    name: Deploy Player to isolated Cloudflare TEST project
+    needs: verify
+    # Never run this deployment from main, pull requests or an unverified build.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/player-i18n-en-test-20261110'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check whether TEST-only Cloudflare deploy credentials are configured
+        id: credentials
+        env:
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -n "$CF_ACCOUNT" && -n "$CF_TOKEN" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "### Cloudflare TEST deployment not started" >> "$GITHUB_STEP_SUMMARY"
+            echo "Missing CLOUDFLARE_ACCOUNT_ID and/or CLOUDFLARE_API_TOKEN in GitHub Actions secrets." >> "$GITHUB_STEP_SUMMARY"
+            echo "Configure a token with Pages Write permission and create the isolated project cc-player-test-beac." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Build isolated TEST Player
+        if: steps.credentials.outputs.ready == 'true'
+        run: node scripts/build-cloudflare-test.cjs
+      - name: Publish only to cc-player-test-beac
+        if: steps.credentials.outputs.ready == 'true'
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist-test --project-name=cc-player-test-beac --branch=feat/player-i18n-en-test-20261110
+      - name: Report the real deployment address
+        if: steps.deploy.outcome == 'success'
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+        shell: bash
+        run: |
+          echo "### Player TEST deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "Deployment URL: $DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Preview alias: $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "LIVE is not modified." >> "$GITHUB_STEP_SUMMARY"
