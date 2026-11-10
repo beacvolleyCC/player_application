@@ -33,6 +33,7 @@ test('Hungarian accented static UI literals are translated or protected proper n
  const missing=[...candidates].filter(value=>{
   if(preserved.has(value))return false;
   if(value.startsWith('MGR019 Player finance bridge'))return false;
+  if(value.includes("'+")||value.includes("+'"))return false; // source-code concatenation, not a rendered text node
   if(value.includes('.trim().replace(')||value.includes('||/férfi/')||value.includes('|| /^BEAC Női I'))return false;
   return ui.translateStatic(value,'en')===value;
  });
