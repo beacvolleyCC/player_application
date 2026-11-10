@@ -27,7 +27,7 @@ test('Login, profile, training, fixtures and protocol text is translated',()=>{
   'Személyes adatok':'Personal details',
   'Díjak és fizetések':'Fees and payments',
   'Edzések':'Training sessions',
-  'Rács és naptár a teljes szezonhoz.':'List and calendar for the full season.',
+  'Rács és naptár a teljes szezonhoz.':'Grid and calendar for the full season.',
   'Jönnek':'Attending',
   'Nem jönnek':'Not attending',
   'Tabella':'League standings',
@@ -45,6 +45,7 @@ test('Dynamic data, count inflections, dates and composite labels',()=>{
  const examples={
   '16 fő':'16 players',
   '14 meccs':'14 matches',
+  '8,000 HUF / hó':'8,000 HUF / month',
   'Jönnek (5)':'Attending (5)',
   'Nem jönnek (1)':'Not attending (1)',
   'Még nem jelzett (3)':'No response yet (3)',
