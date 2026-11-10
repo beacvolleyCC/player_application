@@ -874,12 +874,12 @@ function profileFeeStatusLabel_(status){
 function profileMoney_(amount){
   const n=Number(amount);
   if(!Number.isFinite(n)) return '';
-  return new Intl.NumberFormat('hu-HU',{maximumFractionDigits:0}).format(n)+' Ft';
+  return new Intl.NumberFormat(ccDisplayLocale_(),{maximumFractionDigits:0}).format(n)+(ccDisplayLanguage_()==='en'?' HUF':' Ft');
 }
 
 function profileHuDate_(value){
   const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[1]}.${m[2]}.${m[3]}.` : String(value||'');
+  return m ? (ccDisplayLanguage_()==='en' ? `${m[3]}/${m[2]}/${m[1]}` : `${m[1]}.${m[2]}.${m[3]}.`) : String(value||'');
 }
 
 function profileNormalizePeriodKey_(fee){
