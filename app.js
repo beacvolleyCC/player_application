@@ -4808,6 +4808,7 @@ function applySettingsUi_(value){
   currentPlayerSettings=settings;
   const map={settingsThemeMode:settings.theme||'system',settingsDefaultView:settings.scheduleDefaultView||'last',settingsLanguage:settings.language||'hu'};
   Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id); if(el) el.value=val;});
+  if(window.CCPlayerLanguage) window.CCPlayerLanguage.setLanguage(settings.language||'hu');
   if(PLAYER_AVATAR_IDS.has(String(settings.avatarId||''))) currentAvatarId=String(settings.avatarId);
   else currentAvatarId='';
   avatarPickerMode=currentAvatarId ? 'avatar' : 'monogram';
