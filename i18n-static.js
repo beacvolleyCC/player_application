@@ -287,7 +287,25 @@ const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
  const match=/^(\s*)([\s\S]*?)(\s*)$/.exec(String(text));
  const value=match[2];
- return match[1]+(language==='en' && Object.prototype.hasOwnProperty.call(en,value)?en[value]:value)+match[3];
+ if(language!=='en')return text;
+ if(Object.prototype.hasOwnProperty.call(en,value))return match[1]+en[value]+match[3];
+ // Dynamic labels contain counts, dates or team names; translate only their fixed UI fragments.
+ const fragments=[
+  [/^(\\d+) fő$/,(_,n)=>n+' players'],
+  [/^(\\d+) meccs$/,(_,n)=>n+' matches'],
+  [/^(\\d+) mérkőzés$/,(_,n)=>n+' matches'],
+  [/^(\\d+) szett$/,(_,n)=>n+' sets'],
+  [/^Utolsó (\\d+)$/,(_,n)=>'Last '+n],
+  [/^Jönnek \\((\\d+)\\)$/,(_,n)=>'Attending ('+n+')'],
+  [/^Nem jönnek \\((\\d+)\\)$/,(_,n)=>'Not attending ('+n+')'],
+  [/^Még nem jelzett \\((\\d+)\\)$/,(_,n)=>'No response yet ('+n+')'],
+  [/^Meccskód: (.+)$/,(_,code)=>'Match code: '+code],
+  [/^Vizsgálat: (.+)$/,(_,date)=>'Examination: '+date],
+  [/^Jelenlegi érvényesség: (.+)$/,(_,date)=>'Current validity: '+date],
+  [/^Nincs új értesítés · (.+)$/,(_,rest)=>'No new notifications · '+rest]
+ ];
+ for(const [pattern,render] of fragments){const m=value.match(pattern);if(m)return match[1]+render(...m)+match[3];}
+ return text;
 }
 root.CCPlayerStaticI18n=Object.freeze({catalogue,translateStatic});
 if(typeof module!=='undefined'&&module.exports)module.exports=root.CCPlayerStaticI18n;
