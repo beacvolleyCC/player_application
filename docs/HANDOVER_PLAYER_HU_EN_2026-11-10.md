@@ -67,3 +67,11 @@ A TEST `player_settings.language` rendelkezésre áll. `player_notifications` é
 
 ## Gyors folytatási üzenet
 `CC-FOLYTATÁS: Olvasd el a beacvolleyCC/player_application repo feat/player-i18n-en-test-20261110 ágán a docs/HANDOVER_PLAYER_HU_EN_2026-11-10.md handovert. A teljes Player HU/EN képernyőfordításának hátralévő QA-ját, hibajavítását és kizárólag TEST telepítését folytasd nagyobb, összefüggő lépésekben. Ellenőrizd a branch HEAD-et és a legfrissebb Actions runokat, mert a korábbi CI körben egy elavult PWA verzióteszt bukott, amelynek javítását már commitolták. LIVE-hoz ne nyúlj; a címzettenkénti push lokalizáció külön feladat.`
+
+## Cloudflare TEST publish attempt — 2026-11-10 (later update)
+- A `.github/workflows/player-i18n-test.yml` kiegészült a `deploy-test` jobbal, amely **csak** a `feat/player-i18n-en-test-20261110` ágról, sikeres ellenőrzések után, kizárólag a `cc-player-test-beac` Cloudflare Pages projektet célozhatja.
+- Job futás: https://github.com/beacvolleyCC/player_application/actions/runs/42850537672 — a teljes QA/build sikeres, **a Cloudflare publish lépés kihagyva**, mert a GitHub Actions környezetben hiányzik a `CLOUDFLARE_ACCOUNT_ID` és a `CLOUDFLARE_API_TOKEN` secret. Ezt a `Deploy Player to isolated Cloudflare TEST project` job logja is megerősíti.
+- Ennek megfelelően **nincs igazolt nyilvános TEST URL**; nem szabad azt állítani, hogy telepítve van. A CI sikere a publish jobot nem jelenti.
+- **Egyszerű manuális megoldás:** Cloudflare Dashboard → Workers & Pages → Create → Pages → Connect to Git → `beacvolleyCC/player_application` → test project name `cc-player-test-beac` → production branch `feat/player-i18n-en-test-20261110` → build `node scripts/build-cloudflare-test.cjs` → output directory `dist-test` → Deploy. A publish után a tényleges, Cloudflare által kijelzett `pages.dev` címet ellenőrizni kell.
+- **Alternatíva automatizált publishhoz:** GitHub repo Settings → Secrets and variables → Actions → `CLOUDFLARE_ACCOUNT_ID` és `CLOUDFLARE_API_TOKEN` (Cloudflare Pages Write jogosultság); a külön Pages TEST projekt létezzen. Az akció ezután a feature branch következő push-ja után megpróbálja a TEST telepítést. **Ne adj meg Cloudflare tokent chatben vagy forrásfájlban.**
+- Nem módosítottunk LIVE ágat, LIVE Cloudflare projektet vagy LIVE adatbázist.
