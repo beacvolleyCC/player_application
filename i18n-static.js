@@ -631,6 +631,11 @@ Object.assign(en,{
   "Szűrés": "Filter",
   "Összes csapat": "All teams"
 });
+Object.assign(en,{
+  "A rögzített mérkőzések részleges eredményadatai láthatók, nem hivatalos tabella.": "Recorded results are incomplete and do not constitute official league standings.",
+  "Ez a rész csak tájékoztató. A fenti havi státuszok kizárólag a rendszerben ténylegesen rögzített befizetéseket mutatják.": "This section is for information only. The monthly statuses above reflect only payments actually recorded in the system.",
+  "· Archivált időpont": "· Archived event"
+});
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
