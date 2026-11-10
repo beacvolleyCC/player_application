@@ -547,6 +547,43 @@ Object.assign(en,{
   "Push kijelentkezési takarítás:": "Push sign-out clean-up:",
   "Realtime frissítés hiba:": "Live update error:"
 });
+Object.assign(en,{
+  "Alkalom": "Session",
+  "Sorozat": "Competition",
+  "Hazai / idegen": "Home / away",
+  "Hazai": "Home",
+  "Idegen": "Away",
+  "BEAC meccsek": "BEAC matches",
+  "Ehhez a csoporthoz nincs mentett tabella.": "No saved league standings are available for this group.",
+  "7 csapat · 2026/27": "7 teams · 2026/27",
+  "Nev.": "Squad",
+  "Gy.": "W",
+  "V.": "L",
+  "csapat": "teams",
+  "meccs": "matches",
+  "szett": "sets",
+  "győzelem": "wins",
+  "Nyert": "Won",
+  "Vesztett": "Lost",
+  "Pályára lépett": "Played",
+  "Tétel": "Item",
+  "Időszak": "Period",
+  "Összeg": "Amount",
+  "Állapot": "Status",
+  "Fizetve": "Paid",
+  "Fizetetlen": "Unpaid",
+  "Fizetendő": "Due",
+  "Teljesítve": "Completed",
+  "Rögzítve": "Recorded",
+  "Hazai pálya": "Home venue",
+  "Idegenbeli": "Away",
+  "Nincs adat": "No data",
+  "Nincs információ": "No information available",
+  "Vissza a menetrendhez": "Back to schedule",
+  "Időpont": "Time",
+  "Találkozó": "Meeting time",
+  "Pálya": "Court"
+});
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
