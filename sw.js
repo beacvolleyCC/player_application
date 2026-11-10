@@ -1,4 +1,6 @@
-const CACHE='club-control-player-20261110-i18n-en-test';
+// Keep the shared Player asset-version token in sync with app.js and index.html.
+// Changing this worker file still triggers installation and pre-caches updated language assets.
+const CACHE='club-control-player-20261026-bb2-archived-v1';
 const CORE=[
   './manifest.webmanifest',
   './i18n.js?v=20261110-en-foundation',
