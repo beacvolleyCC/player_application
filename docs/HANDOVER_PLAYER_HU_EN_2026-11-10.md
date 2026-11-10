@@ -3,6 +3,14 @@
 **Státusz:** fejlesztés a külön TEST feature ágon; **nem LIVE**, **nincs igazolt TEST webtelepítés**.  
 **Közvetlen cél:** az értesítési küldésen kívüli teljes Player felület magyar–brit angol fordítása, ellenőrzése és kizárólag TEST-re való kihelyezése. Az értesítések teljes, címzettenkénti szerveroldali lokalizációja külön következő feladat.
 
+## Frissítés — sikeres teljes CI és letölthető TEST build
+- **Friss, sikeres HU/EN CI:** https://github.com/beacvolleyCC/player_application/actions/runs/42833681041 (commit: `5d7b23c415068220acc05daa0ec30949be3bc12f`).
+- A futásban a JS szintaxis, az HU/EN fordítási/DOM/forráslefedettségi tesztek, a TEST-only Cloudflare build, valamint a mérkőzés/tabella/statisztika/jegyzőkönyv regressziós tesztek **mind sikeresek**.
+- A sikeresen ellenőrzött statikus TEST előnézet letölthető a fenti GitHub Actions futásból, `club-control-player-huen-test-preview` néven (kb. 6,7 MB-os csomag). Ez egy **build artifact**, **nem publikus webes telepítés**.
+- `.github/workflows/player-i18n-test.yml` most a sikeres push-os teszt után 7 napig megőrzi ezt a csomagot; tartalmazza a TEST Supabase-ra mutató `config.js` fájlt, kikapcsolt push-sal.
+- **Még hátravan:** a Cloudflare Pages külön TEST projektjébe történő tényleges feltöltés, a közzétett TEST URL ellenőrzése, a valódi iPhone-os/valós TEST fiókos kézi E2E. Az értesítések szerveroldali címzettenkénti HU/EN fordítása továbbra is külön feladat.
+- Ezt a frissítést tekintsd aktuálisnak a lentebb olvasható, korábbi hibás CI-ről szóló történeti megjegyzésekkel szemben. A LIVE továbbra sem lett módosítva.
+
 ## Repozitórium és védőkorlátok
 - Player repo: `beacvolleyCC/player_application`.
 - Kizárólagos fejlesztési ág: `feat/player-i18n-en-test-20261110`.
