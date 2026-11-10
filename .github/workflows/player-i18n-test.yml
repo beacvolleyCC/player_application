@@ -61,3 +61,11 @@ jobs:
           node --test tests/competition-context-catalog.test.cjs
           node --test tests/league-context-ui.test.cjs
           node --test tests/protocol-match-order-20261019.test.cjs
+      - name: Upload isolated TEST preview (not published)
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: club-control-player-huen-test-preview
+          path: dist-test/
+          if-no-files-found: error
+          retention-days: 7
