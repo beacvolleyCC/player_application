@@ -4,13 +4,18 @@
 const source=new WeakMap();
 const attrs=new WeakMap();
 let language='hu', observer=null, busy=false;
+const writtenText=new WeakMap();
+const writtenAttrs=new WeakMap();
 const trans=()=>root.CCPlayerStaticI18n;
 function translateText(node){
  if(!node||!node.parentElement||node.parentElement.closest('script,style,textarea,[contenteditable="true"]'))return;
+ const previous=writtenText.get(node);
+ if(source.has(node)&&previous!==undefined&&node.nodeValue!==previous)source.set(node,node.nodeValue);
  const original=source.has(node)?source.get(node):node.nodeValue;
  if(!source.has(node))source.set(node,original);
  const translated=trans()?.translateStatic(original,language)||original;
  if(node.nodeValue!==translated)node.nodeValue=translated;
+ writtenText.set(node,translated);
 }
 function translateElement(el){
  if(!el||el.nodeType!==1)return;
@@ -19,8 +24,11 @@ function translateElement(el){
   let saved=attrs.get(el);
   if(!saved){saved={};attrs.set(el,saved);}
   if(!(attr in saved))saved[attr]=el.getAttribute(attr);
+  const written=writtenAttrs.get(el)||{};
+  if(attr in written&&el.getAttribute(attr)!==written[attr])saved[attr]=el.getAttribute(attr);
   const translated=trans()?.translateStatic(saved[attr],language)||saved[attr];
   if(el.getAttribute(attr)!==translated)el.setAttribute(attr,translated);
+  written[attr]=translated;writtenAttrs.set(el,written);
  }
 }
 function visit(rootNode){
@@ -56,9 +64,7 @@ function start(){
      for(const node of record.addedNodes)visit(node);
     }else if(record.type==='characterData'){
      const node=record.target;
-     const old=source.get(node);
-     if(old!==undefined&&node.nodeValue!==trans()?.translateStatic(old,language))source.set(node,node.nodeValue);
-     translateText(node);
+     if(node.nodeValue!==writtenText.get(node))translateText(node);
     }
    }
   }finally{busy=false;}
