@@ -106,6 +106,31 @@ const en={
   "Miért nem tudsz jönni?": "Why can't you attend?",
   "Lemondom": "Confirm cancellation"
 };
+Object.assign(en,{
+  "Írd be a Club Control-fiókodhoz rendelt email címet. Küldünk rá egy egyszer használatos belépési kódot.": "Enter the email address associated with your Club Control account. We'll send you a one-time sign-in code.",
+  "Nincs nyílt regisztráció: csak a manager által játékoshoz rendelt email címmel lehet belépni.": "Registration is by invitation only. Sign in using the email address assigned to your player profile.",
+  "A 6 számjegyű kódot erre a címre küldtük:": "We sent the six-digit code to:",
+  "A kód 10 percig érvényes és egyszer használható.": "The code is valid for 10 minutes and can only be used once.",
+  "Értesítések, saját adatok, díjak, szezon és beállítások.": "Notifications, personal details, fees, season and settings.",
+  "Értesítések, megjelenés, menetrend, fiók": "Notifications, appearance, schedule and account",
+  "Ha új edzés kerül a csapat menetrendjébe.": "When a new training session is added to your team's schedule.",
+  "Időpont, helyszín vagy törlés esetén.": "When the time or venue changes, or a session is cancelled.",
+  "Hétfő reggel, ha az adott hét valamelyik edzésére még nem jeleztél.": "On Monday morning, if you haven't responded to a training session that week.",
+  "Az edzés napján reggel, ha arra az alkalomra még nincs Jövök / Nem jövök jelzésed.": "On the morning of a training session, if you haven't confirmed whether you'll attend.",
+  "Új bajnoki vagy felkészülési mérkőzés.": "When a new league or friendly match is scheduled.",
+  "Időpont, helyszín vagy találkozó változása.": "When the match time, venue or meeting arrangements change.",
+  "Minden hónapban 14-én este és 15-én dél körül, ha a rendszerben az aktuális díj fizetendőként szerepel.": "On the evening of the 14th and around midday on the 15th of each month, if a fee is still due.",
+  "A telefon beállítását követheti, vagy külön is választható.": "Follow your device settings or choose a theme manually.",
+  "Használhatsz monogramot vagy választhatsz állatavatart.": "Use your initials or choose an animal avatar.",
+  "Az aktuális csapat összes betöltött edzését és meccsét egy szabványos .ics naptárfájlba teszi.": "Export all loaded training sessions and matches for your current team as a standard .ics calendar file.",
+  "Egyszeri export: a későbbi Club Control-módosítások nem frissítik automatikusan a már importált eseményeket.": "This is a one-off export. Changes made later in Club Control will not automatically update imported events.",
+  "A nyelv a beállításokban bármikor módosítható.": "You can change the display language at any time.",
+  "Adatkezelési kérdés: elteroplabda@gmail.com": "For data protection enquiries: elteroplabda@gmail.com",
+  "A „Minden eszközről” megszünteti a többi aktív Player munkamenetet és kikapcsolja a telefonos push-feliratkozásokat is.": "Signing out on all devices ends your other active Player sessions and disables push notification subscriptions.",
+  "Játékos Teszt": "Test Player",
+  "Szélső ütő • #12": "Outside hitter • #12",
+  "BEAC Női I.": "BEAC Women's First Team"
+});
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
