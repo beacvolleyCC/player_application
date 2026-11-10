@@ -1,6 +1,9 @@
-const CACHE='club-control-player-20261026-bb2-archived-v1';
+const CACHE='club-control-player-20261110-i18n-en-test';
 const CORE=[
   './manifest.webmanifest',
+  './i18n.js?v=20261110-en-foundation',
+  './i18n-static.js?v=20261110-en-labels',
+  './i18n-dom.js?v=20261110-en-dom',
   './competition-context-catalog.js',
   './statistics.js?v=20261026-bb2-archived-v1',
   './statistics.css?v=20261026-bb2-archived-v1',
@@ -56,7 +59,7 @@ self.addEventListener('fetch', event => {
   const url=new URL(event.request.url);
   const isAppFile = url.origin===self.location.origin && (
     event.request.mode==='navigate' ||
-    /\/(index\.html|app\.js|styles\.css|statistics\.js|statistics\.css|config\.js)$/.test(url.pathname)
+    /\/(index\.html|app\.js|styles\.css|statistics\.js|statistics\.css|config\.js|i18n\.js|i18n-static\.js|i18n-dom\.js)$/.test(url.pathname)
   );
 
   if(isAppFile){
