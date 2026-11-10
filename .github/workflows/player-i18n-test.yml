@@ -12,6 +12,7 @@ on:
       - 'config.js'
       - 'tests/i18n.test.js'
       - 'tests/player-i18n-ui.test.cjs'
+      - 'tests/player-i18n-coverage.test.cjs'
       - '.github/workflows/player-i18n-test.yml'
   pull_request:
     paths:
@@ -22,6 +23,7 @@ on:
       - 'sw.js'
       - 'tests/i18n.test.js'
       - 'tests/player-i18n-ui.test.cjs'
+      - 'tests/player-i18n-coverage.test.cjs'
       - '.github/workflows/player-i18n-test.yml'
 permissions:
   contents: read
@@ -43,7 +45,7 @@ jobs:
           node --check i18n-dom.js
           node --check sw.js
       - name: Check player bilingual UI and isolated TEST configuration
-        run: node --test tests/i18n.test.js tests/player-i18n-ui.test.cjs
+        run: node --test tests/i18n.test.js tests/player-i18n-ui.test.cjs tests/player-i18n-coverage.test.cjs
       - name: Check match, standings and protocol regressions
         run: |
           node --test tests/mrsz-standings.test.cjs
