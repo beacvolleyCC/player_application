@@ -465,27 +465,48 @@ Object.assign(en,{
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
- const match=/^(\s*)([\s\S]*?)(\s*)$/.exec(String(text));
+ const original=String(text==null?'':text);
+ if(language!=='en')return original;
+ const match=/^(\s*)([\s\S]*?)(\s*)$/.exec(original);
  const value=match[2];
- if(language!=='en')return text;
  if(Object.prototype.hasOwnProperty.call(en,value))return match[1]+en[value]+match[3];
- // Dynamic labels contain counts, dates or team names; translate only their fixed UI fragments.
- const fragments=[
-  [/^(\\d+) fő$/,(_,n)=>n+' players'],
-  [/^(\\d+) meccs$/,(_,n)=>n+' matches'],
-  [/^(\\d+) mérkőzés$/,(_,n)=>n+' matches'],
-  [/^(\\d+) szett$/,(_,n)=>n+' sets'],
-  [/^Utolsó (\\d+)$/,(_,n)=>'Last '+n],
-  [/^Jönnek \\((\\d+)\\)$/,(_,n)=>'Attending ('+n+')'],
-  [/^Nem jönnek \\((\\d+)\\)$/,(_,n)=>'Not attending ('+n+')'],
-  [/^Még nem jelzett \\((\\d+)\\)$/,(_,n)=>'No response yet ('+n+')'],
-  [/^Meccskód: (.+)$/,(_,code)=>'Match code: '+code],
-  [/^Vizsgálat: (.+)$/,(_,date)=>'Examination: '+date],
-  [/^Jelenlegi érvényesség: (.+)$/,(_,date)=>'Current validity: '+date],
-  [/^Nincs új értesítés · (.+)$/,(_,rest)=>'No new notifications · '+rest]
+ const dynamic=[
+  [/^(\d+)\s+fő$/,(m,n)=>n+' players'],
+  [/^(\d+)\s+meccs$/,(m,n)=>n+' matches'],
+  [/^(\d+)\s+mérkőzés$/,(m,n)=>n+' matches'],
+  [/^(\d+)\s+szett$/,(m,n)=>n+' sets'],
+  [/^(\d+)\s+korábbi$/,(m,n)=>n+' earlier'],
+  [/^(\d+)\s+új értesítés$/,(m,n)=>n+' new notifications'],
+  [/^Utolsó (\d+)$/,(m,n)=>'Last '+n],
+  [/^Jönnek \((\d+)\)$/,(m,n)=>'Attending ('+n+')'],
+  [/^Nem jönnek \((\d+)\)$/,(m,n)=>'Not attending ('+n+')'],
+  [/^Még nem jelzett \((\d+)\)$/,(m,n)=>'No response yet ('+n+')'],
+  [/^Meccskód:\s*(.+)$/,(m,code)=>'Match code: '+code],
+  [/^Vizsgálat:\s*(.+)$/,(m,date)=>'Examination: '+date],
+  [/^Jelenlegi érvényesség:\s*(.+)$/,(m,date)=>'Current validity: '+date],
+  [/^Nincs új értesítés · (\d+) korábbi$/,(m,n)=>'No new notifications · '+n+' earlier'],
+  [/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.$/,(m,y,mo,d)=>d.padStart(2,'0')+'/'+mo.padStart(2,'0')+'/'+y]
  ];
- for(const [pattern,render] of fragments){const m=value.match(pattern);if(m)return match[1]+render(...m)+match[3];}
- return text;
+ for(const [pattern,render] of dynamic){
+  const found=value.match(pattern);
+  if(found)return match[1]+render(...found)+match[3];
+ }
+ // The app builds composite labels from canonical records, e.g. "2026.11.04. · Kedd · 20:00".
+ // Translate only independently matched label segments; never rewrite names or team identifiers.
+ const parts=value.split(/(\s+[·•|]\s+)/);
+ if(parts.length>1){
+  let changed=false;
+  const translated=parts.map((part,index)=>{
+   if(index%2)return part;
+   const result=translateStatic(part,'en');
+   if(result!==part)changed=true;
+   return result;
+  }).join('');
+  if(changed)return match[1]+translated+match[3];
+ }
+ const monthYear=value.match(/^(\d{4})\.\s*([\p{L}]+)$/u);
+ if(monthYear&&en[monthYear[2]])return match[1]+en[monthYear[2]]+' '+monthYear[1]+match[3];
+ return original;
 }
 root.CCPlayerStaticI18n=Object.freeze({catalogue,translateStatic});
 if(typeof module!=='undefined'&&module.exports)module.exports=root.CCPlayerStaticI18n;
