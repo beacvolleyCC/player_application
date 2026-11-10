@@ -521,6 +521,32 @@ Object.assign(en,{
   "Helyezésváltozás": "Position change",
   "Szettarány": "Set ratio"
 });
+Object.assign(en,{
+  "· A mentett eredmények egyeznek a teljes rögzített tabellával.": "· Saved results match the complete recorded league standings.",
+  "/5 győzelem": "/5 wins",
+  "Böngésző": "Browser",
+  "Egér": "Mouse",
+  "Gyűrűsfarkú maki": "Ring-tailed lemur",
+  "Tyúk": "Hen",
+  "Férfi Budapest I. osztály – A csoport": "Budapest Men's Division 1 – Group A",
+  "Férfi Budapest I. osztály – B csoport": "Budapest Men's Division 1 – Group B",
+  "Női Budapest I. osztály": "Budapest Women's Division 1",
+  "Női Budapest II. osztály – B csoport": "Budapest Women's Division 2 – Group B",
+  "Apple naptár megosztás hiba:": "Apple Calendar sharing error:",
+  "Availability mentési hiba:": "Error saving attendance response:",
+  "Avatar könyvtár nem érhető el:": "Avatar library unavailable:",
+  "Beállítás mentési hiba:": "Error saving settings:",
+  "Értesítés archiválása nem sikerült:": "Could not archive notification:",
+  "Értesítés olvasott állapota nem menthető:": "Could not mark notification as read:",
+  "Értesítési központ nem érhető el:": "Notification centre unavailable:",
+  "Fizetési override adatok nem érhetők el:": "Payment override data unavailable:",
+  "Kijelentkezési hiba:": "Sign-out error:",
+  "Profil statisztika/fizetés adat még nem érhető el:": "Profile statistics and payment data are not yet available:",
+  "Push bekapcsolási hiba:": "Error enabling push notifications:",
+  "Push kijelentkezési takarítás hiba:": "Error unregistering push notifications during sign-out:",
+  "Push kijelentkezési takarítás:": "Push sign-out clean-up:",
+  "Realtime frissítés hiba:": "Live update error:"
+});
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
