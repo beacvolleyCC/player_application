@@ -57,7 +57,7 @@
   function translate(key, language, params) {
     const locale = normalizeLanguage(language);
     const template = dictionaries[locale][key] || dictionaries.hu[key] || key;
-    return template.replace(/\\{(\\w+)\\}/g, (_, name) => String(params && Object.prototype.hasOwnProperty.call(params, name) ? params[name] : '{' + name + '}'));
+    return template.replace(/\{(\w+)\}/g, (_, name) => String(params && Object.prototype.hasOwnProperty.call(params, name) ? params[name] : '{' + name + '}'));
   }
   function formatDate(date, language, options) {
     return new Intl.DateTimeFormat(normalizeLanguage(language) === 'en' ? 'en-GB' : 'hu-HU', options || {dateStyle: 'medium'}).format(new Date(date));
