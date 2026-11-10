@@ -640,6 +640,9 @@ function translateStatic(text,language){
  const value=match[2];
  if(Object.prototype.hasOwnProperty.call(en,value))return match[1]+en[value]+match[3];
  const dynamic=[
+  [/^Edző:\s+(.+)$/,(m,coach)=>'Coach: '+coach],
+  [/^(.+)\s+részleteinek megnyitása$/,(m,type)=>'Open '+translateStatic(type,'en').toLowerCase()+' details'],
+  [/^(.+),\s+részleges eredmények$/,(m,league)=>league+', partial results'],
   [/^(.+?)\s*\/\s*hó$/,(m,amount)=>amount+' / month'],
   [/^(\d+)\s+főből\s+(\d+)$/,(m,total,attending)=>attending+' of '+total+' players'],
   [/^(\d+)\s*\/\s*(\d+)\s+meccs$/,(m,n,total)=>n+' / '+total+' matches'],
