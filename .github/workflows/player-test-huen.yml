@@ -12,6 +12,7 @@ on:
       - 'match-sheet-player.js'
       - 'scripts/build-cloudflare-test.cjs'
       - 'tests/player-test-huen.test.cjs'
+      - 'tests/player-slider-tap-drag-20261101.test.cjs'
       - '.github/workflows/player-test-huen.yml'
   workflow_dispatch:
 permissions:
