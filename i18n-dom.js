@@ -48,7 +48,7 @@ function setLanguage(next){
  language=root.CCPlayerI18n?.normalizeLanguage(next)||'hu';
  document.documentElement.lang=language;
  document.title=trans()?.translateStatic(sourceTitle,language)||sourceTitle;
- try{localStorage.setItem('cc-player-language',language);}catch(_){}
+ try{localStorage.setItem('cc-mobile-test-20261026:cc-player-language',language);}catch(_){}
  busy=true;
  try{visit(document.body);}finally{busy=false;}
  if(previous!==language && typeof root.dispatchEvent==='function'){
@@ -58,7 +58,7 @@ function setLanguage(next){
 }
 function start(){
  const selected=document.getElementById('settingsLanguage');
- const saved=(()=>{try{return localStorage.getItem('cc-player-language');}catch(_){return null;}})();
+ const saved=(()=>{try{return localStorage.getItem('cc-mobile-test-20261026:cc-player-language');}catch(_){return null;}})();
  setLanguage(saved||selected?.value||navigator.language||'hu');
  if(selected){selected.value=language;selected.addEventListener('change',()=>setLanguage(selected.value));}
  observer=new MutationObserver(records=>{
