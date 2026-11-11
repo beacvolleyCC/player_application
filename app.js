@@ -4765,7 +4765,7 @@ function defaultSettingsPayload_(){
   return {
     theme:ccMobileTestStorage_.getItem('cc-theme-mode')||'system',
     scheduleDefaultView:ccMobileTestStorage_.getItem('cc-planner-default')||'last',
-    language:ccMobileTestStorage_.getItem('cc-player-language')||window.localStorage.getItem('cc-player-language')||'hu',
+    language:ccMobileTestStorage_.getItem('cc-player-language')||'hu',
     detailedMode:false,
     avatarId:'',
     notifications:{
