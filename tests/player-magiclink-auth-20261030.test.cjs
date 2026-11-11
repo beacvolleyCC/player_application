@@ -48,10 +48,14 @@ test('TEST Player build remains isolated and disables outbound push',()=>{
  assert.doesNotMatch(builder,/https:\/\/snqsxlyhontaepembaic\.supabase\.co/);
 });
 test('Player TEST PWA shell and SW cache use matching fresh Magic Link version',()=>{
- const version='test-20261101-player-rsvp-tap-v1';
+ const version=/app\\.js\\?v=([^\"]+)/.exec(html)?.[1];
+ assert.match(version||'',/^test-20\\d{6}-[a-z0-9-]+$/i);
  assert.ok(html.includes('app.js?v='+version));
  assert.ok(html.includes('styles.css?v='+version));
  assert.ok(html.includes('statistics.js?v='+version));
+ assert.ok(html.includes('statistics.css?v='+version));
+ assert.ok(html.includes('<option value="en">English</option>'));
+ assert.ok(html.includes('i18n-dom.js?v='));
  assert.ok(sw.includes("const CACHE='cc-player-"+version+"'"));
  assert.ok(sw.includes('app.js?v='+version));
 });
