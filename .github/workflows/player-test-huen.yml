@@ -1,0 +1,55 @@
+name: Player TEST bilingual staging QA
+on:
+  push:
+    branches:
+      - test/20261026-isolated-player-mobile
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'i18n*.js'
+      - 'rsvp-reliability.js'
+      - 'match-sheet-player.js'
+      - 'scripts/build-cloudflare-test.cjs'
+      - 'tests/player-test-huen.test.cjs'
+      - '.github/workflows/player-test-huen.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check TEST Player JavaScript
+        run: |
+          node --check app.js
+          node --check i18n.js
+          node --check i18n-static.js
+          node --check i18n-dom.js
+          node --check rsvp-reliability.js
+          node --check match-sheet-player.js
+          node --check sw.js
+      - name: Test HU/EN stage, TEST isolation and RSVP
+        run: |
+          node --test tests/player-test-huen.test.cjs
+          node --test tests/player-rsvp-reliability.test.cjs
+          node --test tests/match-sheet-player-20261106.test.cjs
+          node --test tests/player-slider-tap-drag-20261101.test.cjs
+      - name: Verify generated connected TEST-only Cloudflare bundle
+        run: |
+          node scripts/build-cloudflare-test.cjs
+          node --test tests/cloudflare-test-bundle-20261026.test.cjs
+          test -f dist-test/i18n.js
+          test -f dist-test/i18n-static.js
+          test -f dist-test/i18n-dom.js
+          grep -q 'CC TEST · STAGING · NEM ÉLES' dist-test/index.html
+          grep -q '<option value="en">English</option>' dist-test/index.html
+          if grep -R -l 'snqsxlyhontaepembaic' dist-test/*.js dist-test/index.html; then
+            echo 'LIVE reference found in TEST output' >&2
+            exit 1
+          fi
