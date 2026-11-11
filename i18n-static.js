@@ -647,6 +647,7 @@ Object.assign(en,{
   "TEST RSVP mentési hiba:": "TEST attendance response save error:",
   "A nyelv a beállításokban bármikor módosítható.": "You can change the display language here at any time."
 });
+Object.assign(en,{"Mérkőzések":"Matches"});
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
