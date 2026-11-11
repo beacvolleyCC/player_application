@@ -636,6 +636,17 @@ Object.assign(en,{
   "Ez a rész csak tájékoztató. A fenti havi státuszok kizárólag a rendszerben ténylegesen rögzített befizetéseket mutatják.": "This section is for information only. The monthly statuses above reflect only payments actually recorded in the system.",
   "· Archivált időpont": "· Archived event"
 });
+Object.assign(en,{
+  "CC jegyzőkönyv megtekintése": "View CC match report",
+  "Jegyzőkönyv betöltése…": "Loading match report…",
+  "Ehhez a meccshez még nincs közzétett CC jegyzőkönyv.": "No CC match report has been published for this match yet.",
+  "Vendég": "Away",
+  "Nincs szetteredmény": "No set scores available",
+  "A jegyzőkönyv nem érhető el: ": "Match report unavailable: ",
+  "A jelentkezés mentése sikertelen volt. Az előző állapotot visszaállítottuk.": "Could not save your attendance response. Your previous response has been restored.",
+  "TEST RSVP mentési hiba:": "TEST attendance response save error:",
+  "A nyelv a beállításokban bármikor módosítható.": "You can change the display language here at any time."
+});
 const hu=Object.freeze(Object.fromEntries(Object.keys(en).map(k=>[k,k])));
 const catalogue=Object.freeze({hu,en:Object.freeze(en)});
 function translateStatic(text,language){
@@ -655,6 +666,9 @@ function translateStatic(text,language){
   [/^(\d+)\.\s+szett:$/,(m,n)=>'Set '+n+':'],
   [/^([\d–-]+)\s+szett$/,(m,n)=>n+' sets'],
   [/^(\d+)\s+csapat$/,(m,n)=>n+' teams'],
+  [/^(\d+)\.\s+szett:\s*(.+)$/,(m,n,score)=>'Set '+n+': '+score],
+  [/^(Hazai|Vendég)\s+#(.+)$/,(m,side,rest)=>(side==='Hazai'?'Home':'Away')+' #'+rest],
+  [/^A jegyzőkönyv nem érhető el:\s*(.+)$/,(m,reason)=>'Match report unavailable: '+reason],
   [/^(\d+)\s+fő$/,(m,n)=>n+' players'],
   [/^(\d+)\s+meccs$/,(m,n)=>n+' matches'],
   [/^(\d+)\s+mérkőzés$/,(m,n)=>n+' matches'],
