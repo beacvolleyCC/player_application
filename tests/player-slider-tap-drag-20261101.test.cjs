@@ -46,6 +46,7 @@ function harness(initial=null){
     neutralizeEvent:ev=>{ev.status=null},
     persist:(ev,status)=>{ev.status=status},
     renderEvents:()=>{},renderPlanner:()=>{},
+    ccUiMessage_:text=>text, // The isolated slider snippet is normally called inside app.js, where this helper exists.
     confirm:()=>{confirms++;return true}
   };
   vm.runInNewContext(sliderSource+';bindSliderDrag()',env);
