@@ -4055,7 +4055,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261025-protocol-mobile-v2').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261111-huen-staging-v1').catch(()=>{}));
 }
 
 
