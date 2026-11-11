@@ -77,7 +77,7 @@ test('PWA version is changed and equal for all Player assets',()=>{
  assert.ok(matches.length>=4);
  assert.equal(new Set(matches).size,1,'HTML file versions need same cache token');
  if(index.includes('CC TEST · DEMÓ · NEM ÉLES')){
-  assert.ok(sw.includes('cc-player-test-'+matches[0]),'sandbox PWA needs isolated versioned cache');
+  assert.ok(matches[0].startsWith('test-') && sw.includes('cc-player-'+matches[0]),'sandbox PWA needs isolated versioned cache');
   assert.ok(sw.includes('app.js?v='+matches[0]),'sandbox PWA must cache versioned app');
  }else assert.ok(sw.includes('club-control-player-'+matches[0]));
  assert.ok(app.includes('sw.js?v='+matches[0]));
