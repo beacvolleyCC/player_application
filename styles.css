@@ -10795,3 +10795,30 @@ body.dark{
    flex-basis:4px!important;width:4px!important;height:4px!important;
  }
 }
+
+/* Player Events: upcoming fixtures reuse the canonical match-card form marks.
+   Keep both teams in their own full-width row, outside the compact event header. */
+#homeView .cc-event-match-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px 14px;padding:9px 16px 11px;margin:0 0 1px;
+  border-top:1px solid color-mix(in srgb,currentColor 12%,transparent);
+  background:transparent;min-width:0}
+#homeView .cc-event-match-form-title{grid-column:1/-1;font-size:10px;line-height:1.2;
+  letter-spacing:.025em;font-weight:700;color:var(--muted,#777)}
+#homeView .cc-event-match-form-team{min-width:0;display:flex;align-items:center}
+#homeView .cc-event-match-form-team .cc-form-mini{width:100%;max-width:100%;
+  grid-template-columns:18px max-content minmax(0,1fr);gap:2px 4px}
+#homeView .cc-event-match-form-team .cc-form-arrow{width:18px!important;height:18px!important;
+  min-width:18px!important;min-height:18px!important}
+#homeView .cc-event-match-form-team .cc-form-trend-icon{width:18px;height:18px}
+#homeView .cc-event-match-form-team .cc-form-rank{font-size:12px}
+#homeView .cc-event-match-form-team .cc-form-team-name{font-size:12px;
+  line-height:1.2;font-weight:800;overflow-wrap:anywhere}
+#homeView .cc-event-match-form-team .cc-form-dots{min-height:7px;gap:3px}
+#homeView .cc-event-match-form-team .cc-form-dot{flex:0 0 6px;width:6px;height:6px}
+#homeView .cc-event-match-unrated{font-size:12px;font-weight:750;overflow-wrap:anywhere}
+@media(max-width:390px){
+  #homeView .cc-event-match-form{grid-template-columns:minmax(0,1fr);
+    gap:8px;padding:9px 12px 11px}
+  #homeView .cc-event-match-form-title{grid-column:1}
+  #homeView .cc-event-match-form-team .cc-form-mini{grid-template-columns:18px max-content minmax(0,1fr)}
+}
