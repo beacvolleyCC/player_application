@@ -619,6 +619,7 @@ function eventCard(e){
         </div>
         <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
       </div>
+      ${e.type==='Meccs'?ccPlayerEventMatchForm_(e):''}
 
       <div class="slider-wrap">
         <div class="attendance-slider ${e.status||'none'}" data-slider="${e.id}">
@@ -2366,6 +2367,8 @@ async function ccLoadMrszPlayerPhoto_(){
     ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:Array.isArray(p.canonicalMatches)?p.canonicalMatches:[],canonicalCoverage:Array.isArray(p.canonicalCoverage)?p.canonicalCoverage:[],canonicalTeamStats:Array.isArray(p.canonicalTeamStats)?p.canonicalTeamStats:[],canonicalFormCards:Array.isArray(p.canonicalFormCards)?p.canonicalFormCards:[]};
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]}}
   if(plannerSection==='standings')renderPlanner();
+  // Refresh the Events list after the shared league snapshot becomes available.
+  if(events.some(e=>e?.type==='Meccs'))renderEvents();
 }
 
 let ccMrszPlayerMenGroup_='B';
@@ -2839,6 +2842,38 @@ function ccPlayerOfficialMatchReportUrl_(m){
    ||ccPlayerMatchTeamKey_(m.awayName)!==evidence.away
    ||Number(m.homeSets)!==evidence.hs||Number(m.awaySets)!==evidence.as)return '';
  return 'https://www.hunvolley.info/pr_00/_jegyzokonyv_terem/v01/jegyzokonyv_nyomtat.asp?p_merkozes_kod='+evidence.code+'&p_evad_kod=2026';
+}
+// The Events attendance card must reuse the same LIVE canonical league form
+// as the match list; it never guesses a league from a team name or date alone.
+function ccPlayerEventMatchForm_(e){
+  if(e?.type!=='Meccs'||e.archived===true||isPast(e)
+    ||!ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.error)return '';
+  const parts=String(e.title||'').trim().split(/\s*[–—]\s*|\s+-\s+|\s+vs\.?\s+/i).map(x=>x.trim()).filter(Boolean);
+  const home=String(e.homeName||(parts.length===2?parts[0]:'' )).trim();
+  const away=String(e.awayName||(parts.length===2?parts[1]:'' )).trim();
+  const date=dateInputValue_(e.date);
+  if(!date||!home||!away)return '';
+  const homeKey=ccPlayerMatchTeamKey_(home),awayKey=ccPlayerMatchTeamKey_(away);
+  if(!homeKey||!awayKey||homeKey===awayKey)return '';
+  const allowed=new Set(ccPlayerLeagueCatalog_().map(entry=>entry.competitionLabel));
+  const matches=(ccMrszPlayerPhoto_.canonicalMatches||[]).filter(m=>
+    allowed.has(String(m?.competitionLabel||''))
+    && (!e.competitionLabel||String(e.competitionLabel)===String(m.competitionLabel))
+    && String(m.status||'')!=='postponed'
+    && ccMrszPlayerLocalKickoff_(m.startsAt).date===date
+    && ccPlayerMatchTeamKey_(m.homeName)===homeKey
+    && ccPlayerMatchTeamKey_(m.awayName)===awayKey);
+  // Duplicate/cross-group/unsourced fixtures are not evidence of a rank.
+  if(matches.length!==1)return '';
+  const match=matches[0],league=match.competitionLabel;
+  const homeForm=ccPlayerFormLine_(league,match.homeName);
+  const awayForm=ccPlayerFormLine_(league,match.awayName);
+  if(!homeForm&&!awayForm)return '';
+  return '<div class="cc-event-match-form" role="group" aria-label="Aktuális, részleges tabella és csapatforma">'
+    +'<div class="cc-event-match-form-title">Aktuális helyezés és forma</div>'
+    +'<div class="cc-event-match-form-team">'+(homeForm||'<strong class="cc-event-match-unrated">'+escapeHtml_(home)+'</strong>')+'</div>'
+    +'<div class="cc-event-match-form-team">'+(awayForm||'<strong class="cc-event-match-unrated">'+escapeHtml_(away)+'</strong>')+'</div>'
+    +'</div>';
 }
 // Shared LIVE competition snapshot: compact partial ranks and recent form.
 // Never calculate a separate Player forecast or mislabel it as an official rank.
@@ -4105,7 +4140,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261115-live-standings-form-v5').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261115-player-events-form-v6').catch(()=>{}));
 }
 
 
@@ -4512,7 +4547,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261115-form-mini-v1');
+    return await navigator.serviceWorker.register('./sw.js?v=20261115-player-events-form-v6');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -5189,6 +5224,9 @@ function normalizeApiEvent(x){
     time:x.timeLabel || `${x.startTime||''}${x.endTime?'–'+x.endTime:''}`,
     type:(x.type==='match'||x.type==='Meccs')?'Meccs':'Edzés',
     matchKind:x.homeAway||'',
+    competitionLabel:x.competitionLabel||x.competition_label||'',
+    homeName:x.homeName||x.home_name||'',
+    awayName:x.awayName||x.away_name||'',
     title:String(x.title||'').trim().toLowerCase()==='csapatedzés' ? 'Edzés' : (x.title||'Edzés'),
     color:x.color||'',
     place:x.venue||'',
@@ -5294,6 +5332,8 @@ function applyBootstrap(j){
     : [];
   events=ccSuppressMatchDayTrainings_(j.events.map(normalizeApiEvent).filter(e=>e.id && e.date));
   renderEvents();
+  // The home Events tab also needs the exact same canonical match/form snapshot.
+  if(events.some(e=>e.type==='Meccs'&&!isPast(e)))void ccLoadMrszPlayerPhoto_();
   renderPlanner();
   renderProfileStats_();
   queueMicrotask(()=>ccLoadMedicalStatus_());
