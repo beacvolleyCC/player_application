@@ -26,6 +26,9 @@ const ctx=vm.createContext({Date,Map,Set,Intl,Number,String,Array,Object,JSON,
  escapeHtml_:s=>String(s??''),standingsTeamLogoHtml_:s=>'<span>'+String(s)+'</span>',
  ccMrszPlayerLeagueScheduleHtml_:label=>'<div data-qa-league="'+label+'">schedule</div>',
  competitionLeagueInsights:{data:{matches:[]}}});
+// This source-import test isolates an earlier app section. The current-form renderer
+// is tested directly elsewhere and is not under test here.
+ctx.ccPlayerStandingTeamHtml_=(_league,name)=>'<span>'+String(name)+'</span>';
 vm.runInContext(section('function ccMrszPlayerLocalKickoff_(', 'function ccMrszPlayerFixtureKey_('),ctx);
 vm.runInContext(section('function ccPlayerMatchTeamKey_(', 'function ccPlayerResultsOnlyStandings_('),ctx);
 vm.runInContext(section('function ccPlayerBudapestToday_(', 'function ccMrszPlayerAllLeagueMatches_('),ctx);
