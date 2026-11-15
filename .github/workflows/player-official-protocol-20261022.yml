@@ -1,0 +1,19 @@
+name: Player new MRSZ protocol UI contract
+on:
+  pull_request:
+    paths:
+      - 'tests/player-official-protocol-20261022.test.cjs'
+      - 'app.js'
+      - '.github/workflows/player-official-protocol-20261022.yml'
+  push:
+    branches: [test/20261022-official-protocol-player-ui]
+jobs:
+  player-protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check app.js
+      - run: node --test tests/player-official-protocol-20261022.test.cjs tests/player-statistics-wl.test.cjs
