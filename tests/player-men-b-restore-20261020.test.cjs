@@ -114,8 +114,8 @@ test('Other competitions keep existing standings and matching paths',()=>{
  assert.ok(app.includes("const men=['Férfi Budapest I. osztály – A csoport','Férfi Budapest I. osztály – B csoport']"));
 });
 test('PWA cache version matches script and worker',()=>{
- const version=html.match(/app\\.js\\?v=([^"]+)/)?.[1];
- assert.match(version||'',/^\\d{8}-[a-z0-9-]+$/);
+ const version=html.match(/app\.js\?v=([^"]+)/)?.[1];
+ assert.match(version||'',/^\d{8}-[a-z0-9-]+$/);
  assert.ok(sw.includes('club-control-player-'+version));
  assert.ok(app.includes('sw.js?v='+version));
 });
