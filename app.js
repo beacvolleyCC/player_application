@@ -2368,7 +2368,7 @@ async function ccLoadMrszPlayerPhoto_(){
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]}}
   if(plannerSection==='standings')renderPlanner();
   // Refresh the Events list after the shared league snapshot becomes available.
-  if(events.some(e=>e?.type==='Meccs'))renderEvents();
+  if(typeof events!=='undefined'&&Array.isArray(events)&&events.some(e=>e?.type==='Meccs')&&typeof renderEvents==='function')renderEvents();
 }
 
 let ccMrszPlayerMenGroup_='B';
