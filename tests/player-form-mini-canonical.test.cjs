@@ -27,13 +27,17 @@ test('Player form uses only its one shared league-specific canonical record',()=
  assert.equal(ctx.draw(women,'BEAC'),'');
  assert.ok(ctx.draw(women,'BEAC II.').includes('2.*'));
 });
-test('Player last-five displays legible win/loss chips with accessible labels',()=>{
+test('Player last-five displays reference-style dots under the team name with accessible labels',()=>{
  const html=ctx.draw(men,'BEAC');
  assert.ok(html.includes('1.*'));
  assert.ok(html.includes('cc-form-arrow up'));
- assert.match(html,/cc-form-dot is-win[^>]*>W<\/span>/);
- assert.match(html,/cc-form-dot is-loss[^>]*>L<\/span>/);
+ assert.match(html,/cc-form-dot is-win[^>]*aria-hidden="true"><\/i>/);
+ assert.match(html,/cc-form-dot is-loss[^>]*aria-hidden="true"><\/i>/);
  assert.ok(html.includes('aria-label'));
+ assert.ok(html.indexOf('cc-form-rank')<html.indexOf('cc-form-team-name'));
+ assert.ok(html.indexOf('cc-form-arrow')<html.indexOf('cc-form-team-name'));
+ assert.ok(html.indexOf('cc-form-team-name')<html.indexOf('cc-form-dots'));
+ assert.ok(html.includes('↗'));
  assert.ok(css.includes('.cc-form-mini{'));
  assert.ok(css.includes('@media(max-width:480px)'));
 });
