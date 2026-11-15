@@ -146,7 +146,7 @@ test('Player mixed Events tab keeps Edzések as the specific type filter and ref
   assert.match(html,/aria-label="Események szűrése"/);
   assert.match(html,/<option value="Edzés">Edzések<\/option>/);
   assert.match(src,/if\(events\.some\(e=>e\.type==='Meccs'&&!isPast\(e\)\)\)void ccLoadMrszPlayerPhoto_\(\)/);
-  assert.match(src,/if\(events\.some\(e=>e\?\.type==='Meccs'\)\)renderEvents\(\)/);
+  assert.match(src,/typeof events!=='undefined'&&Array\.isArray\(events\)&&events\.some\(e=>e\?\.type==='Meccs'\)/);
   assert.match(src,/\$\{e\.type==='Meccs'\?ccPlayerEventMatchForm_\(e\):''\}/);
   const token='20261115-player-events-form-v6';
   assert.ok(html.includes('app.js?v='+token));
