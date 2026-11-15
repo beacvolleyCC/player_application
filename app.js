@@ -2858,7 +2858,7 @@ function ccPlayerFormLine_(league,name){
   ?'<span class="cc-form-rank" title="Részleges eredmények alapján számított, nem hivatalos helyezés">'+Number(row.rank)+'.*</span>'
   :'<span class="cc-form-rank" title="Nincs számítható helyezés">–</span>';
  const form=Array.isArray(row.lastFive)?row.lastFive.filter(x=>x==='W'||x==='L').slice(-5):[];
- const dots=form.map(outcome=>'<i class="cc-form-dot '+(outcome==='W'?'is-win':'is-loss')+'" title="'+(outcome==='W'?'Győzelem':'Vereség')+'"></i>').join('');
+ const dots=form.map(outcome=>'<span class="cc-form-dot '+(outcome==='W'?'is-win':'is-loss')+'" title="'+(outcome==='W'?'Győzelem':'Vereség')+'" aria-hidden="true">'+outcome+'</span>').join('');
  const trend=row.trend==='up'?'up':row.trend==='down'?'down':'flat';
  const title=row.trendBasis==='insufficient'?'Kevés eredmény a trend meghatározásához'
   :row.trendBasis==='last_match_vs_previous_match_limited'?'Rövid formajelzés az utolsó 2 eredményből (részleges adatok)'
