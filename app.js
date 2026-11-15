@@ -2568,7 +2568,7 @@ function ccPlayerMenBCurrentView_(source=ccPlayerMenBImportedRows_(),league=CC_P
   Number(ccPlayerMatchTeamKey_(b.teamName)==='beac')-Number(ccPlayerMatchTeamKey_(a.teamName)==='beac')
   ||a.teamName.localeCompare(b.teamName,'hu'));
  const fixed=rows.map(r=>'<tr><td class="pos">–</td><td class="team"><span class="standings-team-cell">'
-  +ccPlayerStandingTeamHtml_(league,r.teamName)+'</span></span></td></tr>').join('');
+  +ccPlayerStandingTeamHtml_(league,r.teamName)+'</span></td></tr>').join('');
  const cells=rows.map(r=>'<tr><td>'+r.played+'</td><td>'+r.wins+'</td><td>'+r.losses
   +'</td><td class="points group-end">–</td><td>'+r.setsFor+'–'+r.setsAgainst
   +'</td><td>–</td><td>–</td><td>–</td></tr>').join('');
