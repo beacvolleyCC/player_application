@@ -10657,22 +10657,33 @@ body.dark{
 
 /* Compact shared competition form from the central canonical LIVE snapshot.
    Asterisk denotes provisional, partial-result rank; trend neutral if <4 matches. */
-.cc-form-mini{display:inline-flex;align-items:center;justify-content:center;gap:5px;max-width:100%;
-  min-height:17px;margin-top:3px;white-space:nowrap;font-size:10px;line-height:1.2;font-weight:600}
-.cc-form-rank{font-size:10px;color:var(--muted,#666);font-weight:700;white-space:nowrap}
-.cc-form-arrow{display:inline-flex;align-items:center;justify-content:center;
-  font-size:15px;line-height:13px;font-weight:800}
-.cc-form-arrow.up{color:#23834d}.cc-form-arrow.down{color:#c34240}
-.cc-form-arrow.flat{color:#868b94}
-.cc-form-dots{display:inline-flex;gap:3px;align-items:center}
-.cc-form-dot{display:inline-block;width:6px;height:6px;flex:0 0 6px;border-radius:50%}
-.cc-form-dot.is-win{background:#23834d}.cc-form-dot.is-loss{background:#c34240}
+/* Shared canonical league-form identity: a single scan line under each team.
+   Small W/L tiles remain legible on 320px phones; partial ranks are explicit. */
+.cc-form-mini{display:inline-flex;align-items:center;justify-content:flex-start;gap:4px;max-width:100%;
+  min-height:19px;margin-top:3px;white-space:nowrap;font-size:10px;line-height:1;font-weight:700}
+.cc-form-rank{display:inline-flex;align-items:center;justify-content:center;min-height:17px;
+  padding:1px 4px;border:1px solid rgba(94,85,74,.22);border-radius:5px;
+  background:rgba(255,255,255,.48);font-size:10px;color:#55504b;font-weight:800;white-space:nowrap}
+.cc-form-arrow{display:inline-grid;place-items:center;width:17px;height:17px;
+  border-radius:50%;font-size:15px;line-height:1;font-weight:900}
+.cc-form-arrow.up{color:#207d49;background:rgba(31,137,76,.13)}
+.cc-form-arrow.down{color:#b13a3b;background:rgba(185,53,54,.13)}
+.cc-form-arrow.flat{color:#747b87;background:rgba(120,125,135,.12)}
+.cc-form-dots{display:inline-flex;gap:2px;align-items:center;min-width:0}
+.cc-form-dot{display:inline-grid;place-items:center;width:15px;height:15px;flex:0 0 15px;
+  border-radius:4px;font-size:9px;font-family:inherit;line-height:1;font-style:normal;
+  font-weight:850;letter-spacing:0;color:white}
+.cc-form-dot.is-win{background:#208449}.cc-form-dot.is-loss{background:#c04543}
 .cc-scoreboard-teamcopy .cc-form-mini,.player-match-team .cc-form-mini{display:inline-flex}
+.player-match-team.away .cc-form-mini{justify-content:flex-end}
 @media(max-width:480px){
- .cc-form-mini{font-size:9px;gap:3px;margin-top:2px}
- .cc-form-arrow{font-size:13px}
- .cc-form-dots{gap:2px}.cc-form-dot{width:5px;height:5px;flex-basis:5px}
+ .cc-form-mini{font-size:9px;gap:3px;margin-top:3px}
+ .cc-form-rank{font-size:9px;padding:1px 3px;min-height:15px}
+ .cc-form-arrow{font-size:13px;width:15px;height:15px}
+ .cc-form-dots{gap:2px}
+ .cc-form-dot{width:12px;height:13px;flex-basis:12px;font-size:8px;border-radius:3px}
 }
+
 
 .player-match-teamcopy{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;max-width:100%}
 .player-match-team.away .player-match-teamcopy{align-items:flex-end;text-align:right}
