@@ -10673,3 +10673,7 @@ body.dark{
  .cc-form-arrow{font-size:13px}
  .cc-form-dots{gap:2px}.cc-form-dot{width:5px;height:5px;flex-basis:5px}
 }
+
+.player-match-teamcopy{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;max-width:100%}
+.player-match-team.away .player-match-teamcopy{align-items:flex-end;text-align:right}
+.player-match-teamcopy b{max-width:100%}
