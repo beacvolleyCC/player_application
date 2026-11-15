@@ -64,3 +64,27 @@ test('Null/unplayed ranks are never presented as official placements',()=>{
  assert.ok(!html.includes('1.'));
 
 });
+
+test('Player standings form icon precedes the name and uses the same current canonical card',()=>{
+ ctx.ccMrszPlayerPhoto_.canonicalFormCards=[
+  {competitionLabel:men,teamName:'BEAC',rank:3,lastFive:['W','L','W','W','L'],trend:'down',trendBasis:'rolling'}
+ ];
+ const js=src.slice(start,src.indexOf('function ccPlayerScoreboardHtml_(',start));
+ const isolated={
+  ccMrszPlayerPhoto_:ctx.ccMrszPlayerPhoto_,
+  ccPlayerMatchTeamKey_:ctx.ccPlayerMatchTeamKey_,
+  escapeHtml_:ctx.escapeHtml_,
+  standingsTeamLogoHtml_:n=>'<img alt="'+n+'">'
+ };
+ vm.createContext(isolated);
+ vm.runInContext(js+'\nthis.team=ccPlayerStandingTeamHtml_;this.parts=ccPlayerCurrentStandingsFormParts_;',isolated);
+ const html=isolated.team(men,'BEAC');
+ assert.ok(html.includes('cc-standings-form-arrow down'));
+ assert.ok(html.includes('cc-standings-team-name-block'));
+ assert.equal((html.match(/cc-form-dot /g)||[]).length,5);
+ assert.ok(html.indexOf('cc-standings-form-arrow')<html.indexOf('standings-team-name'));
+ assert.ok(html.indexOf('standings-team-name')<html.indexOf('cc-standings-dots'));
+ assert.ok(!html.includes('3.</span>'),'Rank belongs in the existing first pinned column');
+ assert.ok(isolated.team('Női Budapest I. osztály','BEAC').includes('BEAC'));
+ assert.ok(!isolated.team('Női Budapest I. osztály','BEAC').includes('cc-standings-form-arrow'));
+});

@@ -109,6 +109,31 @@ test('compact Player match indicator comes from the central form snapshot with l
  assert.ok(upcoming.includes('player-match-teamcopy'));
  assert.ok(!upcoming.includes('1. helyen áll'));
  const played=isolated.ccPlayerScoreboardHtml_({...fixture,homeSets:3,awaySets:0});
- assert.ok(!played.includes('cc-form-mini'));
+ assert.ok(played.includes('cc-form-mini'),'Completed match also displays current standings and form');
+ assert.ok(played.includes('cc-form-arrow up'));
+ assert.ok(played.includes('cc-form-arrow down'));
+ assert.ok(played.includes('cc-form-dot is-win'));
+ assert.ok(played.includes('1.'));
+ assert.ok(played.includes('4.'));
+ assert.ok(played.includes('Aktuális tabella és forma (nem a mérkőzéskori állapot)'));
+ assert.ok(played.includes('<strong>3 – 0</strong>'),'Completed match result must stay intact');
  assert.ok(css.includes('.player-match-teamcopy{'));
+});
+
+test('Player standings display live form in the pinned team column and not in the numeric scroller',()=>{
+ const main=app; // Main snapshot function is later than the provisional helper in the source.
+ const fallback=fragment('function renderCompetitionStandings_()', 'function syncPlannerSectionUi_(');
+ assert.ok(main.includes('ccPlayerStandingTeamHtml_(label,r.teamName)'));
+ assert.ok(fallback.includes('ccPlayerStandingTeamHtml_(label,row?.teamName)'));
+ const helper=fragment('function ccPlayerCurrentStandingsFormParts_(', 'function ccPlayerScoreboardHtml_(');
+ assert.ok(helper.includes('ccPlayerFormTeam_(league,name)'));
+ assert.ok(helper.includes('cc-standings-form-arrow'));
+ assert.ok(helper.includes('cc-standings-dots'));
+ assert.ok(helper.includes('nem helyezésváltozás'));
+ assert.ok(!main.includes('ccPlayerFormLine_(label,r.teamName)'),'Do not duplicate the rank inside the team cell');
+ const currentMen=fragment('function ccPlayerMenBCurrentView_(', 'function ccPlayerMenACurrentView_(');
+ assert.ok(currentMen.includes('ccPlayerStandingTeamHtml_(league,r.teamName)'));
+ assert.ok(css.includes('.cc-standings-team-name-block'));
+ assert.ok(css.includes('.cc-standings-dots .cc-form-dot'));
+ assert.ok(css.includes('height:42px!important'));
 });

@@ -38,6 +38,9 @@ const ctx=vm.createContext({Date,Map,Set,Array,Object,String,Number,Intl,JSON,
  escapeHtml_:name=>String(name??''),
  ccMrszPlayerLeagueScheduleHtml_:()=>'<div id="fixture-result">Schedule placeholder</div>'
 });
+// This source-import test isolates an earlier app section. The current-form renderer
+// is tested directly elsewhere and is not under test here.
+ctx.ccPlayerStandingTeamHtml_=(_league,name)=>'<span>'+String(name)+'</span>';
 vm.runInContext(section('function ccMrszPlayerLocalKickoff_(', 'function ccMrszPlayerFixtureKey_('),ctx);
 vm.runInContext(section('function ccPlayerMatchTeamKey_(', 'function ccPlayerResultsOnlyStandings_('),ctx);
 vm.runInContext(section('function ccPlayerBudapestToday_(', 'function ccMrszPlayerAllLeagueMatches_('),ctx);
