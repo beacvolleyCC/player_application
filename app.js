@@ -2871,8 +2871,8 @@ function ccPlayerFormLine_(league,name){
       ?'<svg class="cc-form-trend-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7 L9 14 L13 10 L21 19 M15 19 H21 V13"/></svg>'
       :'<svg class="cc-form-trend-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12 H21 M16 7 L21 12 L16 17"/></svg>';
   return '<span class="cc-form-mini" title="'+escapeHtml_(title)+'">'
-    +rank+'<span class="cc-form-arrow '+trend+'" aria-label="'+escapeHtml_(title)+'">'
-    +icon+'</span>'
+    +'<span class="cc-form-arrow '+trend+'" aria-label="'+escapeHtml_(title)+'">'
+    +icon+'</span>'+rank
     +'<strong class="cc-form-team-name">'+escapeHtml_(name)+'</strong>'
     +'<span class="cc-form-dots" aria-label="Utolsó eredmények: '+escapeHtml_(form.map(x=>x==='W'?'győzelem':'vereség').join(', ')||'nincs rögzített mérkőzés')+'">'+dots+'</span></span>';
 }
