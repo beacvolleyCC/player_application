@@ -13,8 +13,8 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=20261115-live-standings-form-v5">
-  <link rel="stylesheet" href="./statistics.css?v=20261115-live-standings-form-v5">
+  <link rel="stylesheet" href="./styles.css?v=20261115-player-events-form-v6">
+  <link rel="stylesheet" href="./statistics.css?v=20261115-player-events-form-v6">
 </head>
 <body>
   <div class="login-overlay hidden" id="loginOverlay">
@@ -82,11 +82,11 @@
     <section id="homeView" class="view active">
       <div class="home-panel-head">
         <div>
-          <h3>Edzések</h3>
+          <h3>Események</h3>
           <p id="homeFilterSummary">Következő 14 nap.</p>
         </div>
         <div class="home-head-actions">
-          <button class="ghost-btn icon-action-btn filter-state-btn" id="eventFilterBtn" aria-label="Edzések szűrése" aria-expanded="false" title="Szűrő">
+          <button class="ghost-btn icon-action-btn filter-state-btn" id="eventFilterBtn" aria-label="Események szűrése" aria-expanded="false" title="Szűrő">
             <span class="filter-funnel" aria-hidden="true">
               <span class="filter-icon-outline">▽</span>
               <span class="filter-icon-filled">▼</span>
@@ -322,7 +322,7 @@
           <path class="geo-outline-inner" d="M18 11 L26.5 26 H9.5 Z"></path>
         </svg>
       </span>
-      <small>Edzések</small>
+      <small>Események</small>
     </button>
     <button data-view="plannerView" class="nav-btn">
       <span class="cc-bottom-icon cc-geo-nav-icon cc-bottom-schedule" aria-hidden="true">
@@ -549,7 +549,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js?v=15.8-native-notification-swipe"></script>
   <script src="./competition-context-catalog.js?v=20261015-lc1"></script>
-  <script src="./app.js?v=20261115-live-standings-form-v5"></script>
-  <script src="./statistics.js?v=20261115-live-standings-form-v5"></script>
+  <script src="./app.js?v=20261115-player-events-form-v6"></script>
+  <script src="./statistics.js?v=20261115-player-events-form-v6"></script>
 </body>
 </html>
