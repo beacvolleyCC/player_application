@@ -25,12 +25,16 @@ test('Player form uses only its one shared league-specific canonical record',()=
  assert.equal(ctx.lookup(men,'BEAC').rank,1);
  assert.equal(ctx.lookup(women,'BEAC'),null);
  assert.equal(ctx.draw(women,'BEAC'),'');
- assert.ok(ctx.draw(women,'BEAC II.').includes('2.*'));
+ assert.ok(ctx.draw(women,'BEAC II.').includes('2.'));
 });
 test('Player last-five displays reference-style dots under the team name with accessible labels',()=>{
  const html=ctx.draw(men,'BEAC');
- assert.ok(html.includes('1.*'));
+ assert.ok(html.includes('1.'));
  assert.ok(html.includes('cc-form-arrow up'));
+ assert.ok(html.includes('<svg class="cc-form-trend-icon"'));
+ assert.ok(html.includes('M3 17 L9 10 L13 14 L21 5'));
+ assert.ok(!html.includes('1.*'));
+ assert.ok(!html.includes('↗'));
  assert.match(html,/cc-form-dot is-win[^>]*aria-hidden="true"><\/i>/);
  assert.match(html,/cc-form-dot is-loss[^>]*aria-hidden="true"><\/i>/);
  assert.ok(html.includes('aria-label'));
@@ -46,6 +50,12 @@ test('Null/unplayed ranks are never presented as official placements',()=>{
  const html=ctx.draw(women,'PDSE');
  assert.ok(html.includes('cc-form-rank'));
  assert.ok(!html.includes('0.*'));
- assert.ok(!html.includes('1.*'));
+ assert.ok(!html.includes('1.'));
  assert.ok(html.includes('cc-form-arrow flat'));
+ assert.ok(html.includes('M3 12 H21 M16 7 L21 12 L16 17'));
+ assert.ok(css.includes('background:transparent!important'));
+ assert.ok(css.includes('.cc-form-arrow::before,.cc-form-arrow::after{content:none!important'));
+ assert.ok(!html.includes('0.'));
+ assert.ok(!html.includes('1.'));
+
 });
