@@ -1,9 +1,9 @@
-const CACHE='club-control-player-20261026-bb2-archived-v1';
+const CACHE='club-control-player-20261115-form-mini-v1';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
-  './statistics.js?v=20261026-bb2-archived-v1',
-  './statistics.css?v=20261026-bb2-archived-v1',
+  './statistics.js?v=20261115-form-mini-v1',
+  './statistics.css?v=20261115-form-mini-v1',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
