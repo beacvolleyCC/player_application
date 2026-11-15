@@ -97,10 +97,15 @@ test('compact Player match indicator comes from the central form snapshot with l
   competitionLabel:'Férfi Budapest I. osztály – B csoport',
   startsAt:'2026-11-23T19:30:00',homeSets:null,awaySets:null};
  const upcoming=isolated.ccPlayerScoreboardHtml_(fixture);
- assert.ok(upcoming.includes('1.*'));
- assert.ok(upcoming.includes('4.*'));
+ assert.ok(upcoming.includes('1.'));
+ assert.ok(upcoming.includes('4.'));
  assert.ok(upcoming.includes('cc-form-arrow up'));
  assert.ok(upcoming.includes('cc-form-arrow down'));
+ assert.ok(upcoming.includes('cc-form-trend-icon'));
+ assert.ok(!upcoming.includes('1.*'));
+ assert.ok(!upcoming.includes('4.*'));
+ assert.ok(upcoming.includes('M3 17 L9 10 L13 14 L21 5'));
+ assert.ok(upcoming.includes('M3 7 L9 14 L13 10 L21 19'));
  assert.ok(upcoming.includes('player-match-teamcopy'));
  assert.ok(!upcoming.includes('1. helyen áll'));
  const played=isolated.ccPlayerScoreboardHtml_({...fixture,homeSets:3,awaySets:0});
