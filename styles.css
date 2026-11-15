@@ -10737,3 +10737,17 @@ body.dark{
   }
   .cc-form-trend-icon{width:19px;height:19px;stroke-width:2.6}
 }
+
+/* Meccskártyák: grafikonjelzés → helyezés → név; a helyezés nem badge. */
+.cc-form-mini{column-gap:4px}
+.cc-form-arrow{grid-column:1;grid-row:1;margin:0!important}
+.cc-form-rank{grid-column:2;grid-row:1;display:inline-block!important;
+  padding:0!important;min-height:0!important;border:0!important;
+  border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;line-height:1.2}
+.cc-form-team-name{grid-column:3;grid-row:1}
+.cc-form-dots{grid-column:3;grid-row:2}
+@media(max-width:480px){
+  .cc-form-mini{column-gap:3px}
+  .cc-form-rank{padding:0!important}
+}

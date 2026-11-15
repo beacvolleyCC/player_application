@@ -1,9 +1,9 @@
-const CACHE='club-control-player-20261115-trend-svg-v3';
+const CACHE='club-control-player-20261115-trend-first-v4';
 const CORE=[
   './manifest.webmanifest',
   './competition-context-catalog.js',
-  './statistics.js?v=20261115-trend-svg-v3',
-  './statistics.css?v=20261115-trend-svg-v3',
+  './statistics.js?v=20261115-trend-first-v4',
+  './statistics.css?v=20261115-trend-first-v4',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
