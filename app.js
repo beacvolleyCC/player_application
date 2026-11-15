@@ -2313,7 +2313,7 @@ async function ccLoadCompetitionStandings_(){
 
 
 /* MRSZ screenshot snapshots are separate from the team's canonical BRSZ table. */
-let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[],canonicalMatches:[],canonicalCoverage:[],canonicalTeamStats:[]};
+let ccMrszPlayerPhoto_={loaded:false,loading:false,error:'',matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[],canonicalMatches:[],canonicalCoverage:[],canonicalTeamStats:[],canonicalFormCards:[]};
 
 /* Read-only league browser shares the saved MRSZ source used by Manager. */
 let ccPlayerLeagueSelection_=(()=>{try{return String(localStorage.getItem('cc-player-league-context-v1')||'')}catch(_){return''}})();
@@ -2363,7 +2363,7 @@ async function ccLoadMrszPlayerPhoto_(){
     if(error)throw error;
     if(sourceError)throw sourceError;
     const p=typeof data==='string'?JSON.parse(data):(data||{});
-    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:Array.isArray(p.canonicalMatches)?p.canonicalMatches:[],canonicalCoverage:Array.isArray(p.canonicalCoverage)?p.canonicalCoverage:[],canonicalTeamStats:Array.isArray(p.canonicalTeamStats)?p.canonicalTeamStats:[]};
+    ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:Array.isArray(p.canonicalMatches)?p.canonicalMatches:[],canonicalCoverage:Array.isArray(p.canonicalCoverage)?p.canonicalCoverage:[],canonicalTeamStats:Array.isArray(p.canonicalTeamStats)?p.canonicalTeamStats:[],canonicalFormCards:Array.isArray(p.canonicalFormCards)?p.canonicalFormCards:[]};
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]}}
   if(plannerSection==='standings')renderPlanner();
 }
@@ -2841,6 +2841,34 @@ function ccPlayerOfficialMatchReportUrl_(m){
    ||Number(m.homeSets)!==evidence.hs||Number(m.awaySets)!==evidence.as)return '';
  return 'https://www.hunvolley.info/pr_00/_jegyzokonyv_terem/v01/jegyzokonyv_nyomtat.asp?p_merkozes_kod='+evidence.code+'&p_evad_kod=2026';
 }
+// Shared LIVE competition snapshot: compact partial ranks and recent form.
+// Never calculate a separate Player forecast or mislabel it as an official rank.
+function ccPlayerFormTeam_(league,name){
+ const key=ccPlayerMatchTeamKey_(name);
+ if(!key)return null;
+ const cards=(ccMrszPlayerPhoto_.canonicalFormCards||[]).filter(x=>
+  String(x.competitionLabel)===String(league)
+  && ccPlayerMatchTeamKey_(x.teamName)===key);
+ return cards.length===1?cards[0]:null;
+}
+function ccPlayerFormLine_(league,name){
+ const row=ccPlayerFormTeam_(league,name);
+ if(!row)return '';
+ const rank=Number.isSafeInteger(Number(row.rank))&&Number(row.rank)>0
+  ?'<span class="cc-form-rank" title="Részleges eredmények alapján számított, nem hivatalos helyezés">'+Number(row.rank)+'.*</span>'
+  :'<span class="cc-form-rank" title="Nincs számítható helyezés">–</span>';
+ const form=Array.isArray(row.lastFive)?row.lastFive.filter(x=>x==='W'||x==='L').slice(-5):[];
+ const dots=form.map(outcome=>'<i class="cc-form-dot '+(outcome==='W'?'is-win':'is-loss')+'" title="'+(outcome==='W'?'Győzelem':'Vereség')+'"></i>').join('');
+ const trend=row.trend==='up'?'up':row.trend==='down'?'down':'flat';
+ const title=row.trendBasis==='insufficient'?'Kevés eredmény a trend meghatározásához'
+  :trend==='up'?'Javuló forma: legutóbbi 2 vs. előző 2'
+  :trend==='down'?'Romló forma: legutóbbi 2 vs. előző 2'
+  :'Változatlan forma: legutóbbi 2 vs. előző 2';
+ return '<span class="cc-form-mini" title="'+escapeHtml_(title)+'">'+rank
+  +'<span class="cc-form-arrow '+trend+'" aria-label="'+escapeHtml_(title)+'">'
+  +(trend==='up'?'↑':trend==='down'?'↓':'→')+'</span>'
+  +'<span class="cc-form-dots" aria-label="'+escapeHtml_(form.map(x=>x==='W'?'GY':'V').join(', '))+'">'+dots+'</span></span>';
+}
 function ccPlayerScoreboardHtml_(m){
  const kick=ccMrszPlayerLocalKickoff_(m.startsAt),home=String(m.homeName||''),away=String(m.awayName||'');
  const score=m.__ccResultConflict?'Ellenőrzendő':String(m.status)==='postponed'?'Halasztva':(
@@ -2855,9 +2883,9 @@ function ccPlayerScoreboardHtml_(m){
   +(protocol?' data-player-protocol="'+escapeHtml_(m.matchCode)+'" data-player-protocol-league="'+escapeHtml_(m.competitionLabel)+'" role="button" tabindex="0"':reportClickable?' data-player-external-report="'+escapeHtml_(externalReport)+'" role="link" tabindex="0"':'')
   +' aria-label="'+escapeHtml_(home+' – '+away+' · '+score)+'">'
   +'<div class="player-match-top"><span>'+escapeHtml_(String(m.status)==='postponed'?'Halasztva':kick.date||'Időpont nélkül')+'</span><span>'+escapeHtml_(String(m.status)==='postponed'?(kick.date?'Időpont egyeztetés alatt':'Időpont nélkül'):kick.time||'')+'</span></div>'
-  +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b></div>'
+  +'<div class="player-match-main"><div class="player-match-team">'+standingsTeamLogoHtml_(home,'match-logo')+'<b>'+escapeHtml_(home||'–')+'</b>'+(score==='VS.'?ccPlayerFormLine_(m.competitionLabel,home):'')+'</div>'
   +'<div class="player-match-result">'+(score==='VS.'?'<span class="player-match-vs">VS.</span>':'<strong>'+escapeHtml_(score)+'</strong>')+'</div>'
-  +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b></div>'
+  +'<div class="player-match-team away">'+standingsTeamLogoHtml_(away,'match-logo')+'<b>'+escapeHtml_(away||'–')+'</b>'+(score==='VS.'?ccPlayerFormLine_(m.competitionLabel,away):'')+'</div>'
   +(sets?'<div class="player-match-sets">'+escapeHtml_(sets)+'</div>':'')+'</div>'
   +'<div class="player-match-footer"><span>'+escapeHtml_(m.venue||'Helyszín nincs megadva')+'</span>'
   
