@@ -2197,7 +2197,7 @@ function renderCompetitionStandings_(){
       <div class="standings-fixed" aria-label="Helyezés és csapat">
         <table class="standings-table standings-table-fixed">
           <thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead>
-          <tbody>${rows.map(row=>{const filterId=String(row?.sourceTeamId||row?.teamName||'');return `<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><button type="button" class="standings-team-cell standings-team-filter-btn" data-standings-filter-team="${escapeHtml_(filterId)}">${standingsTeamLogoHtml_(row?.teamName)}<span class="standings-team-name">${escapeHtml_(row?.teamName||'–')}</span></button></td></tr>`}).join('')}</tbody>
+          <tbody>${rows.map(row=>{const filterId=String(row?.sourceTeamId||row?.teamName||'');return `<tr class="${row?.focus?'focus':''}"><td class="pos">${escapeHtml_(standingText_(row?.position,''))}</td><td class="team"><button type="button" class="standings-team-cell standings-team-filter-btn" data-standings-filter-team="${escapeHtml_(filterId)}">${ccPlayerStandingTeamHtml_(label,row?.teamName)}</button></td></tr>`}).join('')}</tbody>
         </table>
       </div>
       <div class="standings-scroll" aria-label="Bajnoki statisztikák" tabindex="0">
@@ -2568,8 +2568,7 @@ function ccPlayerMenBCurrentView_(source=ccPlayerMenBImportedRows_(),league=CC_P
   Number(ccPlayerMatchTeamKey_(b.teamName)==='beac')-Number(ccPlayerMatchTeamKey_(a.teamName)==='beac')
   ||a.teamName.localeCompare(b.teamName,'hu'));
  const fixed=rows.map(r=>'<tr><td class="pos">–</td><td class="team"><span class="standings-team-cell">'
-  +standingsTeamLogoHtml_(r.teamName)+'<span class="standings-team-name">'
-  +escapeHtml_(r.teamName)+'</span></span></td></tr>').join('');
+  +ccPlayerStandingTeamHtml_(league,r.teamName)+'</span></span></td></tr>').join('');
  const cells=rows.map(r=>'<tr><td>'+r.played+'</td><td>'+r.wins+'</td><td>'+r.losses
   +'</td><td class="points group-end">–</td><td>'+r.setsFor+'–'+r.setsAgainst
   +'</td><td>–</td><td>–</td><td>–</td></tr>').join('');
@@ -2876,6 +2875,26 @@ function ccPlayerFormLine_(league,name){
     +'<strong class="cc-form-team-name">'+escapeHtml_(name)+'</strong>'
     +'<span class="cc-form-dots" aria-label="Utolsó eredmények: '+escapeHtml_(form.map(x=>x==='W'?'győzelem':'vereség').join(', ')||'nincs rögzített mérkőzés')+'">'+dots+'</span></span>';
 }
+function ccPlayerCurrentStandingsFormParts_(league,name){
+  const row=ccPlayerFormTeam_(league,name);
+  if(!row)return {arrow:'',dots:''};
+  const trend=row.trend==='up'?'up':row.trend==='down'?'down':'flat';
+  const path=trend==='up'?'M3 17 L9 10 L13 14 L21 5 M15 5 H21 V11'
+    :trend==='down'?'M3 7 L9 14 L13 10 L21 19 M15 19 H21 V13'
+    :'M3 12 H21 M16 7 L21 12 L16 17';
+  const title=trend==='up'?'Javuló forma':trend==='down'?'Romló forma':'Semleges forma';
+  const arrow='<span class="cc-form-arrow cc-standings-form-arrow '+trend+'" title="'+escapeHtml_('Aktuális csapatforma, nem helyezésváltozás: '+title)+'" aria-label="'+escapeHtml_('Aktuális csapatforma: '+title)+'">'
+    +'<svg class="cc-form-trend-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+path+'"/></svg></span>';
+  const form=Array.isArray(row.lastFive)?row.lastFive.filter(x=>x==='W'||x==='L').slice(-5):[];
+  const dots=form.length?'<span class="cc-standings-dots" aria-label="Utolsó eredmények: '+escapeHtml_(form.map(x=>x==='W'?'győzelem':'vereség').join(', '))+'">'
+    +form.map(x=>'<i class="cc-form-dot '+(x==='W'?'is-win':'is-loss')+'" aria-hidden="true"></i>').join('')+'</span>':'';
+  return {arrow,dots};
+}
+function ccPlayerStandingTeamHtml_(league,name){
+  const form=ccPlayerCurrentStandingsFormParts_(league,name);
+  return form.arrow+standingsTeamLogoHtml_(name)
+    +'<span class="cc-standings-team-name-block"><span class="standings-team-name">'+escapeHtml_(name||'–')+'</span>'+form.dots+'</span>';
+}
 function ccPlayerScoreboardHtml_(m){
  const kick=ccMrszPlayerLocalKickoff_(m.startsAt),home=String(m.homeName||''),away=String(m.awayName||'');
  const score=m.__ccResultConflict?'Ellenőrzendő':String(m.status)==='postponed'?'Halasztva':(
@@ -2939,7 +2958,7 @@ function ccMrszPlayerMainScreenshotHtml_(forcedLabel=''){
  if(!ccMrszPlayerPhoto_.loaded)return heading+'<div class="standings-state">Tabella betöltése…</div>'+groupButtons;
  if(ccMrszPlayerPhoto_.error)return heading+'<div class="standings-state">'+escapeHtml_(ccMrszPlayerPhoto_.error)+'</div>'+groupButtons;
  if(!rows.length)return heading+'<div class="standings-state">Még nincs rögzített eredmény.</div>'+groupButtons+ccMrszPlayerLeagueScheduleHtml_(label,false);
- const fixed=rows.map(r=>'<tr><td class="pos">'+(Number.isInteger(Number(r.position))&&Number(r.position)>0?Number(r.position):'–')+'</td><td class="team"><span class="standings-team-cell">'+standingsTeamLogoHtml_(r.teamName)+'<span class="standings-team-name">'+escapeHtml_(r.teamName||'–')+'</span></span></td></tr>').join('');
+ const fixed=rows.map(r=>'<tr><td class="pos">'+(Number.isInteger(Number(r.position))&&Number(r.position)>0?Number(r.position):'–')+'</td><td class="team"><span class="standings-team-cell">'+ccPlayerStandingTeamHtml_(label,r.teamName)+'</span></td></tr>').join('');
  const stats=rows.map(r=>'<tr><td>'+(r.played==null?'–':Number(r.played))+'</td><td>'+(r.wins==null?'–':Number(r.wins))+'</td><td>'+(r.losses==null?'–':Number(r.losses))+'</td><td class="points group-end">'+(r.tablePoints==null?'–':Number(r.tablePoints))+'</td><td>'+(r.setsFor!=null&&r.setsAgainst!=null?Number(r.setsFor)+'–'+Number(r.setsAgainst):'–')+'</td><td>'+(r.setsAgainst>0?(Number(r.setsFor)/Number(r.setsAgainst)).toFixed(3):'–')+'</td><td>'+(r.pointsFor!=null&&r.pointsAgainst!=null?Number(r.pointsFor)+'–'+Number(r.pointsAgainst):'–')+'</td><td>'+(r.pointsAgainst>0?(Number(r.pointsFor)/Number(r.pointsAgainst)).toFixed(3):'–')+'</td></tr>').join('');
  return '<div class="competition-standings cc-mrsz-photo-main-standings">'+heading+coverageNote+'<div class="standings-split" role="region" aria-label="Bajnoki tabella">'
    +'<div class="standings-fixed"><table class="standings-table standings-table-fixed"><thead><tr><th class="pos">#</th><th class="team">Csapat</th></tr></thead><tbody>'+fixed+'</tbody></table></div>'
