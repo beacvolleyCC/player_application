@@ -592,7 +592,7 @@ function eventCard(e){
   const archived=isPast(e);
   const court=compactCourtMeta_(e);
   const isAway=e.matchKind==='away';
-  const matchTitle=e.type==='Meccs' ? `<div class="event-match-title">${e.title}</div>` : '';
+  const matchTitle=e.type==='Meccs' ? ccPlayerEventMatchHeader_(e) : '';
   const compactMeta=isAway
     ? [e.date,e.day,e.time].filter(Boolean).join(' • ')
     : [e.date,e.day,e.time,court].filter(Boolean).join(' • ');
@@ -619,8 +619,6 @@ function eventCard(e){
         </div>
         <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
       </div>
-      ${e.type==='Meccs'?ccPlayerEventMatchForm_(e):''}
-
       <div class="slider-wrap">
         <div class="attendance-slider ${e.status||'none'}" data-slider="${e.id}">
           <button class="slider-zone left" data-slider-action="yes" data-id="${e.id}" ${archived?'disabled':''}>Jövök</button>
@@ -2845,16 +2843,18 @@ function ccPlayerOfficialMatchReportUrl_(m){
 }
 // The Events attendance card must reuse the same LIVE canonical league form
 // as the match list; it never guesses a league from a team name or date alone.
-function ccPlayerEventMatchForm_(e){
+// A single, exact fixture lookup powers both the compact heading and expanded
+// details. Never infer a competition, opponent or form from an unrelated event.
+function ccPlayerEventMatchContext_(e){
   if(e?.type!=='Meccs'||e.archived===true||isPast(e)
-    ||!ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.error)return '';
+    ||!ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.error)return null;
   const parts=String(e.title||'').trim().split(/\s*[–—]\s*|\s+-\s+|\s+vs\.?\s+/i).map(x=>x.trim()).filter(Boolean);
-  const home=String(e.homeName||(parts.length===2?parts[0]:'' )).trim();
-  const away=String(e.awayName||(parts.length===2?parts[1]:'' )).trim();
+  const home=String(e.homeName||(parts.length===2?parts[0]:'')).trim();
+  const away=String(e.awayName||(parts.length===2?parts[1]:'')).trim();
   const date=dateInputValue_(e.date);
-  if(!date||!home||!away)return '';
+  if(!date||!home||!away)return null;
   const homeKey=ccPlayerMatchTeamKey_(home),awayKey=ccPlayerMatchTeamKey_(away);
-  if(!homeKey||!awayKey||homeKey===awayKey)return '';
+  if(!homeKey||!awayKey||homeKey===awayKey)return null;
   const allowed=new Set(ccPlayerLeagueCatalog_().map(entry=>entry.competitionLabel));
   const matches=(ccMrszPlayerPhoto_.canonicalMatches||[]).filter(m=>
     allowed.has(String(m?.competitionLabel||''))
@@ -2863,17 +2863,46 @@ function ccPlayerEventMatchForm_(e){
     && ccMrszPlayerLocalKickoff_(m.startsAt).date===date
     && ccPlayerMatchTeamKey_(m.homeName)===homeKey
     && ccPlayerMatchTeamKey_(m.awayName)===awayKey);
-  // Duplicate/cross-group/unsourced fixtures are not evidence of a rank.
-  if(matches.length!==1)return '';
-  const match=matches[0],league=match.competitionLabel;
-  const homeForm=ccPlayerFormLine_(league,match.homeName);
-  const awayForm=ccPlayerFormLine_(league,match.awayName);
+  if(matches.length!==1)return null;
+  return {league:matches[0].competitionLabel,home:matches[0].homeName,away:matches[0].awayName};
+}
+function ccPlayerEventMatchCompactTeam_(league,name){
+  const row=ccPlayerFormTeam_(league,name);
+  if(!row)return '<span class="cc-event-compact-team"><strong>'+escapeHtml_(name)+'</strong></span>';
+  const validRank=Number.isSafeInteger(Number(row.rank))&&Number(row.rank)>0;
+  const trend=row.trend==='up'?'up':row.trend==='down'?'down':'flat';
+  const path=trend==='up'?'M3 17 L9 10 L13 14 L21 5 M15 5 H21 V11'
+    :trend==='down'?'M3 7 L9 14 L13 10 L21 19 M15 19 H21 V13'
+    :'M3 12 H21 M16 7 L21 12 L16 17';
+  const basis=row.trendBasis==='insufficient'?'Kevés eredmény a trendhez'
+    :trend==='up'?'Javuló forma':trend==='down'?'Romló forma':'Változatlan forma';
+  return '<span class="cc-event-compact-team">'
+    +'<span class="cc-event-compact-trend '+trend+'" title="'+escapeHtml_(basis)+'" aria-label="'+escapeHtml_(basis)+'">'
+    +'<svg class="cc-form-trend-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+path+'"/></svg></span>'
+    +(validRank?'<span class="cc-event-compact-rank" title="Aktuális, nem hivatalos helyezés">'+Number(row.rank)+'.</span>':'')
+    +'<strong>'+escapeHtml_(name)+'</strong></span>';
+}
+function ccPlayerEventMatchHeader_(e){
+  const ctx=ccPlayerEventMatchContext_(e);
+  if(!ctx||(!ccPlayerFormTeam_(ctx.league,ctx.home)&&!ccPlayerFormTeam_(ctx.league,ctx.away)))
+    return '<div class="event-match-title">'+escapeHtml_(e.title||'')+'</div>';
+  return '<div class="event-match-title cc-event-match-title" aria-label="'+escapeHtml_(e.title||'')+'">'
+    +ccPlayerEventMatchCompactTeam_(ctx.league,ctx.home)
+    +'<span class="cc-event-match-separator" aria-hidden="true">–</span>'
+    +ccPlayerEventMatchCompactTeam_(ctx.league,ctx.away)+'</div>';
+}
+// Full recent form appears only in the opened Events detail dialog.
+function ccPlayerEventMatchForm_(e){
+  const ctx=ccPlayerEventMatchContext_(e);
+  if(!ctx)return '';
+  const homeForm=ccPlayerFormLine_(ctx.league,ctx.home);
+  const awayForm=ccPlayerFormLine_(ctx.league,ctx.away);
   if(!homeForm&&!awayForm)return '';
-  return '<div class="cc-event-match-form" role="group" aria-label="Aktuális, részleges tabella és csapatforma">'
-    +'<div class="cc-event-match-form-title">Aktuális helyezés és forma</div>'
-    +'<div class="cc-event-match-form-team">'+(homeForm||'<strong class="cc-event-match-unrated">'+escapeHtml_(home)+'</strong>')+'</div>'
-    +'<div class="cc-event-match-form-team">'+(awayForm||'<strong class="cc-event-match-unrated">'+escapeHtml_(away)+'</strong>')+'</div>'
-    +'</div>';
+  return '<section class="cc-event-match-form" role="group" aria-label="Aktuális, részleges tabella és csapatforma">'
+    +'<div class="cc-event-match-form-title">Aktuális helyezés és forma (nem a meccsnap szerinti)</div>'
+    +'<div class="cc-event-match-form-team">'+(homeForm||'<strong class="cc-event-match-unrated">'+escapeHtml_(ctx.home)+'</strong>')+'</div>'
+    +'<div class="cc-event-match-form-team">'+(awayForm||'<strong class="cc-event-match-unrated">'+escapeHtml_(ctx.away)+'</strong>')+'</div>'
+    +'</section>';
 }
 // Shared LIVE competition snapshot: compact partial ranks and recent form.
 // Never calculate a separate Player forecast or mislabel it as an official rank.
@@ -4140,7 +4169,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261115-player-events-form-v6').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261115-player-events-title-v7').catch(()=>{}));
 }
 
 
@@ -4547,7 +4576,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261115-player-events-form-v6');
+    return await navigator.serviceWorker.register('./sw.js?v=20261115-player-events-title-v7');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -5070,6 +5099,7 @@ function openEventDialog(eventId){
       </div>
       <div class="event-dialog-count"><strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
     </div>
+    ${e.type==='Meccs'?ccPlayerEventMatchForm_(e):''}
     ${eventDialogDetails_(e)}
     <div class="event-dialog-slider">${plannerStatusControls(e,archived)}</div>
     ${eventNoteSection_(e,archived)}
