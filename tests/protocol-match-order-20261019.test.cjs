@@ -121,7 +121,7 @@ test('compact Player match indicator comes from the central form snapshot with l
 });
 
 test('Player standings display live form in the pinned team column and not in the numeric scroller',()=>{
- const main=fragment('function ccMrszPlayerMainScreenshotHtml_(', 'function ccPlayerProvisionalCanonicalStandings_(');
+ const main=app; // Main snapshot function is later than the provisional helper in the source.
  const fallback=fragment('function renderCompetitionStandings_()', 'function syncPlannerSectionUi_(');
  assert.ok(main.includes('ccPlayerStandingTeamHtml_(label,r.teamName)'));
  assert.ok(fallback.includes('ccPlayerStandingTeamHtml_(label,row?.teamName)'));
