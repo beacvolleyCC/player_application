@@ -592,7 +592,7 @@ function eventCard(e){
   const archived=isPast(e);
   const court=compactCourtMeta_(e);
   const isAway=e.matchKind==='away';
-  const matchTitle=e.type==='Meccs' ? `<div class="event-match-title">${e.title}</div>` : '';
+  const matchTitle=e.type==='Meccs' ? ccPlayerEventMatchHeader_(e) : '';
   const compactMeta=isAway
     ? [e.date,e.day,e.time].filter(Boolean).join(' • ')
     : [e.date,e.day,e.time,court].filter(Boolean).join(' • ');
@@ -619,7 +619,6 @@ function eventCard(e){
         </div>
         <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
       </div>
-
       <div class="slider-wrap">
         <div class="attendance-slider ${e.status||'none'}" data-slider="${e.id}">
           <button class="slider-zone left" data-slider-action="yes" data-id="${e.id}" ${archived?'disabled':''}>Jövök</button>
@@ -2366,6 +2365,8 @@ async function ccLoadMrszPlayerPhoto_(){
     ccMrszPlayerPhoto_={loaded:true,loading:false,error:'',matches:Array.isArray(p.matches)?p.matches:[],fixtures:Array.isArray(p.fixtures)?p.fixtures:[],tables:Array.isArray(p.tables)?p.tables:[],sourceMatches:Array.isArray(sourceMatches)?sourceMatches:[],userMatches:!userError&&Array.isArray(userMatches)?userMatches:[],canonicalMatches:Array.isArray(p.canonicalMatches)?p.canonicalMatches:[],canonicalCoverage:Array.isArray(p.canonicalCoverage)?p.canonicalCoverage:[],canonicalTeamStats:Array.isArray(p.canonicalTeamStats)?p.canonicalTeamStats:[],canonicalFormCards:Array.isArray(p.canonicalFormCards)?p.canonicalFormCards:[]};
   }catch(err){ccMrszPlayerPhoto_={loaded:true,loading:false,error:String(err?.message||err),matches:[],fixtures:[],tables:[],sourceMatches:[],userMatches:[]}}
   if(plannerSection==='standings')renderPlanner();
+  // Refresh the Events list after the shared league snapshot becomes available.
+  if(typeof events!=='undefined'&&Array.isArray(events)&&events.some(e=>e?.type==='Meccs')&&typeof renderEvents==='function')renderEvents();
 }
 
 let ccMrszPlayerMenGroup_='B';
@@ -2839,6 +2840,69 @@ function ccPlayerOfficialMatchReportUrl_(m){
    ||ccPlayerMatchTeamKey_(m.awayName)!==evidence.away
    ||Number(m.homeSets)!==evidence.hs||Number(m.awaySets)!==evidence.as)return '';
  return 'https://www.hunvolley.info/pr_00/_jegyzokonyv_terem/v01/jegyzokonyv_nyomtat.asp?p_merkozes_kod='+evidence.code+'&p_evad_kod=2026';
+}
+// The Events attendance card must reuse the same LIVE canonical league form
+// as the match list; it never guesses a league from a team name or date alone.
+// A single, exact fixture lookup powers both the compact heading and expanded
+// details. Never infer a competition, opponent or form from an unrelated event.
+function ccPlayerEventMatchContext_(e){
+  if(e?.type!=='Meccs'||e.archived===true||isPast(e)
+    ||!ccMrszPlayerPhoto_.loaded||ccMrszPlayerPhoto_.error)return null;
+  const parts=String(e.title||'').trim().split(/\s*[–—]\s*|\s+-\s+|\s+vs\.?\s+/i).map(x=>x.trim()).filter(Boolean);
+  const home=String(e.homeName||(parts.length===2?parts[0]:'')).trim();
+  const away=String(e.awayName||(parts.length===2?parts[1]:'')).trim();
+  const date=dateInputValue_(e.date);
+  if(!date||!home||!away)return null;
+  const homeKey=ccPlayerMatchTeamKey_(home),awayKey=ccPlayerMatchTeamKey_(away);
+  if(!homeKey||!awayKey||homeKey===awayKey)return null;
+  const allowed=new Set(ccPlayerLeagueCatalog_().map(entry=>entry.competitionLabel));
+  const matches=(ccMrszPlayerPhoto_.canonicalMatches||[]).filter(m=>
+    allowed.has(String(m?.competitionLabel||''))
+    && (!e.competitionLabel||String(e.competitionLabel)===String(m.competitionLabel))
+    && String(m.status||'')!=='postponed'
+    && ccMrszPlayerLocalKickoff_(m.startsAt).date===date
+    && ccPlayerMatchTeamKey_(m.homeName)===homeKey
+    && ccPlayerMatchTeamKey_(m.awayName)===awayKey);
+  if(matches.length!==1)return null;
+  return {league:matches[0].competitionLabel,home:matches[0].homeName,away:matches[0].awayName};
+}
+function ccPlayerEventMatchCompactTeam_(league,name){
+  const row=ccPlayerFormTeam_(league,name);
+  if(!row)return '<span class="cc-event-compact-team"><strong>'+escapeHtml_(name)+'</strong></span>';
+  const validRank=Number.isSafeInteger(Number(row.rank))&&Number(row.rank)>0;
+  const trend=row.trend==='up'?'up':row.trend==='down'?'down':'flat';
+  const path=trend==='up'?'M3 17 L9 10 L13 14 L21 5 M15 5 H21 V11'
+    :trend==='down'?'M3 7 L9 14 L13 10 L21 19 M15 19 H21 V13'
+    :'M3 12 H21 M16 7 L21 12 L16 17';
+  const basis=row.trendBasis==='insufficient'?'Kevés eredmény a trendhez'
+    :trend==='up'?'Javuló forma':trend==='down'?'Romló forma':'Változatlan forma';
+  return '<span class="cc-event-compact-team">'
+    +'<span class="cc-event-compact-trend '+trend+'" title="'+escapeHtml_(basis)+'" aria-label="'+escapeHtml_(basis)+'">'
+    +'<svg class="cc-form-trend-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+path+'"/></svg></span>'
+    +(validRank?'<span class="cc-event-compact-rank" title="Aktuális, nem hivatalos helyezés">'+Number(row.rank)+'.</span>':'')
+    +'<strong>'+escapeHtml_(name)+'</strong></span>';
+}
+function ccPlayerEventMatchHeader_(e){
+  const ctx=ccPlayerEventMatchContext_(e);
+  if(!ctx||(!ccPlayerFormTeam_(ctx.league,ctx.home)&&!ccPlayerFormTeam_(ctx.league,ctx.away)))
+    return '<div class="event-match-title">'+escapeHtml_(e.title||'')+'</div>';
+  return '<div class="event-match-title cc-event-match-title" aria-label="'+escapeHtml_(e.title||'')+'">'
+    +ccPlayerEventMatchCompactTeam_(ctx.league,ctx.home)
+    +'<span class="cc-event-match-separator" aria-hidden="true">–</span>'
+    +ccPlayerEventMatchCompactTeam_(ctx.league,ctx.away)+'</div>';
+}
+// Full recent form appears only in the opened Events detail dialog.
+function ccPlayerEventMatchForm_(e){
+  const ctx=ccPlayerEventMatchContext_(e);
+  if(!ctx)return '';
+  const homeForm=ccPlayerFormLine_(ctx.league,ctx.home);
+  const awayForm=ccPlayerFormLine_(ctx.league,ctx.away);
+  if(!homeForm&&!awayForm)return '';
+  return '<section class="cc-event-match-form" role="group" aria-label="Aktuális, részleges tabella és csapatforma">'
+    +'<div class="cc-event-match-form-title">Aktuális helyezés és forma (nem a meccsnap szerinti)</div>'
+    +'<div class="cc-event-match-form-team">'+(homeForm||'<strong class="cc-event-match-unrated">'+escapeHtml_(ctx.home)+'</strong>')+'</div>'
+    +'<div class="cc-event-match-form-team">'+(awayForm||'<strong class="cc-event-match-unrated">'+escapeHtml_(ctx.away)+'</strong>')+'</div>'
+    +'</section>';
 }
 // Shared LIVE competition snapshot: compact partial ranks and recent form.
 // Never calculate a separate Player forecast or mislabel it as an official rank.
@@ -4105,7 +4169,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261115-live-standings-form-v5').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261115-player-events-title-v7').catch(()=>{}));
 }
 
 
@@ -4512,7 +4576,7 @@ async function ccPushRegistration_(){
   try{
     const existing=await navigator.serviceWorker.getRegistration('./');
     if(existing) return existing;
-    return await navigator.serviceWorker.register('./sw.js?v=20261115-form-mini-v1');
+    return await navigator.serviceWorker.register('./sw.js?v=20261115-player-events-title-v7');
   }catch(err){ console.warn('Push service worker hiba:',err); return null; }
 }
 async function ccPushBrowserSubscription_(){
@@ -5035,6 +5099,7 @@ function openEventDialog(eventId){
       </div>
       <div class="event-dialog-count"><strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
     </div>
+    ${e.type==='Meccs'?ccPlayerEventMatchForm_(e):''}
     ${eventDialogDetails_(e)}
     <div class="event-dialog-slider">${plannerStatusControls(e,archived)}</div>
     ${eventNoteSection_(e,archived)}
@@ -5189,6 +5254,9 @@ function normalizeApiEvent(x){
     time:x.timeLabel || `${x.startTime||''}${x.endTime?'–'+x.endTime:''}`,
     type:(x.type==='match'||x.type==='Meccs')?'Meccs':'Edzés',
     matchKind:x.homeAway||'',
+    competitionLabel:x.competitionLabel||x.competition_label||'',
+    homeName:x.homeName||x.home_name||'',
+    awayName:x.awayName||x.away_name||'',
     title:String(x.title||'').trim().toLowerCase()==='csapatedzés' ? 'Edzés' : (x.title||'Edzés'),
     color:x.color||'',
     place:x.venue||'',
@@ -5294,6 +5362,8 @@ function applyBootstrap(j){
     : [];
   events=ccSuppressMatchDayTrainings_(j.events.map(normalizeApiEvent).filter(e=>e.id && e.date));
   renderEvents();
+  // The home Events tab also needs the exact same canonical match/form snapshot.
+  if(events.some(e=>e.type==='Meccs'&&!isPast(e)))void ccLoadMrszPlayerPhoto_();
   renderPlanner();
   renderProfileStats_();
   queueMicrotask(()=>ccLoadMedicalStatus_());
