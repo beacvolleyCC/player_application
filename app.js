@@ -2861,6 +2861,7 @@ function ccPlayerFormLine_(league,name){
  const dots=form.map(outcome=>'<i class="cc-form-dot '+(outcome==='W'?'is-win':'is-loss')+'" title="'+(outcome==='W'?'Győzelem':'Vereség')+'"></i>').join('');
  const trend=row.trend==='up'?'up':row.trend==='down'?'down':'flat';
  const title=row.trendBasis==='insufficient'?'Kevés eredmény a trend meghatározásához'
+  :row.trendBasis==='last_match_vs_previous_match_limited'?'Rövid formajelzés az utolsó 2 eredményből (részleges adatok)'
   :trend==='up'?'Javuló forma: legutóbbi 2 vs. előző 2'
   :trend==='down'?'Romló forma: legutóbbi 2 vs. előző 2'
   :'Változatlan forma: legutóbbi 2 vs. előző 2';
