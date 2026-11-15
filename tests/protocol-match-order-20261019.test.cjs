@@ -79,3 +79,31 @@ test('PWA version is changed and equal for all Player assets',()=>{
  assert.ok(sw.includes('club-control-player-'+matches[0]));
  assert.ok(app.includes('sw.js?v='+matches[0]));
 });
+
+test('compact Player match indicator comes from the central form snapshot with limited-data rank',()=>{
+ const isolated=vm.createContext({
+  ccMrszPlayerPhoto_:{canonicalFormCards:[
+   {competitionLabel:'Férfi Budapest I. osztály – B csoport',teamName:'BEAC',rank:1,trend:'up',trendBasis:'last_match_vs_previous_match_limited',lastFive:['W','L','W']},
+   {competitionLabel:'Férfi Budapest I. osztály – B csoport',teamName:'MAFC-Vásárhelyi',rank:4,trend:'down',trendBasis:'last_match_vs_previous_match_limited',lastFive:['W','L']}
+  ]},
+  ccPlayerMatchTeamKey_:ctx.ccPlayerMatchTeamKey_,
+  escapeHtml_:ctx.escapeHtml_,
+  ccMrszPlayerLocalKickoff_:ctx.ccMrszPlayerLocalKickoff_,
+  standingsTeamLogoHtml_:()=>'<span class="match-logo"></span>',
+  ccPlayerOfficialMatchReportUrl_:()=>''
+ });
+ vm.runInContext(fragment('function ccPlayerFormTeam_(', 'function ccMrszPlayerLeagueScheduleHtml_('),isolated);
+ const fixture={homeName:'BEAC',awayName:'MAFC-Vásárhelyi',
+  competitionLabel:'Férfi Budapest I. osztály – B csoport',
+  startsAt:'2026-11-23T19:30:00',homeSets:null,awaySets:null};
+ const upcoming=isolated.ccPlayerScoreboardHtml_(fixture);
+ assert.ok(upcoming.includes('1.*'));
+ assert.ok(upcoming.includes('4.*'));
+ assert.ok(upcoming.includes('cc-form-arrow up'));
+ assert.ok(upcoming.includes('cc-form-arrow down'));
+ assert.ok(upcoming.includes('player-match-teamcopy'));
+ assert.ok(!upcoming.includes('1. helyen áll'));
+ const played=isolated.ccPlayerScoreboardHtml_({...fixture,homeSets:3,awaySets:0});
+ assert.ok(!played.includes('cc-form-mini'));
+ assert.ok(css.includes('.player-match-teamcopy{'));
+});
