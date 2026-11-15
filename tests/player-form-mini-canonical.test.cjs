@@ -41,7 +41,7 @@ test('Player last-five displays reference-style dots under the team name with ac
  assert.ok(html.indexOf('cc-form-rank')<html.indexOf('cc-form-team-name'));
  assert.ok(html.indexOf('cc-form-arrow')<html.indexOf('cc-form-team-name'));
  assert.ok(html.indexOf('cc-form-team-name')<html.indexOf('cc-form-dots'));
- assert.ok(html.includes('↗'));
+ assert.ok(!html.includes('↗'));
  assert.ok(css.includes('.cc-form-mini{'));
  assert.ok(css.includes('@media(max-width:480px)'));
 });
