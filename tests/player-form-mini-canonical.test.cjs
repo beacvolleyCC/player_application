@@ -88,3 +88,69 @@ test('Player standings form icon precedes the name and uses the same current can
  assert.ok(isolated.team('Női Budapest I. osztály','BEAC').includes('BEAC'));
  assert.ok(!isolated.team('Női Budapest I. osztály','BEAC').includes('cc-standings-form-arrow'));
 });
+
+
+test('Events attendance match form uses an exact dated fixture from an allowed league',()=>{
+  const start=src.indexOf('function ccPlayerEventMatchForm_(');
+  const end=src.indexOf('// Shared LIVE competition snapshot:',start);
+  assert.ok(start>=0&&end>start);
+  const fixture={competitionLabel:men,season:'2026/27',homeName:'BEAC',awayName:'KSE',startsAt:'2026-11-20T19:00:00+01:00'};
+  const ctxEvent={
+    ccMrszPlayerPhoto_:{loaded:true,error:'',canonicalMatches:[fixture]},
+    ccPlayerLeagueCatalog_:()=>[{competitionLabel:men}],
+    ccPlayerMatchTeamKey_:ctx.ccPlayerMatchTeamKey_,
+    ccMrszPlayerLocalKickoff_:value=>({date:String(value).slice(0,10)}),
+    ccPlayerFormLine_:(league,name)=>league===men?'<span class="cc-form-mini">'+ctx.escapeHtml_(name)+'</span>':'',
+    dateInputValue_:value=>String(value).replace(/\.$/,'').replace(/\./g,'-'),
+    escapeHtml_:ctx.escapeHtml_,
+    isPast:e=>!!e.past
+  };
+  vm.createContext(ctxEvent);
+  vm.runInContext(src.slice(start,end)+'\nthis.drawEvent=ccPlayerEventMatchForm_;',ctxEvent);
+  const e={type:'Meccs',date:'2026.11.20.',title:'BEAC – KSE',archived:false};
+  const html=ctxEvent.drawEvent(e);
+  assert.match(html,/cc-event-match-form/);
+  assert.match(html,/Aktuális helyezés és forma/);
+  assert.equal((html.match(/cc-form-mini/g)||[]).length,2);
+  assert.ok(html.includes('BEAC')&&html.includes('KSE'));
+  assert.ok(src.includes("ccPlayerFormLine_(league,match.homeName)"));
+  assert.ok(src.includes("ccPlayerFormLine_(league,match.awayName)"));
+  assert.match(css,/#homeView \.cc-event-match-form/);
+  assert.match(css,/@media\(max-width:390px\)/);
+
+  // Cross-group, changed-date, abandoned, postponed and ambiguous records
+  // cannot be used to assert a possibly fictitious live placement.
+  assert.equal(ctxEvent.drawEvent({...e,date:'2026.11.21.'}),'');
+  assert.equal(ctxEvent.drawEvent({...e,type:'Edzés'}),'');
+  assert.equal(ctxEvent.drawEvent({...e,past:true}),'');
+  assert.equal(ctxEvent.drawEvent({...e,archived:true}),'');
+  assert.equal(ctxEvent.drawEvent({...e,title:'BEAC – Másik csapat'}),'');
+  ctxEvent.ccMrszPlayerPhoto_.canonicalMatches=[{...fixture,status:'postponed'}];
+  assert.equal(ctxEvent.drawEvent(e),'');
+  ctxEvent.ccMrszPlayerPhoto_.canonicalMatches=[fixture,fixture];
+  assert.equal(ctxEvent.drawEvent(e),'');
+  ctxEvent.ccMrszPlayerPhoto_.canonicalMatches=[fixture];
+  ctxEvent.ccPlayerLeagueCatalog_=()=>[{competitionLabel:women}];
+  assert.equal(ctxEvent.drawEvent(e),'');
+  ctxEvent.ccPlayerLeagueCatalog_=()=>[{competitionLabel:men}];
+  assert.equal(ctxEvent.drawEvent({...e,competitionLabel:women}),'');
+  ctxEvent.ccMrszPlayerPhoto_.loaded=false;
+  assert.equal(ctxEvent.drawEvent(e),'');
+});
+
+test('Player mixed Events tab keeps Edzések as the specific type filter and refreshes on snapshot load',()=>{
+  const html=fs.readFileSync('index.html','utf8');
+  const sw=fs.readFileSync('sw.js','utf8');
+  assert.match(html,/<h3>Események<\/h3>/);
+  assert.match(html,/<small>Események<\/small>/);
+  assert.match(html,/aria-label="Események szűrése"/);
+  assert.match(html,/<option value="Edzés">Edzések<\/option>/);
+  assert.match(src,/if\(events\.some\(e=>e\.type==='Meccs'&&!isPast\(e\)\)\)void ccLoadMrszPlayerPhoto_\(\)/);
+  assert.match(src,/if\(events\.some\(e=>e\?\.type==='Meccs'\)\)renderEvents\(\)/);
+  assert.match(src,/\$\{e\.type==='Meccs'\?ccPlayerEventMatchForm_\(e\):''\}/);
+  const token='20261115-player-events-form-v6';
+  assert.ok(html.includes('app.js?v='+token));
+  assert.ok(html.includes('styles.css?v='+token));
+  assert.ok(sw.includes('club-control-player-'+token));
+  assert.ok(src.includes('sw.js?v='+token));
+});
