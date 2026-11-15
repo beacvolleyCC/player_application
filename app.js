@@ -2855,7 +2855,7 @@ function ccPlayerFormLine_(league,name){
   const row=ccPlayerFormTeam_(league,name);
   if(!row)return '';
   const validRank=Number.isSafeInteger(Number(row.rank))&&Number(row.rank)>0;
-  const rank=validRank?'<span class="cc-form-rank" title="Részleges eredményekből számított, nem hivatalos helyezés">'+Number(row.rank)+'.*</span>'
+  const rank=validRank?'<span class="cc-form-rank" title="Részleges eredményekből számított, nem hivatalos helyezés">'+Number(row.rank)+'.</span>'
     :'<span class="cc-form-rank" title="Helyezés nem számítható">–</span>';
   const form=Array.isArray(row.lastFive)?row.lastFive.filter(x=>x==='W'||x==='L').slice(-5):[];
   const dots=form.map(outcome=>'<i class="cc-form-dot '+(outcome==='W'?'is-win':'is-loss')+'" title="'+(outcome==='W'?'Győzelem':'Vereség')+'" aria-hidden="true"></i>').join('');
@@ -2865,9 +2865,14 @@ function ccPlayerFormLine_(league,name){
     :trend==='up'?'Javuló forma: utolsó 2 vs. előző 2 mérkőzés'
     :trend==='down'?'Romló forma: utolsó 2 vs. előző 2 mérkőzés'
     :'Változatlan forma: utolsó 2 vs. előző 2 mérkőzés';
+  const icon=trend==='up'
+    ?'<svg class="cc-form-trend-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 17 L9 10 L13 14 L21 5 M15 5 H21 V11"/></svg>'
+    :trend==='down'
+      ?'<svg class="cc-form-trend-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7 L9 14 L13 10 L21 19 M15 19 H21 V13"/></svg>'
+      :'<svg class="cc-form-trend-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12 H21 M16 7 L21 12 L16 17"/></svg>';
   return '<span class="cc-form-mini" title="'+escapeHtml_(title)+'">'
     +rank+'<span class="cc-form-arrow '+trend+'" aria-label="'+escapeHtml_(title)+'">'
-    +(trend==='up'?'↗':trend==='down'?'↘':'→')+'</span>'
+    +icon+'</span>'
     +'<strong class="cc-form-team-name">'+escapeHtml_(name)+'</strong>'
     +'<span class="cc-form-dots" aria-label="Utolsó eredmények: '+escapeHtml_(form.map(x=>x==='W'?'győzelem':'vereség').join(', ')||'nincs rögzített mérkőzés')+'">'+dots+'</span></span>';
 }
@@ -4081,7 +4086,7 @@ if(plannerSection==='standings'){
 }
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261115-canonical-form-overview-v2').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261115-trend-svg-v3').catch(()=>{}));
 }
 
 
