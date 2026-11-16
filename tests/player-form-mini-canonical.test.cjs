@@ -57,7 +57,8 @@ test('Null/unplayed ranks are never presented as official placements',()=>{
  assert.ok(!html.includes('0.*'));
  assert.ok(!html.includes('1.'));
  assert.ok(html.includes('cc-form-arrow flat'));
- assert.ok(html.includes('M3 12 H21 M16 7 L21 12 L16 17'));
+ assert.ok(html.includes('M4 12 H20'));
+ assert.ok(!html.includes('M16 7 L21 12 L16 17'), 'Flat form is a line, never an arrowhead');
  assert.ok(css.includes('background:transparent!important'));
  assert.ok(css.includes('.cc-form-arrow::before,.cc-form-arrow::after{content:none!important'));
  assert.ok(!html.includes('0.'));
@@ -87,6 +88,14 @@ test('Player standings form icon precedes the name and uses the same current can
  assert.ok(!html.includes('3.</span>'),'Rank belongs in the existing first pinned column');
  assert.ok(isolated.team('Női Budapest I. osztály','BEAC').includes('BEAC'));
  assert.ok(!isolated.team('Női Budapest I. osztály','BEAC').includes('cc-standings-form-arrow'));
+ isolated.ccMrszPlayerPhoto_.canonicalFormCards=[
+  {competitionLabel:men,teamName:'BEAC',rank:3,lastFive:['W','L'],trend:'flat',trendBasis:'rolling'}
+ ];
+ const flatStandings=isolated.team(men,'BEAC');
+ assert.match(flatStandings,/cc-standings-form-arrow flat/);
+ assert.match(flatStandings,/M4 12 H20/);
+ assert.doesNotMatch(flatStandings,/M16 7 L21 12 L16 17/);
+
 });
 
 
@@ -123,6 +132,11 @@ test('Events compact match title shows position and trend, while expanded dialog
   assert.match(heading,/>5\.<\/span>/);
   assert.ok(heading.includes('BEAC')&&heading.includes('KSE'));
   assert.doesNotMatch(heading,/cc-form-dot|cc-event-match-form-title|Utolsó/);
+  ctxEvent.ccPlayerFormTeam_=(league,name)=>({rank:name==='BEAC'?2:5,trend:'flat',trendBasis:'rolling'});
+  const neutralHeading=ctxEvent.drawHeader(e);
+  assert.equal((neutralHeading.match(/M4 12 H20/g)||[]).length,2);
+  assert.doesNotMatch(neutralHeading,/M16 7 L21 12 L16 17/);
+
 
   const details=ctxEvent.drawEvent(e);
   assert.match(details,/cc-event-match-form/);
@@ -171,7 +185,7 @@ test('Player mixed Events tab keeps Edzések as the specific type filter and ref
   assert.match(src,/typeof events!=='undefined'&&Array\.isArray\(events\)&&events\.some\(e=>e\?\.type==='Meccs'\)/);
   assert.match(src,/ccPlayerEventMatchHeader_\(e\)/);
   assert.match(src,/\$\{e\.type==='Meccs'\?ccPlayerEventMatchForm_\(e\):''\}/);
-  const token='20261115-player-events-title-v7';
+  const token='20261116-neutral-form-v1';
   assert.ok(html.includes('app.js?v='+token));
   assert.ok(html.includes('styles.css?v='+token));
   assert.ok(sw.includes('club-control-player-'+token));
