@@ -629,7 +629,7 @@ function eventCard(e){
           ${retiredNotice}
           ${autoAbsence}
         </div>
-        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${ccGoingCountWithGuests_(e)} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
+        <div class="head-count"><strong class="${attendanceCountClass(ccGoingCountWithGuests_(e))}">${ccGoingCountWithGuests_(e)} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
       </div>
       <div class="slider-wrap">
         <div class="attendance-slider ${e.status||'none'}" data-slider="${e.id}">
@@ -1313,7 +1313,7 @@ function renderGridMatrix(rows){
 
   const body=rows.map((e,rowIndex)=>{
     const archived=isPast(e);
-    const count=(e.yes||[]).length;
+    const count=ccGoingCountWithGuests_(e);
     const monthKey=monthKeyFromDate(eventDateObj(e));
     const divider=(rowIndex>0 && monthKey!==lastMonth)
       ? `<tr class="matrix-month-divider"><td colspan="${2+people.length}">${monthDividerHtml_(e)}</td></tr>`
@@ -1469,7 +1469,7 @@ function renderCardSchedule(rows){
     return `<div class="planner-row planner-event-open ${cardClass(e)} ${archived?'archived-row':''}" data-open-event="${e.id}" data-event-id="${e.id}">
       <div class="planner-icon bare-icon">${typeIcon(e)}</div>
       <div class="planner-main"><b>${e.date} · ${e.title}</b><small>${baseMeta}</small>${awayQuick}${ccIsFutureArchivedMatch_(e)?'<span class="archive-badge">Archivált időpont</span>':archived?'<span class="archive-badge">Lezárt</span>':''}</div>
-      <div class="planner-count"><strong class="${attendanceCountClass(e.yes.length)}">${ccGoingCountWithGuests_(e)} fő</strong></div>
+      <div class="planner-count"><strong class="${attendanceCountClass(ccGoingCountWithGuests_(e))}">${ccGoingCountWithGuests_(e)} fő</strong></div>
       ${plannerStatusControls(e,archived)}
     </div>`;
   }).join('') || `<div class="empty-state">Nincs találat a szűrésre.</div>`;
@@ -5110,7 +5110,7 @@ function openEventDialog(eventId){
         <h3>${e.title}</h3>
         <p>${e.date} • ${e.day} • ${e.time}</p>
       </div>
-      <div class="event-dialog-count"><strong class="${attendanceCountClass((e.yes||[]).length)}">${ccGoingCountWithGuests_(e)} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
+      <div class="event-dialog-count"><strong class="${attendanceCountClass(ccGoingCountWithGuests_(e))}">${ccGoingCountWithGuests_(e)} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
     </div>
     ${e.type==='Meccs'?ccPlayerEventMatchForm_(e):''}
     ${eventDialogDetails_(e)}
