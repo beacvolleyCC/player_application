@@ -588,6 +588,18 @@ function teamCoachBadges_(){
   }).join('')}</span>`;
 }
 
+function ccGuestRosterRow_(e){
+  const names=e?.type==='Edzés'&&Array.isArray(e?.guestNames)?e.guestNames:[];
+  return names.length
+    ? '<div class="roster-group cc-guest-roster"><b>Vendégek ('+names.length+')</b><div class="chips">'
+       +names.map(n=>'<span class="chip yes cc-guest-chip"><span>'+escapeHtml_(n)+'</span></span>').join('')
+       +'</div></div>'
+    : '';
+}
+function ccGoingCountWithGuests_(e){
+  return (Array.isArray(e?.yes)?e.yes.length:0)+(e?.type==='Edzés'&&Array.isArray(e?.guestNames)?e.guestNames.length:0);
+}
+
 function eventCard(e){
   const archived=isPast(e);
   const court=compactCourtMeta_(e);
@@ -617,7 +629,7 @@ function eventCard(e){
           ${retiredNotice}
           ${autoAbsence}
         </div>
-        <div class="head-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
+        <div class="head-count"><strong class="${attendanceCountClass(ccGoingCountWithGuests_(e))}">${ccGoingCountWithGuests_(e)} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
       </div>
       <div class="slider-wrap">
         <div class="attendance-slider ${e.status||'none'}" data-slider="${e.id}">
@@ -634,6 +646,7 @@ function eventCard(e){
       <div class="roster-group"><b>Jönnek (${e.yes.length})</b><div class="chips">${e.yes.map(n=>rosterChipHtml_(n,'yes')).join('')}</div></div>
       <div class="roster-group"><b>Nem jönnek (${e.no.length})</b><div class="chips">${e.no.map(n=>rosterChipHtml_(n,'no')).join('')||'<span class="muted">–</span>'}</div></div>
       <div class="roster-group"><b>Még nem jelzett (${e.unknown.length})</b><div class="chips">${e.unknown.map(n=>rosterChipHtml_(n)).join('')}</div></div>
+      ${ccGuestRosterRow_(e)}
     </div>
   </article>`;
 }
@@ -1300,7 +1313,7 @@ function renderGridMatrix(rows){
 
   const body=rows.map((e,rowIndex)=>{
     const archived=isPast(e);
-    const count=(e.yes||[]).length;
+    const count=ccGoingCountWithGuests_(e);
     const monthKey=monthKeyFromDate(eventDateObj(e));
     const divider=(rowIndex>0 && monthKey!==lastMonth)
       ? `<tr class="matrix-month-divider"><td colspan="${2+people.length}">${monthDividerHtml_(e)}</td></tr>`
@@ -1456,7 +1469,7 @@ function renderCardSchedule(rows){
     return `<div class="planner-row planner-event-open ${cardClass(e)} ${archived?'archived-row':''}" data-open-event="${e.id}" data-event-id="${e.id}">
       <div class="planner-icon bare-icon">${typeIcon(e)}</div>
       <div class="planner-main"><b>${e.date} · ${e.title}</b><small>${baseMeta}</small>${awayQuick}${ccIsFutureArchivedMatch_(e)?'<span class="archive-badge">Archivált időpont</span>':archived?'<span class="archive-badge">Lezárt</span>':''}</div>
-      <div class="planner-count"><strong class="${attendanceCountClass(e.yes.length)}">${e.yes.length} fő</strong></div>
+      <div class="planner-count"><strong class="${attendanceCountClass(ccGoingCountWithGuests_(e))}">${ccGoingCountWithGuests_(e)} fő</strong></div>
       ${plannerStatusControls(e,archived)}
     </div>`;
   }).join('') || `<div class="empty-state">Nincs találat a szűrésre.</div>`;
@@ -5051,7 +5064,7 @@ function escapeHtml_(value){
 }
 
 function eventDialogRoster(e){
-  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>rosterChipHtml_(n,'yes')).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>rosterChipHtml_(n,'no')).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>rosterChipHtml_(n)).join('')}</div></div></div>`;
+  return `<div class="dialog-roster"><div><b>Jönnek (${(e.yes||[]).length})</b><div class="chips">${(e.yes||[]).map(n=>rosterChipHtml_(n,'yes')).join('')}</div></div><div><b>Nem jönnek (${(e.no||[]).length})</b><div class="chips">${(e.no||[]).map(n=>rosterChipHtml_(n,'no')).join('')||'<span class="muted">–</span>'}</div></div><div><b>Még nem jelzett (${(e.unknown||[]).length})</b><div class="chips">${(e.unknown||[]).map(n=>rosterChipHtml_(n)).join('')}</div></div>${ccGuestRosterRow_(e)}</div>`;
 }
 function eventNoteSection_(e, archived){
   const hasNote=!!String(e.note||'').trim();
@@ -5097,7 +5110,7 @@ function openEventDialog(eventId){
         <h3>${e.title}</h3>
         <p>${e.date} • ${e.day} • ${e.time}</p>
       </div>
-      <div class="event-dialog-count"><strong class="${attendanceCountClass((e.yes||[]).length)}">${(e.yes||[]).length} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
+      <div class="event-dialog-count"><strong class="${attendanceCountClass(ccGoingCountWithGuests_(e))}">${ccGoingCountWithGuests_(e)} fő</strong>${e.type==='Edzés'?teamCoachBadges_():''}</div>
     </div>
     ${e.type==='Meccs'?ccPlayerEventMatchForm_(e):''}
     ${eventDialogDetails_(e)}
@@ -5272,6 +5285,7 @@ function normalizeApiEvent(x){
     status:x.myStatus || null,
     note:x.myNote||'',
     yes:ccFilterVisiblePlayerNames_(x.yesNames), no:ccFilterVisiblePlayerNames_(x.noNames), unknown:ccFilterVisiblePlayerNames_(x.unknownNames),
+    guestNames:Array.isArray(x.guestNames)?x.guestNames.map(String):[],
     archived:!!x.archived
   };
 }
